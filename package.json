@@ -31,6 +31,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/uuid": "^10.0.0",
+    "@types/wicg-file-system-access": "^2023.10.7",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
     "jest": "^30.3.0",

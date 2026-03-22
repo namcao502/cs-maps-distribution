@@ -23,7 +23,8 @@ export function isFileSystemAccessSupported(): boolean {
 
 /** Prompt user to pick the CS 1.6 game root folder */
 export async function pickGameFolder(): Promise<FileSystemDirectoryHandle> {
-  return window.showDirectoryPicker({ mode: 'readwrite' })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (window as any).showDirectoryPicker({ mode: 'readwrite' })
 }
 
 /** Check if the selected folder contains a cstrike/ subdirectory (case-insensitive) */
@@ -80,7 +81,7 @@ async function writeFile(
   const dirHandle = await getNestedDir(gameRoot, parts)
   const fileHandle = await dirHandle.getFileHandle(filename, { create: true })
   const writable = await fileHandle.createWritable()
-  await writable.write(file.data)
+  await writable.write(file.data as unknown as ArrayBuffer)
   await writable.close()
 
   return targetPath

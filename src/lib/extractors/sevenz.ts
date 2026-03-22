@@ -1,23 +1,58 @@
-// NOTE: 7z-wasm must be verified for browser buffer extraction before use.
-// Test manually: upload a .7z file and confirm extraction works in Chrome.
+// NOTE: 7z-wasm uses a virtual Emscripten FS. Verify works in Chrome before shipping.
 import type { ExtractedFile } from './types'
 
-export async function extractSevenZ(buffer: ArrayBuffer): Promise<ExtractedFile[]> {
-  const SevenZip = (await import('7z-wasm')).default
-  const sevenZip = await SevenZip()
-  const stream = new sevenZip.InStream(new Uint8Array(buffer))
-  const db = new sevenZip.SevenZipDatabase()
-  db.open(stream)
-
-  const result: ExtractedFile[] = []
-  for (let i = 0; i < db.numFiles(); i++) {
-    const entry = db.get(i)
-    if (entry.isDirectory) continue
-    const data = db.extract(i)
-    result.push({
-      path: entry.name.replace(/\\/g, '/'),
-      data,
-    })
+interface SevenZipModule {
+  FS: {
+    open: (path: string, flags: string) => unknown
+    write: (stream: unknown, data: Uint8Array, offset: number, length: number) => void
+    close: (stream: unknown) => void
+    readdir: (path: string) => string[]
+    stat: (path: string) => { mode: number }
+    isDir: (mode: number) => boolean
+    readFile: (path: string) => Uint8Array
+    mkdir: (path: string) => void
   }
+  callMain: (args: string[]) => void
+}
+
+/** Recursively list all files (not directories) under a path in the virtual FS */
+function listFiles(fs: SevenZipModule['FS'], dir: string): string[] {
+  const entries = fs.readdir(dir).filter(e => e !== '.' && e !== '..')
+  const result: string[] = []
+  for (const entry of entries) {
+    const full = dir === '/' ? `/${entry}` : `${dir}/${entry}`
+    const stat = fs.stat(full)
+    if (fs.isDir(stat.mode)) {
+      result.push(...listFiles(fs, full))
+    } else {
+      result.push(full)
+    }
+  }
+  return result
+}
+
+export async function extractSevenZ(buffer: ArrayBuffer): Promise<ExtractedFile[]> {
+  const SevenZip = ((await import('7z-wasm')) as { default: (opts?: object) => Promise<SevenZipModule> }).default
+  const sevenZip = await SevenZip()
+  const { FS } = sevenZip
+
+  // Write archive to virtual FS
+  const archiveName = 'input.7z'
+  const outputDir = '/output'
+  FS.mkdir(outputDir)
+  const stream = FS.open(archiveName, 'w+')
+  FS.write(stream, new Uint8Array(buffer), 0, buffer.byteLength)
+  FS.close(stream)
+
+  // Extract
+  sevenZip.callMain(['x', archiveName, `-o${outputDir}`, '-y'])
+
+  // Read extracted files
+  const filePaths = listFiles(FS, outputDir)
+  const result: ExtractedFile[] = filePaths.map(fullPath => ({
+    path: fullPath.slice(outputDir.length + 1).replace(/\\/g, '/'),
+    data: FS.readFile(fullPath),
+  }))
+
   return result
 }
