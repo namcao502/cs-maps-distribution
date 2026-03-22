@@ -31,6 +31,16 @@ export async function loadHandle(): Promise<FileSystemDirectoryHandle | null> {
   })
 }
 
+const INSTALLED_KEY = (mapId: string) => `cs-installed:${mapId}`
+
+export function markInstalled(mapId: string): void {
+  localStorage.setItem(INSTALLED_KEY(mapId), '1')
+}
+
+export function isInstalledLocally(mapId: string): boolean {
+  return typeof window !== 'undefined' && localStorage.getItem(INSTALLED_KEY(mapId)) === '1'
+}
+
 /** Verify permission is still granted, request it if not. Returns false if denied. */
 export async function ensurePermission(handle: FileSystemDirectoryHandle): Promise<boolean> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react'
 import type { MapEntry } from '@/types/map'
 import type { InstallStatus } from '@/lib/install'
 import { ProgressModal } from './ProgressModal'
+import { ConfirmModal } from './ConfirmModal'
 import { isFileSystemAccessSupported, installMap, isMapInstalled } from '@/lib/install'
-import { ensurePermission } from '@/lib/folder-store'
+import { ensurePermission, markInstalled, isInstalledLocally } from '@/lib/folder-store'
 
 const FORMAT_COLORS: Record<string, string> = {
   zip: 'bg-blue-100 text-blue-600',
@@ -27,12 +28,15 @@ export function MapCard({
   onPickFolder: () => Promise<void>
 }) {
   const [status, setStatus] = useState<InstallStatus | null>(null)
-  const [installed, setInstalled] = useState(false)
+  const [installed, setInstalled] = useState(() => isInstalledLocally(map.id))
+  const [confirmReinstall, setConfirmReinstall] = useState(false)
   const supportsFileApi = isFileSystemAccessSupported()
 
   useEffect(() => {
-    if (!gameFolder) { setInstalled(false); return }
-    isMapInstalled(gameFolder, map.originalName).then(setInstalled)
+    if (!gameFolder) return
+    isMapInstalled(gameFolder, map.originalName).then(result => {
+      if (result) setInstalled(true)
+    })
   }, [gameFolder, map.originalName])
 
   async function handleRawDownload() {
@@ -47,9 +51,18 @@ export function MapCard({
   async function handleInstall() {
     try {
       if (installed) {
-        const confirmed = confirm(`"${map.originalName}" is already installed. Reinstall it?`)
-        if (!confirmed) return
+        setConfirmReinstall(true)
+        return
       }
+      await doInstall()
+    } catch (err: unknown) {
+      if ((err as { name?: string }).name === 'AbortError') return
+      setStatus({ phase: 'error', message: (err as Error).message ?? 'Unknown error' })
+    }
+  }
+
+  async function doInstall() {
+    try {
 
       let handle = gameFolder
       if (!handle) {
@@ -68,12 +81,14 @@ export function MapCard({
       const { url, sha256 } = await res.json()
 
       await installMap(map, url, sha256, handle, setStatus)
+      markInstalled(map.id)
       setInstalled(true)
     } catch (err: unknown) {
       if ((err as { name?: string }).name === 'AbortError') return
       setStatus({ phase: 'error', message: (err as Error).message ?? 'Unknown error' })
     }
   }
+
 
   return (
     <>
@@ -131,6 +146,14 @@ export function MapCard({
         onClose={() => setStatus(null)}
         onFallbackDownload={handleRawDownload}
       />
+      {confirmReinstall && (
+        <ConfirmModal
+          message={`"${map.originalName}" is already installed. Reinstall it?`}
+          confirmLabel="Reinstall"
+          onConfirm={() => { setConfirmReinstall(false); doInstall() }}
+          onCancel={() => setConfirmReinstall(false)}
+        />
+      )}
     </>
   )
 }

@@ -5,39 +5,62 @@ import type { MapEntry } from '@/types/map'
 import { isFileSystemAccessSupported, pickGameFolder, validateGameFolder } from '@/lib/install'
 import { saveHandle, loadHandle } from '@/lib/folder-store'
 import { AuthButton } from '@/components/AuthButton'
+import { ConfirmModal } from '@/components/ConfirmModal'
 
 export default function HomePage() {
   const [maps, setMaps] = useState<MapEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [gameFolder, setGameFolder] = useState<FileSystemDirectoryHandle | null>(null)
-  const supportsFileApi = isFileSystemAccessSupported()
+  const [supportsFileApi, setSupportsFileApi] = useState(false)
+  const [pendingHandle, setPendingHandle] = useState<FileSystemDirectoryHandle | null>(null)
 
-  useEffect(() => {
+  function fetchMaps() {
+    setLoading(true)
     fetch('/api/maps')
       .then(r => r.ok ? r.json() : [])
       .then(setMaps)
       .finally(() => setLoading(false))
+  }
 
-    if (supportsFileApi) {
+  useEffect(() => {
+    fetchMaps()
+
+    // Re-fetch when restored from bfcache (browser back button)
+    function onPageShow(e: PageTransitionEvent) {
+      if (e.persisted) fetchMaps()
+    }
+    window.addEventListener('pageshow', onPageShow)
+    return () => window.removeEventListener('pageshow', onPageShow)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const supported = isFileSystemAccessSupported()
+    setSupportsFileApi(supported)
+    if (supported) {
       loadHandle().then(h => { if (h) setGameFolder(h) }).catch(() => {})
     }
-  }, [supportsFileApi])
+  }, [])
 
   async function handlePickFolder() {
     try {
       const handle = await pickGameFolder()
       const valid = await validateGameFolder(handle)
       if (!valid) {
-        const confirmed = confirm(
-          "This doesn't look like a CS 1.6 root folder (no 'cstrike' subfolder found). Continue anyway?"
-        )
-        if (!confirmed) return
+        setPendingHandle(handle)
+        return
       }
       await saveHandle(handle)
       setGameFolder(handle)
     } catch (err: unknown) {
       if ((err as { name?: string }).name !== 'AbortError') throw err
     }
+  }
+
+  async function confirmFolder() {
+    if (!pendingHandle) return
+    setPendingHandle(null)
+    await saveHandle(pendingHandle)
+    setGameFolder(pendingHandle)
   }
 
   return (
@@ -100,6 +123,15 @@ export default function HomePage() {
           <MapList maps={maps} gameFolder={gameFolder} onPickFolder={handlePickFolder} />
         )}
       </main>
+
+      {pendingHandle && (
+        <ConfirmModal
+          message="This doesn't look like a CS 1.6 root folder (no 'cstrike' subfolder found). Continue anyway?"
+          confirmLabel="Continue"
+          onConfirm={confirmFolder}
+          onCancel={() => setPendingHandle(null)}
+        />
+      )}
     </div>
   )
 }

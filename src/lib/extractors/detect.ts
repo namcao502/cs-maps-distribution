@@ -16,12 +16,21 @@ export function detectStructure(entries: string[]): ArchiveStructure {
   }
 
   // Rule 3: .bsp files at root with no subdirectories.
-  // Note: macOS zip artifacts like __MACOSX/ will cause this to fall through to 'unknown'.
-  // This is acceptable — real CS 1.6 map zips rarely have such artifacts.
   const hasRootBsp = normalized.some(e => !e.includes('/') && e.endsWith('.bsp'))
   const hasSubdirs = normalized.some(e => e.includes('/'))
   if (hasRootBsp && !hasSubdirs) {
     return 'bare-files'
+  }
+
+  // Rule 4: single top-level folder wrapping recognizable CS content — strip it and re-detect.
+  const entriesWithPath = normalized.filter(e => e.includes('/'))
+  if (entriesWithPath.length > 0) {
+    const topDirs = new Set(entriesWithPath.map(e => e.split('/')[0]))
+    if (topDirs.size === 1) {
+      const prefix = [...topDirs][0] + '/'
+      const inner = normalized.map(e => e.startsWith(prefix) ? e.slice(prefix.length) : e).filter(e => e.length > 0)
+      if (detectStructure(inner) !== 'unknown') return 'wrapped'
+    }
   }
 
   return 'unknown'

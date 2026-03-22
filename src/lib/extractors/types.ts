@@ -7,4 +7,5 @@ export type ArchiveStructure =
   | 'game-root'     // archive root contains cstrike/
   | 'cs-subfolder'  // archive root contains maps/, models/, etc.
   | 'bare-files'    // archive root contains .bsp files directly
+  | 'wrapped'       // single top-level folder wrapping the above
   | 'unknown'

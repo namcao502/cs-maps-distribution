@@ -148,10 +148,17 @@ export async function installMap(
 
   // 3. Extract
   onStatus({ phase: 'extracting' })
-  const files = await extractArchive(buffer.buffer, map.format)
+  let files = await extractArchive(buffer.buffer, map.format)
 
-  // 4. Detect structure
-  const structure = detectStructure(files.map(f => f.path))
+  // 4. Detect structure; unwrap single top-level folder if needed
+  let structure = detectStructure(files.map(f => f.path))
+  if (structure === 'wrapped') {
+    const prefix = files.find(f => f.path.includes('/'))!.path.split('/')[0] + '/'
+    files = files
+      .map(f => ({ ...f, path: f.path.startsWith(prefix) ? f.path.slice(prefix.length) : f.path }))
+      .filter(f => f.path.length > 0)
+    structure = detectStructure(files.map(f => f.path))
+  }
   if (structure === 'unknown') {
     throw new Error('Unrecognised archive layout. Please install manually.')
   }

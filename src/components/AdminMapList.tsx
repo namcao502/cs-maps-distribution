@@ -1,5 +1,7 @@
 'use client'
+import { useState } from 'react'
 import type { MapEntry } from '@/types/map'
+import { ConfirmModal } from './ConfirmModal'
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -13,11 +15,14 @@ export function AdminMapList({
   maps: MapEntry[]
   onDeleted: (id: string) => void
 }) {
-  async function handleDelete(map: MapEntry) {
-    if (!confirm(`Delete "${map.originalName}"?`)) return
+  const [pendingDelete, setPendingDelete] = useState<MapEntry | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  async function confirmDelete(map: MapEntry) {
+    setPendingDelete(null)
     const res = await fetch(`/api/delete/${map.id}`, { method: 'DELETE' })
     if (!res.ok) {
-      alert('Failed to delete map. Please try again.')
+      setDeleteError('Failed to delete map. Please try again.')
       return
     }
     onDeleted(map.id)
@@ -40,13 +45,31 @@ export function AdminMapList({
             </span>
           </div>
           <button
-            onClick={() => handleDelete(map)}
+            onClick={() => setPendingDelete(map)}
             className="text-sm text-red-500 hover:text-red-700 font-medium"
           >
             Delete
           </button>
         </div>
       ))}
+      {pendingDelete && (
+        <ConfirmModal
+          message={`Delete "${pendingDelete.originalName}"?`}
+          confirmLabel="Delete"
+          destructive
+          onConfirm={() => confirmDelete(pendingDelete)}
+          onCancel={() => setPendingDelete(null)}
+        />
+      )}
+      {deleteError && (
+        <ConfirmModal
+          message={deleteError}
+          confirmLabel="OK"
+          cancelLabel=""
+          onConfirm={() => setDeleteError(null)}
+          onCancel={() => setDeleteError(null)}
+        />
+      )}
     </div>
   )
 }
