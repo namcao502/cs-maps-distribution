@@ -1,83 +1,50 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import { createBrowserClient } from '@supabase/ssr'
 import { UploadForm } from '@/components/UploadForm'
 import { AdminMapList } from '@/components/AdminMapList'
+import { PendingQueue } from '@/components/PendingQueue'
 import type { MapEntry } from '@/types/map'
 
+function getSupabase() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+}
+
 export default function AdminPage() {
-  const [authed, setAuthed] = useState(false)
   const [checking, setChecking] = useState(true)
-  const [password, setPassword] = useState('')
-  const [authError, setAuthError] = useState<string | null>(null)
+  const [authed, setAuthed] = useState(false)
   const [maps, setMaps] = useState<MapEntry[]>([])
 
   const loadMaps = useCallback(async () => {
-    const res = await fetch('/api/maps')
+    const res = await fetch(`/api/maps?t=${Date.now()}`)
     if (res.ok) setMaps(await res.json())
   }, [])
 
-  // On mount, probe whether an existing admin_session cookie is still valid
   useEffect(() => {
-    async function checkSession() {
-      try {
-        // A POST to /api/upload with empty body returns 400 if authed, 401 if not
-        const res = await fetch('/api/upload', { method: 'POST', body: new FormData() })
-        if (res.status !== 401) setAuthed(true)
-      } finally {
-        setChecking(false)
-      }
-    }
-    checkSession()
+    const supabase = getSupabase()
+    supabase.auth.getUser().then(({ data }) => {
+      const email = data.user?.email ?? ''
+      const isAdmin = email === process.env.NEXT_PUBLIC_ADMIN_EMAIL
+      setAuthed(isAdmin)
+      setChecking(false)
+    })
   }, [])
 
   useEffect(() => {
     if (authed) loadMaps()
   }, [authed, loadMaps])
 
-  if (checking) {
-    return <main className="max-w-sm mx-auto px-4 py-24 text-center text-gray-400">Loading...</main>
-  }
-
-  if (!authed) {
-    return (
-      <main className="max-w-sm mx-auto px-4 py-24">
-        <h1 className="text-2xl font-bold mb-6 text-center">Admin Login</h1>
-        <form
-          onSubmit={async e => {
-            e.preventDefault()
-            setAuthError(null)
-            const res = await fetch('/api/auth', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ password }),
-            })
-            if (res.ok) {
-              setAuthed(true)
-            } else {
-              setAuthError('Incorrect password')
-            }
-          }}
-          className="flex flex-col gap-3"
-        >
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            className="border rounded-lg px-4 py-2 w-full"
-          />
-          <button type="submit" className="bg-black text-white rounded-lg py-2 font-medium hover:bg-gray-800">
-            Login
-          </button>
-          {authError && <p className="text-red-500 text-sm text-center">{authError}</p>}
-        </form>
-      </main>
-    )
-  }
+  if (checking) return <main className="max-w-sm mx-auto px-4 py-24 text-center text-gray-400">Loading...</main>
+  if (!authed) return <main className="max-w-sm mx-auto px-4 py-24 text-center text-gray-400">Access denied.</main>
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-12">
-      <h1 className="text-2xl font-bold mb-6">Admin — Upload Maps</h1>
+      <h1 className="text-2xl font-bold mb-6">Admin</h1>
+      <PendingQueue onApproved={loadMaps} />
+      <h2 className="text-lg font-semibold mb-3">Upload Map</h2>
       <UploadForm onUploaded={loadMaps} />
       <AdminMapList maps={maps} onDeleted={id => setMaps(prev => prev.filter(m => m.id !== id))} />
     </main>
