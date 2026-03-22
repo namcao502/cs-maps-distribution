@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyAdminCookie, COOKIE_NAME } from '@/lib/auth'
+import { getSessionUser, isAdmin } from '@/lib/auth'
 import { getMaps, removeMap } from '@/lib/maps-store'
 import { deleteObject } from '@/lib/storage'
 
@@ -7,8 +7,8 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const cookie = req.cookies.get(COOKIE_NAME)?.value
-  if (!(await verifyAdminCookie(cookie))) {
+  const user = await getSessionUser()
+  if (!user || !isAdmin(user)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

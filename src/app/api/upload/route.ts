@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
-import { verifyAdminCookie, COOKIE_NAME } from '@/lib/auth'
+import { getSessionUser, isAdmin } from '@/lib/auth'
 import { putObject } from '@/lib/storage'
 import { addMap, getMaps } from '@/lib/maps-store'
 import { computeSHA256 } from '@/lib/hash'
@@ -10,8 +10,8 @@ const MAX_SIZE = 20 * 1024 * 1024 // 20 MB
 const ALLOWED_EXTENSIONS = new Set(['zip', '7z', 'rar'])
 
 export async function POST(req: NextRequest) {
-  const cookie = req.cookies.get(COOKIE_NAME)?.value
-  if (!(await verifyAdminCookie(cookie))) {
+  const user = await getSessionUser()
+  if (!user || !isAdmin(user)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
