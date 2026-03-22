@@ -1,29 +1,105 @@
+'use client'
+import { useEffect, useState } from 'react'
 import { MapList } from '@/components/MapList'
 import type { MapEntry } from '@/types/map'
+import { isFileSystemAccessSupported, pickGameFolder, validateGameFolder } from '@/lib/install'
+import { saveHandle, loadHandle } from '@/lib/folder-store'
+import { AuthButton } from '@/components/AuthButton'
 
-async function getMaps(): Promise<MapEntry[]> {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? ''
-    const res = await fetch(`${baseUrl}/api/maps`, {
-      next: { revalidate: 60 },
-    })
-    if (!res.ok) return []
-    return res.json()
-  } catch {
-    return []
+export default function HomePage() {
+  const [maps, setMaps] = useState<MapEntry[]>([])
+  const [loading, setLoading] = useState(true)
+  const [gameFolder, setGameFolder] = useState<FileSystemDirectoryHandle | null>(null)
+  const supportsFileApi = isFileSystemAccessSupported()
+
+  useEffect(() => {
+    fetch('/api/maps')
+      .then(r => r.ok ? r.json() : [])
+      .then(setMaps)
+      .finally(() => setLoading(false))
+
+    if (supportsFileApi) {
+      loadHandle().then(h => { if (h) setGameFolder(h) }).catch(() => {})
+    }
+  }, [supportsFileApi])
+
+  async function handlePickFolder() {
+    try {
+      const handle = await pickGameFolder()
+      const valid = await validateGameFolder(handle)
+      if (!valid) {
+        const confirmed = confirm(
+          "This doesn't look like a CS 1.6 root folder (no 'cstrike' subfolder found). Continue anyway?"
+        )
+        if (!confirmed) return
+      }
+      await saveHandle(handle)
+      setGameFolder(handle)
+    } catch (err: unknown) {
+      if ((err as { name?: string }).name !== 'AbortError') throw err
+    }
   }
-}
 
-export default async function HomePage() {
-  const maps = await getMaps()
   return (
-    <main className="max-w-2xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold mb-2">CS 1.6 Maps</h1>
-      <p className="text-gray-500 mb-8 text-sm">
-        Click <strong>Install</strong> to automatically extract and copy the map to your game folder.
-        Works on Chrome and Edge. Firefox users: use the Download button.
-      </p>
-      <MapList maps={maps} />
-    </main>
+    <div className="min-h-screen bg-slate-100">
+      {/* Header */}
+      <header className="bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-2xl mx-auto px-4 py-5 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">CS 1.6 Maps</h1>
+            <p className="text-xs text-slate-400 mt-0.5">One-click map installer</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <AuthButton adminEmail={process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? ''} />
+          {supportsFileApi && (
+            <div>
+              {gameFolder ? (
+                <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                  <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                  </svg>
+                  <span className="text-sm font-medium text-slate-700 max-w-[180px] truncate">{gameFolder.name}</span>
+                  <button onClick={handlePickFolder} className="text-xs text-blue-500 hover:text-blue-700 font-medium ml-1">
+                    Change
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={handlePickFolder}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                  </svg>
+                  Choose CS 1.6 Folder
+                </button>
+              )}
+            </div>
+          )}
+          </div>
+        </div>
+      </header>
+
+      {/* Content */}
+      <main className="max-w-2xl mx-auto px-4 py-8">
+        {!supportsFileApi && (
+          <div className="mb-6 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+            Your browser doesn&apos;t support one-click install. Use the <strong>Download</strong> button and install manually.
+          </div>
+        )}
+
+        {supportsFileApi && !gameFolder && (
+          <div className="mb-6 px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+            Select your CS 1.6 folder first — e.g. <code className="font-mono bg-blue-100 px-1 rounded">C:\Games\Counter-Strike</code>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="text-center py-20 text-slate-400 text-sm">Loading maps...</div>
+        ) : (
+          <MapList maps={maps} gameFolder={gameFolder} onPickFolder={handlePickFolder} />
+        )}
+      </main>
+    </div>
   )
 }
