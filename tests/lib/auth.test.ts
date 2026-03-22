@@ -1,34 +1,25 @@
-import { verifyPassword, signJWT, verifyJWT } from '@/lib/auth'
-import bcrypt from 'bcryptjs'
+import { isAdmin } from '@/lib/auth'
 
-describe('verifyPassword', () => {
-  it('returns true for correct password', async () => {
-    const hash = await bcrypt.hash('secret123', 10)
-    expect(await verifyPassword('secret123', hash)).toBe(true)
+describe('isAdmin', () => {
+  const originalEnv = process.env
+
+  beforeEach(() => {
+    process.env = { ...originalEnv, ADMIN_GOOGLE_EMAIL: 'admin@example.com' }
   })
 
-  it('returns false for wrong password', async () => {
-    const hash = await bcrypt.hash('secret123', 10)
-    expect(await verifyPassword('wrong', hash)).toBe(false)
-  })
-})
-
-describe('JWT', () => {
-  const secret = 'test-secret-that-is-at-least-32-chars-long'
-
-  it('signs and verifies a token', async () => {
-    const token = await signJWT({ role: 'admin' }, secret)
-    const payload = await verifyJWT(token, secret)
-    expect(payload.role).toBe('admin')
+  afterEach(() => {
+    process.env = originalEnv
   })
 
-  it('throws for tampered token', async () => {
-    const token = await signJWT({ role: 'admin' }, secret)
-    await expect(verifyJWT(token + 'x', secret)).rejects.toThrow()
+  it('returns true when user email matches ADMIN_GOOGLE_EMAIL', () => {
+    expect(isAdmin({ email: 'admin@example.com' } as any)).toBe(true)
   })
 
-  it('throws for expired token', async () => {
-    const token = await signJWT({ role: 'admin' }, secret, '-1s')
-    await expect(verifyJWT(token, secret)).rejects.toThrow()
+  it('returns false when user email does not match', () => {
+    expect(isAdmin({ email: 'other@example.com' } as any)).toBe(false)
+  })
+
+  it('returns false when user has no email', () => {
+    expect(isAdmin({ email: undefined } as any)).toBe(false)
   })
 })

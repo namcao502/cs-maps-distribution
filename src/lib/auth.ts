@@ -1,39 +1,34 @@
-import bcrypt from 'bcryptjs'
-import { SignJWT, jwtVerify, type JWTPayload } from 'jose'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import type { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies'
+import type { SupabaseClient, User } from '@supabase/supabase-js'
 
-export const COOKIE_NAME = 'admin_session'
-const DEFAULT_TTL = '24h'
-
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(password, hash)
+export function createAuthClient(cookieStore: ReadonlyRequestCookies): SupabaseClient {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            try { cookieStore.set(name, value, options) } catch { /* ignore in read-only contexts */ }
+          })
+        },
+      },
+    },
+  )
 }
 
-export async function signJWT(
-  payload: Record<string, unknown>,
-  secret: string,
-  expirationTime: string = DEFAULT_TTL
-): Promise<string> {
-  const key = new TextEncoder().encode(secret)
-  return new SignJWT(payload)
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime(expirationTime)
-    .sign(key)
+/** Returns the signed-in Supabase user, or null if no session. */
+export async function getSessionUser(): Promise<User | null> {
+  const cookieStore = await cookies()
+  const supabase = createAuthClient(cookieStore)
+  const { data: { user } } = await supabase.auth.getUser()
+  return user
 }
 
-export async function verifyJWT(token: string, secret: string): Promise<JWTPayload> {
-  const key = new TextEncoder().encode(secret)
-  const { payload } = await jwtVerify(token, key)
-  return payload
-}
-
-export async function verifyAdminCookie(cookieValue: string | undefined): Promise<boolean> {
-  if (!cookieValue) return false
-  try {
-    const secret = process.env.JWT_SECRET!
-    await verifyJWT(cookieValue, secret)
-    return true
-  } catch {
-    return false
-  }
+/** Returns true if the user is the designated admin account. */
+export function isAdmin(user: User): boolean {
+  return !!user.email && user.email === process.env.ADMIN_GOOGLE_EMAIL
 }
