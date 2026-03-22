@@ -1,4 +1,4 @@
-import { getObject, putObject } from './r2'
+import { getObject, putObject } from './storage'
 import type { MapEntry } from '@/types/map'
 
 const MAPS_KEY = 'maps.json'

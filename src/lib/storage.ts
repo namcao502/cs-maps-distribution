@@ -44,3 +44,10 @@ export async function getPresignedUrl(key: string, ttlSeconds = 900): Promise<st
   if (error) throw error
   return data.signedUrl
 }
+
+/** Downloads an object as raw binary. Returns null if not found. */
+export async function getObjectBuffer(key: string): Promise<ArrayBuffer | null> {
+  const { data, error } = await getClient().storage.from(BUCKET()).download(key)
+  if (error || !data) return null
+  return data.arrayBuffer()
+}

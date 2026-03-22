@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAdminCookie, COOKIE_NAME } from '@/lib/auth'
 import { getMaps, removeMap } from '@/lib/maps-store'
-import { deleteObject } from '@/lib/r2'
+import { deleteObject } from '@/lib/storage'
 
 export async function DELETE(
   req: NextRequest,
@@ -19,7 +19,7 @@ export async function DELETE(
     return NextResponse.json({ error: 'Map not found' }, { status: 404 })
   }
 
-  await deleteObject(map.r2Key)
+  await deleteObject(map.storageKey)
   await removeMap(id)
 
   return NextResponse.json({ ok: true })
