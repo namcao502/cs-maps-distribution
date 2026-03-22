@@ -1,19 +1,19 @@
 import { getMaps, addMap, removeMap } from '@/lib/maps-store'
 import type { MapEntry } from '@/types/map'
 
-jest.mock('@/lib/r2', () => ({
+jest.mock('@/lib/storage', () => ({
   getObject: jest.fn(),
   putObject: jest.fn(),
 }))
 
-import { getObject, putObject } from '@/lib/r2'
+import { getObject, putObject } from '@/lib/storage'
 const mockGet = getObject as jest.Mock
 const mockPut = putObject as jest.Mock
 
 const sampleMap: MapEntry = {
   id: 'test-uuid-1',
   originalName: 'de_dust2',
-  r2Key: 'archives/test-uuid-1.zip',
+  storageKey: 'archives/test-uuid-1.zip',
   format: 'zip',
   size: 1000,
   sha256: 'abc123',

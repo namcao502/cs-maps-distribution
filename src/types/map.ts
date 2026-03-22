@@ -1,9 +1,14 @@
 export interface MapEntry {
-  id: string           // UUID v4
-  originalName: string // filename without extension
-  r2Key: string        // e.g. "archives/uuid.zip"
+  id: string
+  originalName: string
+  storageKey: string        // renamed from r2Key; full storage path e.g. "archives/uuid.zip"
   format: 'zip' | '7z' | 'rar'
-  size: number         // bytes
-  sha256: string       // hex-encoded SHA-256 of the archive
-  uploadedAt: string   // ISO 8601
+  size: number
+  sha256: string
+  uploadedAt: string
+  uploader?: {
+    id: string
+    name: string
+    avatar: string
+  }
 }
