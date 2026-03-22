@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-git --yes)",
+      "Bash(npm install:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(node -e \"console.log\\(require\\(''crypto''\\).randomBytes\\(48\\).toString\\(''base64url''\\)\\)\")",
+      "Bash(C:UsersNam.claudepluginscachesuperpowers-devsuperpowers5.0.4skillsbrainstormingscriptsstart-server.sh --project-dir \"c:\\\\MDP\\\\CS-map-distribution\")",
+      "Bash(bash \"C:/Users/Nam/.claude/plugins/cache/superpowers-dev/superpowers/5.0.4/skills/brainstorming/scripts/start-server.sh\" --project-dir \"c:/MDP/CS-map-distribution\")"
+    ]
+  }
+}

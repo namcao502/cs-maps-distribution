@@ -1,34 +1,40 @@
-import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import type { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies'
-import type { SupabaseClient, User } from '@supabase/supabase-js'
+import { getAdminAuth } from '@/lib/firebase-admin'
 
-export function createAuthClient(cookieStore: ReadonlyRequestCookies): SupabaseClient {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll() },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            try { cookieStore.set(name, value, options) } catch { /* ignore in read-only contexts */ }
-          })
-        },
-      },
-    },
-  )
+export interface SessionUser {
+  /** Firebase UID — exposed as `id` for API route compatibility */
+  id: string
+  uid: string
+  email: string
+  user_metadata: {
+    full_name?: string
+    avatar_url?: string
+  }
 }
 
-/** Returns the signed-in Supabase user, or null if no session. */
-export async function getSessionUser(): Promise<User | null> {
+/** Returns the signed-in user, or null if no valid session cookie. */
+export async function getSessionUser(): Promise<SessionUser | null> {
   const cookieStore = await cookies()
-  const supabase = createAuthClient(cookieStore)
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
+  const sessionCookie = cookieStore.get('__session')?.value
+  if (!sessionCookie) return null
+
+  try {
+    const decoded = await getAdminAuth().verifySessionCookie(sessionCookie, true)
+    return {
+      id: decoded.uid,
+      uid: decoded.uid,
+      email: decoded.email ?? '',
+      user_metadata: {
+        full_name: (decoded.name as string) ?? undefined,
+        avatar_url: (decoded.picture as string) ?? undefined,
+      },
+    }
+  } catch {
+    return null
+  }
 }
 
 /** Returns true if the user is the designated admin account. */
-export function isAdmin(user: User): boolean {
+export function isAdmin(user: SessionUser): boolean {
   return !!user.email && user.email === process.env.ADMIN_GOOGLE_EMAIL
 }

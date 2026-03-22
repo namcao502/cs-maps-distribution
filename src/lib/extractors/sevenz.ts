@@ -33,7 +33,7 @@ function listFiles(fs: SevenZipModule['FS'], dir: string): string[] {
 
 export async function extractSevenZ(buffer: ArrayBuffer): Promise<ExtractedFile[]> {
   const SevenZip = ((await import('7z-wasm')) as { default: (opts?: object) => Promise<SevenZipModule> }).default
-  const sevenZip = await SevenZip()
+  const sevenZip = await SevenZip({ locateFile: (path: string) => path === '7zz.wasm' ? '/7zz.wasm' : path })
   const { FS } = sevenZip
 
   // Write archive to virtual FS

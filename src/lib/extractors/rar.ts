@@ -1,10 +1,13 @@
-// Uses node-unrar-js (Emscripten-compiled unrar lib).
-// NOTE: Verify in-browser buffer extraction works in Chrome before shipping.
 import type { ExtractedFile } from './types'
 
 export async function extractRar(buffer: ArrayBuffer): Promise<ExtractedFile[]> {
   const { createExtractorFromData } = await import('node-unrar-js')
-  const extractor = await createExtractorFromData({ data: buffer })
+
+  // Fetch the WASM binary from /public so we're not relying on Emscripten's
+  // locateFile (which breaks when bundled by Next.js/Turbopack).
+  const wasmBinary = await fetch('/unrar.wasm').then(r => r.arrayBuffer())
+
+  const extractor = await createExtractorFromData({ wasmBinary, data: buffer })
   const list = extractor.getFileList()
   const fileHeaders = [...list.fileHeaders]
   const extracted = extractor.extract({ files: fileHeaders.map(h => h.name) })

@@ -76,15 +76,32 @@ async function writeFile(
     targetPath = `cstrike/maps/${file.path}`
   }
 
-  const parts = targetPath.split('/')
+  const parts = targetPath.split('/').map(p => p.replace(/\\/g, '')).filter(p => p.length > 0)
   const filename = parts.pop()!
-  const dirHandle = await getNestedDir(gameRoot, parts)
+const dirHandle = await getNestedDir(gameRoot, parts)
   const fileHandle = await dirHandle.getFileHandle(filename, { create: true })
   const writable = await fileHandle.createWritable()
   await writable.write(file.data as unknown as ArrayBuffer)
   await writable.close()
 
   return targetPath
+}
+
+/** Check if a map's .bsp is already present in the game folder */
+export async function isMapInstalled(
+  gameRoot: FileSystemDirectoryHandle,
+  mapName: string
+): Promise<boolean> {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const h = gameRoot as any
+    const cstrike = await h.getDirectoryHandle('cstrike', { create: false })
+    const maps = await cstrike.getDirectoryHandle('maps', { create: false })
+    await maps.getFileHandle(`${mapName}.bsp`, { create: false })
+    return true
+  } catch {
+    return false
+  }
 }
 
 /** Full install flow with progress callbacks */
@@ -139,10 +156,18 @@ export async function installMap(
     throw new Error('Unrecognised archive layout. Please install manually.')
   }
 
-  // Filter: for bare-files, only write .bsp files
-  const filesToWrite = structure === 'bare-files'
-    ? files.filter(f => f.path.toLowerCase().endsWith('.bsp'))
-    : files
+  // Extensions blocked by Chrome's File System Access API (security policy)
+  // or irrelevant to CS 1.6 installation
+  const BLOCKED_EXTENSIONS = new Set(['.url', '.lnk', '.exe', '.bat', '.cmd', '.scr', '.pif'])
+  const isBlocked = (path: string) => {
+    const ext = path.slice(path.lastIndexOf('.')).toLowerCase()
+    return BLOCKED_EXTENSIONS.has(ext)
+  }
+
+  // Filter: for bare-files, only write .bsp files; always skip blocked extensions
+  const filesToWrite = files
+    .filter(f => !isBlocked(f.path))
+    .filter(f => structure !== 'bare-files' || f.path.toLowerCase().endsWith('.bsp'))
 
   // 5. Write files
   const written: string[] = []

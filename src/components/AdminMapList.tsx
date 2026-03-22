@@ -35,6 +35,9 @@ export function AdminMapList({
             <span className="font-medium">{map.originalName}</span>
             <span className="ml-2 text-xs text-gray-400 uppercase">{map.format}</span>
             <span className="ml-2 text-xs text-gray-400">{formatBytes(map.size)}</span>
+            <span className="ml-2 text-xs text-gray-400">
+              {new Date(map.uploadedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+            </span>
           </div>
           <button
             onClick={() => handleDelete(map)}

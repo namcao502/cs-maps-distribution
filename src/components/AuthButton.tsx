@@ -1,39 +1,46 @@
 'use client'
-import { createBrowserClient } from '@supabase/ssr'
 import { useEffect, useState } from 'react'
-import type { User } from '@supabase/supabase-js'
-
-function getSupabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
-}
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  onAuthStateChanged,
+  signOut as firebaseSignOut,
+  type User,
+} from 'firebase/auth'
+import { getFirebaseAuth } from '@/lib/firebase-client'
 
 export function AuthButton({ adminEmail }: { adminEmail: string }) {
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    const supabase = getSupabase()
-    supabase.auth.getUser().then(({ data }) => setUser(data.user))
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUser(session?.user ?? null)
-    })
-    return () => subscription.unsubscribe()
+    const auth = getFirebaseAuth()
+    const unsubscribe = onAuthStateChanged(auth, u => setUser(u))
+    return () => unsubscribe()
   }, [])
 
   async function signIn() {
-    const supabase = getSupabase()
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${location.origin}/auth/callback` },
-    })
+    const auth = getFirebaseAuth()
+    const provider = new GoogleAuthProvider()
+    try {
+      const result = await signInWithPopup(auth, provider)
+      const idToken = await result.user.getIdToken()
+      await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      })
+      window.location.reload()
+    } catch (err) {
+      console.error('Sign-in failed:', err)
+    }
   }
 
   async function signOut() {
-    const supabase = getSupabase()
-    await supabase.auth.signOut()
+    const auth = getFirebaseAuth()
+    await firebaseSignOut(auth)
+    await fetch('/api/auth/session', { method: 'DELETE' })
     setUser(null)
+    window.location.reload()
   }
 
   if (!user) {
@@ -57,8 +64,8 @@ export function AuthButton({ adminEmail }: { adminEmail: string }) {
 
   return (
     <div className="flex items-center gap-3">
-      <img src={user.user_metadata?.avatar_url} alt="" className="w-7 h-7 rounded-full" />
-      <span className="text-sm text-slate-700 hidden sm:block">{user.user_metadata?.full_name ?? user.email}</span>
+      <img src={user.photoURL ?? undefined} alt="" className="w-7 h-7 rounded-full" />
+      <span className="text-sm text-slate-700 hidden sm:block">{user.displayName ?? user.email}</span>
       {isAdmin ? (
         <a href="/admin" className="text-sm font-medium text-blue-600 hover:text-blue-800">Admin</a>
       ) : (

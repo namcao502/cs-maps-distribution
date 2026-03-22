@@ -1,17 +1,11 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { onAuthStateChanged } from 'firebase/auth'
+import { getFirebaseAuth } from '@/lib/firebase-client'
 import { UploadForm } from '@/components/UploadForm'
 import { AdminMapList } from '@/components/AdminMapList'
 import { PendingQueue } from '@/components/PendingQueue'
 import type { MapEntry } from '@/types/map'
-
-function getSupabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
-}
 
 export default function AdminPage() {
   const [checking, setChecking] = useState(true)
@@ -24,13 +18,14 @@ export default function AdminPage() {
   }, [])
 
   useEffect(() => {
-    const supabase = getSupabase()
-    supabase.auth.getUser().then(({ data }) => {
-      const email = data.user?.email ?? ''
+    const auth = getFirebaseAuth()
+    const unsubscribe = onAuthStateChanged(auth, user => {
+      const email = user?.email ?? ''
       const isAdmin = email === process.env.NEXT_PUBLIC_ADMIN_EMAIL
       setAuthed(isAdmin)
       setChecking(false)
     })
+    return () => unsubscribe()
   }, [])
 
   useEffect(() => {
