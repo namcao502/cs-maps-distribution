@@ -1,35 +1,21 @@
-import {
-  S3Client,
-  GetObjectCommand,
-  PutObjectCommand,
-  DeleteObjectCommand,
-} from '@aws-sdk/client-s3'
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { createClient } from '@supabase/supabase-js'
 
-function getClient(): S3Client {
-  return new S3Client({
-    region: 'auto',
-    endpoint: process.env.R2_ENDPOINT!,
-    credentials: {
-      accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-    },
-  })
+function getClient() {
+  return createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 }
 
-const BUCKET = () => process.env.R2_BUCKET_NAME!
+const BUCKET = () => process.env.SUPABASE_BUCKET_NAME ?? 'cs-maps'
 
 export async function getObject(key: string): Promise<string | null> {
-  try {
-    const client = getClient()
-    const response = await client.send(
-      new GetObjectCommand({ Bucket: BUCKET(), Key: key })
-    )
-    return response.Body ? await response.Body.transformToString() : null
-  } catch (err: unknown) {
-    if ((err as { name?: string }).name === 'NoSuchKey') return null
-    throw err
+  const { data, error } = await getClient().storage.from(BUCKET()).download(key)
+  if (error) {
+    if (error.message.includes('not found') || error.message.includes('Object not found')) return null
+    throw error
   }
+  return data ? await data.text() : null
 }
 
 export async function putObject(
@@ -37,19 +23,24 @@ export async function putObject(
   body: Buffer | string,
   contentType = 'application/octet-stream'
 ): Promise<void> {
-  const client = getClient()
-  await client.send(
-    new PutObjectCommand({ Bucket: BUCKET(), Key: key, Body: body, ContentType: contentType })
-  )
+  const part: BlobPart = typeof body === 'string' ? body : new Uint8Array(body)
+  const blob = new Blob([part], { type: contentType })
+  const { error } = await getClient().storage.from(BUCKET()).upload(key, blob, {
+    contentType,
+    upsert: true,
+  })
+  if (error) throw error
 }
 
 export async function deleteObject(key: string): Promise<void> {
-  const client = getClient()
-  await client.send(new DeleteObjectCommand({ Bucket: BUCKET(), Key: key }))
+  const { error } = await getClient().storage.from(BUCKET()).remove([key])
+  if (error) throw error
 }
 
 export async function getPresignedUrl(key: string, ttlSeconds = 900): Promise<string> {
-  const client = getClient()
-  const command = new GetObjectCommand({ Bucket: BUCKET(), Key: key })
-  return getSignedUrl(client, command, { expiresIn: ttlSeconds })
+  const { data, error } = await getClient()
+    .storage.from(BUCKET())
+    .createSignedUrl(key, ttlSeconds)
+  if (error) throw error
+  return data.signedUrl
 }
