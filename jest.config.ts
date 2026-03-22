@@ -14,6 +14,7 @@ const config: Config = {
   transformIgnorePatterns: [
     '/node_modules/(?!(jose)/)',
   ],
+  setupFiles: ['./jest.setup.ts'],
 }
 
 export default config
