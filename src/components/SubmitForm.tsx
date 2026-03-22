@@ -110,7 +110,7 @@ export function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
         onDrop={e => {
           e.preventDefault()
           setDragging(false)
-          if (e.dataTransfer.files.length) enqueue(e.dataTransfer.files)
+          if (e.dataTransfer.files.length) enqueue([e.dataTransfer.files[0]])
         }}
         onClick={() => inputRef.current?.click()}
       >
