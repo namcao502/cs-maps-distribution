@@ -113,7 +113,7 @@ export function MapCard({
               )}
             </div>
             <span className="text-xs text-[var(--text-muted)]">
-              {formatBytes(map.size)} · {new Date(map.uploadedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+              {formatBytes(map.size)} · {new Date(map.uploadedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} {new Date(map.uploadedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
             </span>
             {map.uploader && (
               <div className="flex items-center gap-1 mt-0.5">
