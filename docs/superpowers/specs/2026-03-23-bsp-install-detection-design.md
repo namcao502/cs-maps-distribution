@@ -19,7 +19,7 @@ Scan `cstrike/maps/` once per game folder selection, collect all `.bsp` basename
 
 ## Match Rule
 
-Given `originalName` (archive filename, no extension) and `bspBasename` (BSP filename, no extension):
+`isBspInstalled(originalName, installedBsps)` returns `true` if **any** `bspBasename` in `installedBsps` satisfies the predicate below for the given `originalName`. Both values are lowercased before comparison.
 
 ```
 match if:
@@ -40,11 +40,11 @@ match if:
 | `de_hoschispotfinal_dcd69` | `de_hoschispot` | ✗ | next char is `f`, not a boundary |
 | `de_hoschispotfinal_dcd69` | `de_hoschispotfinal` | ✓ | next char is `_` |
 | `de_dust2_final` | `de_dust2` | ✓ | next char is `_` |
-| `de_dust2_final` | `de_dust` | ✗ | next char is `2` — digit is a boundary, so this WOULD match |
+| `de_dust2_final` | `de_dust` | ✓ | next char is `2`, digit is a boundary — acceptable false positive (see note) |
 | `de_dust` | `de_dust` | ✓ | exact |
 | `cs_assault_v2` | `cs_assault` | ✓ | next char is `_` |
 
-> **Note on digit boundary:** Digits are treated as boundaries because version suffixes like `_v2`, `2` are common. The `de_dust` / `de_dust2` false-positive is unavoidable with a pure prefix rule — if the user has both maps installed, both will show as installed, which is acceptable.
+> **Note on digit boundary:** Digits are treated as boundaries because version suffixes like `2`, `_v2` are common. The `de_dust` / `de_dust2` false-positive (both showing as installed when only one is present) is unavoidable with a pure prefix rule and is acceptable.
 
 ## Architecture
 
@@ -69,7 +69,7 @@ export function isBspInstalled(
 ): boolean
 ```
 
-Implements the match rule above. Checks every BSP basename in the set against `originalName`.
+Implements the match rule above. Lowercases `originalName` before matching (consistent with the lowercased set produced by `scanInstalledBsps`). Iterates over `installedBsps`; returns `true` if any entry satisfies the predicate for the given `originalName`. `isMapInstalled` has no other callers; its removal is safe.
 
 ### `src/components/MapList.tsx`
 
@@ -81,9 +81,8 @@ Implements the match rule above. Checks every BSP basename in the set against `o
 
 - Accept new props: `installedBsps: Set<string>`, `onInstalled: () => void`
 - Remove `useEffect` that called `isMapInstalled`
-- Replace `isInstalledLocally(map.id)` initial state with `isBspInstalled(map.originalName, installedBsps)` (computed from props, no local state needed for the installed-from-folder check)
-- After a successful install, call `onInstalled()` (in addition to existing `markInstalled`)
-- `installed` state still tracks within-session reinstall prompts
+- `installed` remains local React state, initialized as `isBspInstalled(map.originalName, installedBsps) || isInstalledLocally(map.id)`. After a successful install, `setInstalled(true)` is still called optimistically so the "Reinstall" button appears immediately — `onInstalled()` then triggers a background rescan in `MapList` to keep the set current for future renders.
+- After a successful install, call `onInstalled()` (in addition to existing `markInstalled` and `setInstalled(true)`)
 
 ## Error Handling
 
