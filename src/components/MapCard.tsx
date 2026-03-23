@@ -30,6 +30,7 @@ export function MapCard({
   const [status, setStatus] = useState<InstallStatus | null>(null)
   const [installed, setInstalled] = useState(() => isInstalledLocally(map.id))
   const [confirmReinstall, setConfirmReinstall] = useState(false)
+  const [isInstalling, setIsInstalling] = useState(false)
   const supportsFileApi = isFileSystemAccessSupported()
 
   useEffect(() => {
@@ -62,6 +63,7 @@ export function MapCard({
   }
 
   async function doInstall() {
+    setIsInstalling(true)
     try {
 
       let handle = gameFolder
@@ -86,33 +88,35 @@ export function MapCard({
     } catch (err: unknown) {
       if ((err as { name?: string }).name === 'AbortError') return
       setStatus({ phase: 'error', message: (err as Error).message ?? 'Unknown error' })
+    } finally {
+      setIsInstalling(false)
     }
   }
 
 
   return (
     <>
-      <div className="flex items-center justify-between px-4 py-3.5 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-between px-4 py-3.5 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-sm hover:shadow-md transition-shadow">
         <div className="flex items-center gap-3 min-w-0">
-          <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-md uppercase tracking-wide ${FORMAT_COLORS[map.format] ?? 'bg-slate-100 text-slate-600'}`}>
+          <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-md uppercase tracking-wide ${FORMAT_COLORS[map.format] ?? 'bg-[var(--bg-secondary)] text-[var(--text-primary)]'}`}>
             {map.format}
           </span>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-slate-900 truncate">{map.originalName}</span>
+              <span className="font-semibold text-[var(--text-primary)] truncate">{map.originalName}</span>
               {installed && (
                 <span className="shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">
                   ✓ Installed
                 </span>
               )}
             </div>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-[var(--text-muted)]">
               {formatBytes(map.size)} · {new Date(map.uploadedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
             </span>
             {map.uploader && (
               <div className="flex items-center gap-1 mt-0.5">
                 <img src={map.uploader.avatar} alt="" className="w-4 h-4 rounded-full" />
-                <span className="text-xs text-slate-400">by {map.uploader.name}</span>
+                <span className="text-xs text-[var(--text-muted)]">by {map.uploader.name}</span>
               </div>
             )}
           </div>
@@ -122,13 +126,16 @@ export function MapCard({
           {supportsFileApi ? (
             <button
               onClick={handleInstall}
+              disabled={isInstalling}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                installed
-                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  : 'bg-green-500 text-white hover:bg-green-600'
+                isInstalling
+                  ? 'bg-[var(--bg-secondary)] text-[var(--text-muted)] cursor-not-allowed'
+                  : installed
+                    ? 'bg-[var(--bg-secondary)] text-[var(--text-primary)] hover:bg-[var(--border)]'
+                    : 'bg-green-500 text-white hover:bg-green-600'
               }`}
             >
-              {installed ? 'Reinstall' : gameFolder ? 'Install' : 'Choose Folder & Install'}
+              {isInstalling ? 'Installing…' : installed ? 'Reinstall' : gameFolder ? 'Install' : 'Choose Folder & Install'}
             </button>
           ) : (
             <button
