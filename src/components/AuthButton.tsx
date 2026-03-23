@@ -62,20 +62,46 @@ export function AuthButton({ adminEmail }: { adminEmail: string }) {
   }
 
   const isAdmin = user.email === adminEmail
+  const [open, setOpen] = useState(false)
 
   return (
-    <div className="flex items-center gap-3">
-      <img src={user.photoURL ?? undefined} alt="" className="w-7 h-7 rounded-full" />
-      <span className="text-sm text-[var(--text-primary)] hidden sm:block">{user.displayName ?? user.email}</span>
-      {isAdmin ? (
-        <Link href="/admin" className="text-sm font-medium text-blue-600 hover:text-blue-800">Admin</Link>
-      ) : (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors"
+      >
+        <img src={user.photoURL ?? undefined} alt="" className="w-7 h-7 rounded-full" />
+        <span className="text-sm text-[var(--text-primary)] hidden sm:block">{user.displayName ?? user.email}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-muted)]">
+          <path d="m6 9 6 6 6-6"/>
+        </svg>
+      </button>
+
+      {open && (
         <>
-          <Link href="/submissions" className="text-sm font-medium text-[var(--text-primary)] hover:text-[var(--text-primary)]">My Submissions</Link>
-          <Link href="/submissions?new=1" className="text-sm font-medium text-green-600 hover:text-green-800">Submit a Map</Link>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 mt-1 w-48 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-lg z-20 py-1 overflow-hidden">
+            {isAdmin ? (
+              <Link href="/admin" onClick={() => setOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-blue-600 hover:bg-[var(--bg-secondary)]">
+                Admin panel
+              </Link>
+            ) : (
+              <>
+                <Link href="/submissions" onClick={() => setOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]">
+                  My Submissions
+                </Link>
+                <Link href="/submissions?new=1" onClick={() => setOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-green-600 hover:bg-[var(--bg-secondary)]">
+                  Submit a Map
+                </Link>
+              </>
+            )}
+            <div className="border-t border-[var(--border)] my-1" />
+            <button onClick={signOut} className="w-full text-left flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]">
+              Sign out
+            </button>
+          </div>
         </>
       )}
-      <button onClick={signOut} className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">Sign out</button>
     </div>
   )
 }
