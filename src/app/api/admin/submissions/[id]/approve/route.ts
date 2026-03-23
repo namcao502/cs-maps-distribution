@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 import { getSessionUser, isAdmin } from '@/lib/auth'
+import { MAP_TAGS, type MapTag } from '@/lib/tags'
 import { getSubmissionById, approveSubmission } from '@/lib/submissions-store'
 import { addMap } from '@/lib/maps-store'
 import { getObjectBuffer, putObject, deleteObject } from '@/lib/storage'
 
-export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser()
   if (!user || !isAdmin(user)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -13,6 +14,10 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   const submission = await getSubmissionById(id)
   if (!submission) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   if (submission.status !== 'pending') return NextResponse.json({ error: 'Already reviewed' }, { status: 409 })
+
+  const body = await req.json().catch(() => ({}))
+  const rawTags = Array.isArray(body.tags) ? body.tags : []
+  const tags = rawTags.filter((t: string): t is MapTag => (MAP_TAGS as readonly string[]).includes(t))
 
   const buffer = await getObjectBuffer(submission.storageKey)
   if (!buffer) return NextResponse.json({ error: 'File missing from storage' }, { status: 404 })
@@ -31,6 +36,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     uploadedAt: new Date().toISOString(),
     downloadCount: 0,
     installCount: 0,
+    tags,
     uploader: {
       id: submission.submitterId,
       name: submission.submitterName,

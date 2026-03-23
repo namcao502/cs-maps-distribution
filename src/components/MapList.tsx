@@ -4,6 +4,7 @@ import type { MapEntry } from '@/types/map'
 import { MapCard } from './MapCard'
 import { SearchInput } from './SearchInput'
 import { scanInstalledBsps } from '@/lib/install'
+import { MAP_TAGS } from '@/lib/tags'
 
 export function MapList({
   maps,
@@ -15,6 +16,7 @@ export function MapList({
   onPickFolder: () => Promise<void>
 }) {
   const [query, setQuery] = useState('')
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [installedBsps, setInstalledBsps] = useState<Set<string>>(new Set())
 
   useEffect(() => {
@@ -34,9 +36,11 @@ export function MapList({
     scanInstalledBsps(gameFolder).then(setInstalledBsps)
   }
 
-  const filtered = maps.filter(m =>
-    m.originalName.toLowerCase().includes(query.toLowerCase())
-  )
+  const filtered = maps.filter(m => {
+    const matchesSearch = m.originalName.toLowerCase().includes(query.toLowerCase())
+    const matchesTags = selectedTags.length === 0 || selectedTags.some(t => m.tags.includes(t))
+    return matchesSearch && matchesTags
+  })
 
   if (maps.length === 0) {
     return <p className="text-[var(--text-muted)] text-center py-12">No maps uploaded yet.</p>
@@ -85,6 +89,25 @@ export function MapList({
         </button>
       </div>
       <SearchInput value={query} onChange={setQuery} />
+      <div className="flex flex-wrap gap-2">
+        {MAP_TAGS.map(tag => (
+          <button
+            key={tag}
+            onClick={() =>
+              setSelectedTags(prev =>
+                prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+              )
+            }
+            className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+              selectedTags.includes(tag)
+                ? 'bg-blue-500 text-white border-blue-500'
+                : 'bg-[var(--bg-card)] text-[var(--text-muted)] border-[var(--border)] hover:border-blue-400'
+            }`}
+          >
+            {tag}
+          </button>
+        ))}
+      </div>
       {filtered.length === 0 ? (
         <p className="text-[var(--text-muted)] text-center py-12">No maps found.</p>
       ) : (

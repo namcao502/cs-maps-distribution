@@ -59,7 +59,11 @@ export default function AdminPage() {
             <PendingQueue onApproved={loadMaps} />
             <h2 className="text-lg font-semibold mb-3">Upload Map</h2>
             <UploadForm onUploaded={loadMaps} />
-            <AdminMapList maps={maps} onDeleted={id => setMaps(prev => prev.filter(m => m.id !== id))} />
+            <AdminMapList
+              maps={maps}
+              onDeleted={id => setMaps(prev => prev.filter(m => m.id !== id))}
+              onTagsUpdated={(id, tags) => setMaps(prev => prev.map(m => m.id === id ? { ...m, tags } : m))}
+            />
           </>
         )}
       </main>

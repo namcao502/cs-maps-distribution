@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import type { Submission } from '@/types/submission'
+import { MAP_TAGS } from '@/lib/tags'
 
 function formatBytes(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -14,6 +15,7 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
   const [previews, setPreviews] = useState<Record<string, Preview>>({})
   const [rejecting, setRejecting] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState<Record<string, boolean>>({})
+  const [pendingTags, setPendingTags] = useState<Record<string, string[]>>({})
 
   useEffect(() => {
     fetch('/api/admin/submissions?status=pending')
@@ -33,7 +35,11 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
   async function handleApprove(id: string) {
     if (busy[id]) return
     setBusy(b => ({ ...b, [id]: true }))
-    const res = await fetch(`/api/admin/submissions/${id}/approve`, { method: 'POST' })
+    const res = await fetch(`/api/admin/submissions/${id}/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tags: pendingTags[id] ?? [] }),
+    })
     if (res.ok) {
       setQueue(q => q.filter(s => s.id !== id))
       onApproved()
@@ -95,6 +101,28 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
               </div>
             )}
 
+            <div className="flex flex-wrap gap-2 mt-2">
+              {MAP_TAGS.map(tag => (
+                <label key={tag} className="flex items-center gap-1.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={(pendingTags[sub.id] ?? []).includes(tag)}
+                    onChange={() =>
+                      setPendingTags(pt => {
+                        const current = pt[sub.id] ?? []
+                        return {
+                          ...pt,
+                          [sub.id]: current.includes(tag)
+                            ? current.filter(t => t !== tag)
+                            : [...current, tag],
+                        }
+                      })
+                    }
+                  />
+                  <span className="text-xs text-[var(--text-primary)]">{tag}</span>
+                </label>
+              ))}
+            </div>
             <div className="flex items-start gap-2 mt-2">
               <button
                 onClick={() => handleApprove(sub.id)}

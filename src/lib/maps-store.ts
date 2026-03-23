@@ -13,6 +13,7 @@ function docToMapEntry(id: string, data: FirebaseFirestore.DocumentData): MapEnt
     uploadedAt: data.uploadedAt as string,
     downloadCount: (data.downloadCount as number) ?? 0,
     installCount: (data.installCount as number) ?? 0,
+    tags: (data.tags as string[]) ?? [],
     uploader: data.uploaderId
       ? {
           id: data.uploaderId as string,
@@ -41,6 +42,7 @@ export async function addMap(entry: MapEntry): Promise<void> {
     uploadedAt: entry.uploadedAt,
     downloadCount: 0,
     installCount: 0,
+    tags: entry.tags,
     uploaderId: entry.uploader?.id ?? null,
     uploaderName: entry.uploader?.name ?? null,
     uploaderAvatar: entry.uploader?.avatar ?? null,
@@ -61,6 +63,10 @@ export async function incrementInstall(id: string): Promise<void> {
   await getAdminDb().collection('maps').doc(id).update({
     installCount: FieldValue.increment(1),
   })
+}
+
+export async function updateMapTags(id: string, tags: string[]): Promise<void> {
+  await getAdminDb().collection('maps').doc(id).update({ tags })
 }
 
 export async function getMapSha256s(): Promise<string[]> {

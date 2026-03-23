@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef, useCallback } from 'react'
+import { MAP_TAGS } from '@/lib/tags'
 
 const MAX_SIZE = 20 * 1024 * 1024
 
@@ -23,6 +24,7 @@ function formatBytes(bytes: number): string {
 export function UploadForm({ onUploaded }: { onUploaded: () => void }) {
   const [dragging, setDragging] = useState(false)
   const [queue, setQueue] = useState<QueueItem[]>([])
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
   const processingRef = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -53,6 +55,7 @@ export function UploadForm({ onUploaded }: { onUploaded: () => void }) {
 
       const formData = new FormData()
       formData.append('file', file)
+      formData.append('tags', JSON.stringify(selectedTags))
 
       let succeeded = false
       await new Promise<void>((resolve, reject) => {
@@ -81,7 +84,7 @@ export function UploadForm({ onUploaded }: { onUploaded: () => void }) {
     }
 
     processingRef.current = false
-  }, [updateItem, onUploaded])
+  }, [updateItem, onUploaded, selectedTags])
 
   function enqueue(files: FileList | File[]) {
     const newItems: QueueItem[] = Array.from(files).map(file => ({
@@ -101,6 +104,22 @@ export function UploadForm({ onUploaded }: { onUploaded: () => void }) {
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap gap-2">
+        {MAP_TAGS.map(tag => (
+          <label key={tag} className="flex items-center gap-1.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={selectedTags.includes(tag)}
+              onChange={() =>
+                setSelectedTags(prev =>
+                  prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+                )
+              }
+            />
+            <span className="text-sm text-[var(--text-primary)]">{tag}</span>
+          </label>
+        ))}
+      </div>
       <div
         className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition ${
           dragging ? 'border-blue-400 bg-blue-50' : 'border-[var(--border)] hover:border-[var(--text-muted)]'

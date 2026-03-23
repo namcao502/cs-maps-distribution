@@ -23,6 +23,7 @@ const sampleEntry: MapEntry = {
   uploadedAt: '2026-03-22T12:00:00Z',
   downloadCount: 0,
   installCount: 0,
+  tags: [],
 }
 
 const sampleDocData = {

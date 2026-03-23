@@ -5,6 +5,7 @@ import { putObject } from '@/lib/storage'
 import { addMap, getMaps } from '@/lib/maps-store'
 import { computeSHA256 } from '@/lib/hash'
 import { validateMapArchive } from '@/lib/validate-archive'
+import { MAP_TAGS, type MapTag } from '@/lib/tags'
 
 const MAX_SIZE = 20 * 1024 * 1024 // 20 MB
 const ALLOWED_EXTENSIONS = new Set(['zip', '7z', 'rar'])
@@ -61,6 +62,9 @@ export async function POST(req: NextRequest) {
 
   await putObject(storageKey, Buffer.from(buffer))
 
+  const rawTags = JSON.parse((formData.get('tags') as string | null) ?? '[]') as string[]
+  const tags = rawTags.filter((t): t is MapTag => (MAP_TAGS as readonly string[]).includes(t))
+
   await addMap({
     id,
     originalName,
@@ -71,6 +75,7 @@ export async function POST(req: NextRequest) {
     uploadedAt: new Date().toISOString(),
     downloadCount: 0,
     installCount: 0,
+    tags,
   })
 
   return NextResponse.json({ ok: true, id })

@@ -116,6 +116,15 @@ export function MapCard({
             <span className="text-xs text-[var(--text-muted)]">
               {formatBytes(map.size)} · {new Date(map.uploadedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} {new Date(map.uploadedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} · ↓ {map.downloadCount} ⚙ {map.installCount}
             </span>
+            {map.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-0.5">
+                {map.tags.map(tag => (
+                  <span key={tag} className="text-xs px-1.5 py-0.5 rounded-full bg-[var(--bg-secondary)] text-[var(--text-muted)] border border-[var(--border)]">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
             {map.uploader && (
               <div className="flex items-center gap-1 mt-0.5">
                 <img src={map.uploader.avatar} alt="" className="w-4 h-4 rounded-full" />
