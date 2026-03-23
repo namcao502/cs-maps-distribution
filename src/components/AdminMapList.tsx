@@ -29,18 +29,18 @@ export function AdminMapList({
   }
 
   if (maps.length === 0) {
-    return <p className="text-gray-400 text-center py-6">No maps yet.</p>
+    return <p className="text-[var(--text-muted)] text-center py-6">No maps yet.</p>
   }
 
   return (
     <div className="flex flex-col gap-2 mt-6">
       {maps.map(map => (
-        <div key={map.id} className="flex items-center justify-between p-3 bg-white border rounded-lg">
+        <div key={map.id} className="flex items-center justify-between p-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg">
           <div>
             <span className="font-medium">{map.originalName}</span>
-            <span className="ml-2 text-xs text-gray-400 uppercase">{map.format}</span>
-            <span className="ml-2 text-xs text-gray-400">{formatBytes(map.size)}</span>
-            <span className="ml-2 text-xs text-gray-400">
+            <span className="ml-2 text-xs text-[var(--text-muted)] uppercase">{map.format}</span>
+            <span className="ml-2 text-xs text-[var(--text-muted)]">{formatBytes(map.size)}</span>
+            <span className="ml-2 text-xs text-[var(--text-muted)]">
               {new Date(map.uploadedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
             </span>
           </div>

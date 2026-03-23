@@ -67,18 +67,18 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
       <h2 className="text-lg font-semibold mb-3 text-orange-600">Pending Review ({queue.length})</h2>
       <div className="flex flex-col gap-3">
         {queue.map(sub => (
-          <div key={sub.id} className="bg-white border border-orange-200 rounded-xl p-4">
+          <div key={sub.id} className="bg-[var(--bg-card)] border border-orange-200 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <img src={sub.submitterAvatar} alt="" className="w-6 h-6 rounded-full" />
-              <span className="text-sm text-slate-600">{sub.submitterName}</span>
-              <span className="text-xs text-slate-400 ml-auto">
+              <span className="text-sm text-[var(--text-primary)]">{sub.submitterName}</span>
+              <span className="text-xs text-[var(--text-muted)] ml-auto">
                 {new Date(sub.submittedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
               </span>
             </div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-bold px-2 py-0.5 rounded-md uppercase bg-slate-100 text-slate-600">{sub.format}</span>
-              <span className="font-medium text-slate-900">{sub.originalName}</span>
-              <span className="text-xs text-slate-400">{formatBytes(sub.size)}</span>
+              <span className="text-xs font-bold px-2 py-0.5 rounded-md uppercase bg-[var(--bg-secondary)] text-[var(--text-primary)]">{sub.format}</span>
+              <span className="font-medium text-[var(--text-primary)]">{sub.originalName}</span>
+              <span className="text-xs text-[var(--text-muted)]">{formatBytes(sub.size)}</span>
             </div>
 
             <button
@@ -89,9 +89,9 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
             </button>
 
             {previews[sub.id] && (
-              <div className="text-xs bg-slate-50 rounded p-2 mb-2">
-                <p className="text-slate-500">Structure: <span className="font-mono">{previews[sub.id].structure}</span></p>
-                <p className="text-slate-500 mt-0.5">Maps: {previews[sub.id].bspFiles.join(', ') || 'none'}</p>
+              <div className="text-xs bg-[var(--bg-secondary)] rounded p-2 mb-2">
+                <p className="text-[var(--text-muted)]">Structure: <span className="font-mono">{previews[sub.id].structure}</span></p>
+                <p className="text-[var(--text-muted)] mt-0.5">Maps: {previews[sub.id].bspFiles.join(', ') || 'none'}</p>
               </div>
             )}
 
@@ -109,7 +109,7 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
                   placeholder="Rejection reason…"
                   value={rejecting[sub.id] ?? ''}
                   onChange={e => setRejecting(r => ({ ...r, [sub.id]: e.target.value }))}
-                  className="flex-1 border rounded-lg px-3 py-1.5 text-sm"
+                  className="flex-1 border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm bg-[var(--bg-card)] text-[var(--text-primary)]"
                 />
                 <button
                   onClick={() => handleReject(sub.id)}
