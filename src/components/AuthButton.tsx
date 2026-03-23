@@ -12,6 +12,7 @@ import { getFirebaseAuth } from '@/lib/firebase-client'
 
 export function AuthButton({ adminEmail }: { adminEmail: string }) {
   const [user, setUser] = useState<User | null>(null)
+  const [open, setOpen] = useState(false)
 
   useEffect(() => {
     const auth = getFirebaseAuth()
@@ -62,7 +63,6 @@ export function AuthButton({ adminEmail }: { adminEmail: string }) {
   }
 
   const isAdmin = user.email === adminEmail
-  const [open, setOpen] = useState(false)
 
   return (
     <div className="relative">
