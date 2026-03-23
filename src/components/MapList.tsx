@@ -44,8 +44,7 @@ export function MapList({
 
   return (
     <div className="flex flex-col gap-3">
-      {!gameFolder && (
-        <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl px-4 py-3 text-xs text-[var(--text-muted)] font-mono">
+      <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl px-4 py-3 text-xs text-[var(--text-muted)] font-mono">
           <p className="text-[var(--text-primary)] font-sans font-medium text-sm mb-2">Pick your CS 1.6 root folder:</p>
           <div className="flex flex-col gap-0.5">
             <span className="flex items-center gap-1.5 text-blue-500 font-semibold">
@@ -62,7 +61,6 @@ export function MapList({
             </span>
           </div>
         </div>
-      )}
       <button
         onClick={onPickFolder}
         className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
