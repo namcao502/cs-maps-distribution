@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getMaps } from '@/lib/maps-store'
+import { getMaps, incrementDownload } from '@/lib/maps-store'
 import { getPresignedUrl } from '@/lib/storage'
 
 export async function GET(
@@ -15,6 +15,7 @@ export async function GET(
 
   try {
     const url = await getPresignedUrl(map.storageKey, 900)
+    await incrementDownload(id)
     return NextResponse.json({ url, sha256: map.sha256 })
   } catch {
     return NextResponse.json({ error: 'Failed to generate download URL' }, { status: 500 })
