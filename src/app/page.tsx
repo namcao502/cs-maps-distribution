@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { MapList } from '@/components/MapList'
+import { PackSection } from '@/components/PackSection'
 import type { MapEntry } from '@/types/map'
 import { isFileSystemAccessSupported, pickGameFolder, validateGameFolder } from '@/lib/install'
 import { saveHandle, loadHandle } from '@/lib/folder-store'
@@ -97,7 +98,10 @@ export default function HomePage() {
         {loading ? (
           <div className="text-center py-20 text-[var(--text-muted)] text-sm">Loading maps...</div>
         ) : (
-          <MapList maps={maps} gameFolder={gameFolder} onPickFolder={handlePickFolder} />
+          <>
+            <PackSection gameFolder={gameFolder} onPickFolder={handlePickFolder} />
+            <MapList maps={maps} gameFolder={gameFolder} onPickFolder={handlePickFolder} />
+          </>
         )}
       </main>
 
