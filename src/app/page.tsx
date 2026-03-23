@@ -69,7 +69,7 @@ export default function HomePage() {
       <SiteHeader />
 
       {/* Content */}
-      <main className="max-w-2xl mx-auto px-4 py-8">
+      <main className="max-w-2xl mx-auto px-4 py-4">
         {!supportsFileApi && (
           <div className="mb-6 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
             Your browser doesn&apos;t support one-click install. Use the <strong>Download</strong> button and install manually.

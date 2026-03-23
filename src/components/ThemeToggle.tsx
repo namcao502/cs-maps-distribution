@@ -37,7 +37,7 @@ export function ThemeToggle() {
     <button
       onClick={() => setTheme(next.value)}
       title={`Theme: ${current.label} (click for ${next.label})`}
-      className="flex items-center justify-center w-8 h-8 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition-colors"
+      className="flex items-center justify-center w-9 h-9 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition-colors"
     >
       {current.icon}
     </button>

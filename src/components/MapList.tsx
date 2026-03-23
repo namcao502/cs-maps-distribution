@@ -4,7 +4,45 @@ import type { MapEntry } from '@/types/map'
 import { MapCard } from './MapCard'
 import { SearchInput } from './SearchInput'
 import { scanInstalledBsps } from '@/lib/install'
-import { MAP_TAGS } from '@/lib/tags'
+import { MAP_TAGS, TAG_LABELS } from '@/lib/tags'
+
+const CHEAT_CODES = [
+  { code: 'impulse 101', label: 'Code' },
+]
+
+function CheatCodeBanner({ className }: { className?: string }) {
+  const [copied, setCopied] = useState<string | null>(null)
+
+  function copy(code: string) {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopied(code)
+      setTimeout(() => setCopied(null), 1500)
+    })
+  }
+
+  return (
+    <div className={`flex gap-2 ${className ?? ''}`}>
+      {CHEAT_CODES.map(({ code, label }) => (
+        <button
+          key={code}
+          onClick={() => copy(code)}
+          title={`Copy: ${code}`}
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg text-xs font-mono text-[var(--text-primary)] hover:border-blue-400 hover:bg-[var(--bg-secondary)] transition-colors"
+        >
+          <span className="text-[var(--text-muted)] font-sans not-italic">{label}:</span>
+          <span className="font-semibold">{code}</span>
+          <span className={`ml-1 transition-colors ${copied === code ? 'text-green-500' : 'text-[var(--text-muted)]'}`}>
+            {copied === code ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            )}
+          </span>
+        </button>
+      ))}
+    </div>
+  )
+}
 
 export function MapList({
   maps,
@@ -74,47 +112,60 @@ export function MapList({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex justify-center">
-        <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl px-4 py-3 text-xs text-[var(--text-muted)] font-mono inline-block">
-          <p className="text-[var(--text-primary)] font-sans font-medium text-sm mb-2">Pick your CS 1.6 root folder:</p>
-          <div className="flex flex-col gap-0.5">
-            <span className="flex items-center gap-1.5 text-blue-500 font-semibold">
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>
-              Counter-Strike  ← pick this
-            </span>
-            <span className="flex items-center gap-1.5 pl-4 text-[var(--text-muted)]">
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>
-              cstrike
-            </span>
-            <span className="flex items-center gap-1.5 pl-8 text-[var(--text-muted)]">
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>
-              maps
-            </span>
+        <div className="grid grid-cols-1 gap-3 w-fit mx-auto">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl px-4 py-3 text-xs text-[var(--text-muted)] font-mono">
+            <p className="text-[var(--text-primary)] font-sans font-medium text-sm mb-2">Pick your CS 1.6 root folder:</p>
+            <div className="flex flex-col gap-0.5">
+              {[
+                { label: 'C:\\',            indent: 0, highlight: false },
+                { label: 'Games',           indent: 1, highlight: false },
+                { label: 'Counter-Strike',  indent: 2, highlight: true  },
+                { label: 'cstrike',         indent: 3, highlight: false },
+                { label: 'maps',            indent: 4, highlight: false },
+                { label: '...',             indent: 4, highlight: false },
+              ].map(({ label, indent, highlight }) => (
+                <span
+                  key={label}
+                  className={`flex items-center gap-1.5 ${highlight ? 'text-blue-500 font-semibold' : 'text-[var(--text-muted)]'}`}
+                  style={{ paddingLeft: `${indent * 14}px` }}
+                >
+                  {label === '...' ? null : label === 'C:\\' ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>
+                  )}
+                  {label}{highlight && <span className="text-[var(--text-muted)] font-normal ml-1">← pick this</span>}
+                </span>
+              ))}
+            </div>
+            <p className="mt-2 pt-2 border-t border-[var(--border)] text-[var(--text-muted)] font-mono text-[11px]">
+              <span className="font-sans">Ex:</span> C:\Games\<span className="text-blue-500 font-semibold">Counter-Strike</span>
+            </p>
           </div>
+          <button
+            onClick={onPickFolder}
+            className={`w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-medium transition-all active:scale-95 ${
+              gameFolder
+                ? 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] hover:border-blue-400 hover:text-blue-500'
+                : 'bg-blue-500 border-blue-500 text-white hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            {gameFolder ? (
+              <>
+                <span className="text-[var(--text-muted)] font-normal">Folder:</span>
+                <span className="font-semibold truncate max-w-[200px]">{gameFolder.name}</span>
+                <span className="text-xs text-blue-500 ml-1">Change</span>
+              </>
+            ) : 'Choose CS 1.6 Folder'}
+          </button>
+          <CheatCodeBanner className="w-full" />
         </div>
       </div>
-      <div className="flex justify-center">
-        <button
-          onClick={onPickFolder}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
-            gameFolder
-              ? 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]'
-              : 'bg-blue-500 border-blue-500 text-white hover:bg-blue-600'
-          }`}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-          </svg>
-          {gameFolder ? (
-            <>
-              <span className="text-[var(--text-muted)] font-normal">Folder:</span>
-              <span className="font-semibold truncate max-w-[200px]">{gameFolder.name}</span>
-              <span className="text-xs text-blue-500 ml-1">Change</span>
-            </>
-          ) : 'Choose CS 1.6 Folder'}
-        </button>
-      </div>
       <SearchInput value={query} onChange={setQuery} />
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 justify-center">
         {MAP_TAGS.map(tag => (
           <button
             key={tag}
@@ -129,7 +180,7 @@ export function MapList({
                 : 'bg-[var(--bg-card)] text-[var(--text-muted)] border-[var(--border)] hover:border-blue-400'
             }`}
           >
-            {tag}
+            {TAG_LABELS[tag] ?? tag}
           </button>
         ))}
       </div>

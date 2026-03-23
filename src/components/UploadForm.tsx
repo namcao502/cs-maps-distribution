@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useCallback } from 'react'
-import { MAP_TAGS } from '@/lib/tags'
+import { MAP_TAGS, TAG_LABELS } from '@/lib/tags'
 
 const MAX_SIZE = 20 * 1024 * 1024
 
@@ -106,18 +106,18 @@ export function UploadForm({ onUploaded }: { onUploaded: () => void }) {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2">
         {MAP_TAGS.map(tag => (
-          <label key={tag} className="flex items-center gap-1.5 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={selectedTags.includes(tag)}
-              onChange={() =>
-                setSelectedTags(prev =>
-                  prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-                )
-              }
-            />
-            <span className="text-sm text-[var(--text-primary)]">{tag}</span>
-          </label>
+          <button
+            key={tag}
+            type="button"
+            onClick={() => setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])}
+            className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+              selectedTags.includes(tag)
+                ? 'bg-blue-500 text-white border-blue-500'
+                : 'bg-[var(--bg-secondary)] text-[var(--text-muted)] border-[var(--border)] hover:border-blue-400'
+            }`}
+          >
+            {TAG_LABELS[tag] ?? tag}
+          </button>
         ))}
       </div>
       <div

@@ -1,16 +1,26 @@
 'use client'
 import { useState, useEffect } from 'react'
 import type { MapEntry } from '@/types/map'
-import type { InstallStatus } from '@/lib/install'
-import { ProgressModal } from './ProgressModal'
 import { ConfirmModal } from './ConfirmModal'
 import { isFileSystemAccessSupported, installMap, isBspInstalled } from '@/lib/install'
 import { ensurePermission, markInstalled, isInstalledLocally } from '@/lib/folder-store'
+import { useNotifications } from '@/lib/notification-context'
+import type { InstallStatus } from '@/lib/install'
 
 const FORMAT_COLORS: Record<string, string> = {
   zip: 'bg-blue-100 text-blue-600',
   '7z': 'bg-violet-100 text-violet-600',
   rar: 'bg-orange-100 text-orange-600',
+}
+
+const TAG_COLORS: Record<string, string> = {
+  'de_': 'bg-red-100 text-red-600',
+  'cs_': 'bg-yellow-100 text-yellow-600',
+}
+
+const TAG_SHORT: Record<string, string> = {
+  'de_': 'DE',
+  'cs_': 'CS',
 }
 
 function formatBytes(bytes: number): string {
@@ -39,11 +49,12 @@ export function MapCard({
   autoInstall?: boolean
   onBatchTriggered?: () => void
 }) {
-  const [status, setStatus] = useState<InstallStatus | null>(null)
   const [installed, setInstalled] = useState(() => isInstalledLocally(map.id))
+  const [installCount, setInstallCount] = useState(map.installCount)
   const [confirmReinstall, setConfirmReinstall] = useState(false)
   const [isInstalling, setIsInstalling] = useState(false)
   const supportsFileApi = isFileSystemAccessSupported()
+  const { startProgress, updateProgress } = useNotifications()
 
   useEffect(() => {
     setInstalled(isBspInstalled(map.originalName, installedBsps) || isInstalledLocally(map.id))
@@ -69,22 +80,18 @@ export function MapCard({
   }
 
   async function handleInstall() {
-    try {
-      if (installed) {
-        setConfirmReinstall(true)
-        return
-      }
-      await doInstall()
-    } catch (err: unknown) {
-      if ((err as { name?: string }).name === 'AbortError') return
-      setStatus({ phase: 'error', message: (err as Error).message ?? 'Unknown error' })
+    if (installed) {
+      setConfirmReinstall(true)
+      return
     }
+    await doInstall()
   }
 
   async function doInstall() {
     setIsInstalling(true)
+    const notifId = `install-${map.id}-${Date.now()}`
+    startProgress(notifId, map.originalName)
     try {
-
       let handle = gameFolder
       if (!handle) {
         await onPickFolder()
@@ -93,7 +100,7 @@ export function MapCard({
 
       const permitted = await ensurePermission(handle)
       if (!permitted) {
-        setStatus({ phase: 'error', message: 'Folder access was denied. Please choose the folder again.' })
+        updateProgress(notifId, { phase: 'error', message: 'Folder access was denied.' })
         return
       }
 
@@ -101,14 +108,16 @@ export function MapCard({
       if (!res.ok) throw new Error('Failed to get download URL')
       const { url, sha256 } = await res.json()
 
-      await installMap(map, url, sha256, handle, setStatus)
+      await installMap(map, url, sha256, handle, (s: InstallStatus) => updateProgress(notifId, s))
       markInstalled(map.id)
       fetch(`/api/maps/${map.id}/install`, { method: 'POST' }).catch(() => {})
       setInstalled(true)
+      setInstallCount(c => c + 1)
       onInstalled()
     } catch (err: unknown) {
       if ((err as { name?: string }).name === 'AbortError') return
-      setStatus({ phase: 'error', message: (err as Error).message ?? 'Unknown error' })
+      const msg = (err as Error).message ?? 'Unknown error'
+      updateProgress(notifId, { phase: 'error', message: msg })
     } finally {
       setIsInstalling(false)
     }
@@ -128,6 +137,11 @@ export function MapCard({
           <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-md uppercase tracking-wide ${FORMAT_COLORS[map.format] ?? 'bg-[var(--bg-secondary)] text-[var(--text-primary)]'}`}>
             {map.format}
           </span>
+          {map.tags.filter(tag => tag in TAG_COLORS).map(tag => (
+            <span key={tag} className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-md uppercase tracking-wide ${TAG_COLORS[tag]}`}>
+              {TAG_SHORT[tag]}
+            </span>
+          ))}
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-[var(--text-primary)] truncate">{map.originalName}</span>
@@ -138,17 +152,8 @@ export function MapCard({
               )}
             </div>
             <span className="text-xs text-[var(--text-muted)]">
-              {formatBytes(map.size)} · {new Date(map.uploadedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} {new Date(map.uploadedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} · ↓ {map.downloadCount} ⚙ {map.installCount}
+              {formatBytes(map.size)} · {new Date(map.uploadedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} {new Date(map.uploadedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} · ⚙ {installCount}
             </span>
-            {map.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-0.5">
-                {map.tags.map(tag => (
-                  <span key={tag} className="text-xs px-1.5 py-0.5 rounded-full bg-[var(--bg-secondary)] text-[var(--text-muted)] border border-[var(--border)]">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
             {map.uploader && (
               <div className="flex items-center gap-1 mt-0.5">
                 <img src={map.uploader.avatar} alt="" className="w-4 h-4 rounded-full" />
@@ -184,11 +189,6 @@ export function MapCard({
         </div>
       </div>
 
-      <ProgressModal
-        status={status}
-        onClose={() => setStatus(null)}
-        onFallbackDownload={handleRawDownload}
-      />
       {confirmReinstall && (
         <ConfirmModal
           message={`"${map.originalName}" is already installed. Reinstall it?`}

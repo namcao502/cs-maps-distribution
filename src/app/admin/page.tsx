@@ -15,7 +15,7 @@ export default function AdminPage() {
   const [maps, setMaps] = useState<MapEntry[]>([])
 
   const loadMaps = useCallback(async () => {
-    const res = await fetch(`/api/maps?t=${Date.now()}`)
+    const res = await fetch(`/api/admin/maps?t=${Date.now()}`)
     if (res.ok) setMaps(await res.json())
   }, [])
 
@@ -52,6 +52,7 @@ export default function AdminPage() {
               maps={maps}
               onDeleted={id => setMaps(prev => prev.filter(m => m.id !== id))}
               onTagsUpdated={(id, tags) => setMaps(prev => prev.map(m => m.id === id ? { ...m, tags } : m))}
+              onHiddenUpdated={(id, hidden) => setMaps(prev => prev.map(m => m.id === id ? { ...m, hidden } : m))}
             />
             <PackManager maps={maps} />
           </>
