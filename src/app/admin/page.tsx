@@ -5,6 +5,7 @@ import { getFirebaseAuth } from '@/lib/firebase-client'
 import { UploadForm } from '@/components/UploadForm'
 import { AdminMapList } from '@/components/AdminMapList'
 import { PendingQueue } from '@/components/PendingQueue'
+import { PackManager } from '@/components/PackManager'
 import { AuthButton } from '@/components/AuthButton'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import type { MapEntry } from '@/types/map'
@@ -64,6 +65,7 @@ export default function AdminPage() {
               onDeleted={id => setMaps(prev => prev.filter(m => m.id !== id))}
               onTagsUpdated={(id, tags) => setMaps(prev => prev.map(m => m.id === id ? { ...m, tags } : m))}
             />
+            <PackManager maps={maps} />
           </>
         )}
       </main>
