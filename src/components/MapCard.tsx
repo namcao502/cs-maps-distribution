@@ -85,6 +85,7 @@ export function MapCard({
 
       await installMap(map, url, sha256, handle, setStatus)
       markInstalled(map.id)
+      fetch(`/api/maps/${map.id}/install`, { method: 'POST' }).catch(() => {})
       setInstalled(true)
       onInstalled()
     } catch (err: unknown) {
@@ -113,7 +114,7 @@ export function MapCard({
               )}
             </div>
             <span className="text-xs text-[var(--text-muted)]">
-              {formatBytes(map.size)} · {new Date(map.uploadedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} {new Date(map.uploadedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+              {formatBytes(map.size)} · {new Date(map.uploadedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} {new Date(map.uploadedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} · ↓ {map.downloadCount} ⚙ {map.installCount}
             </span>
             {map.uploader && (
               <div className="flex items-center gap-1 mt-0.5">
