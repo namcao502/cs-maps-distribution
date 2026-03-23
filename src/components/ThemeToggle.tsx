@@ -1,4 +1,5 @@
 'use client'
+import type { ReactNode } from 'react'
 import { useTheme } from '@/lib/theme-context'
 
 const SunIcon = () => (
@@ -21,7 +22,7 @@ const MoonIcon = () => (
   </svg>
 )
 
-type Option = { value: 'light' | 'dark' | 'system'; icon: React.ReactNode; label: string }
+type Option = { value: 'light' | 'dark' | 'system'; icon: ReactNode; label: string }
 
 const OPTIONS: Option[] = [
   { value: 'light', icon: <SunIcon />, label: 'Light' },

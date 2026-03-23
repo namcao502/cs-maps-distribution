@@ -15,6 +15,7 @@ const ThemeContext = createContext<ThemeContextValue>({
 
 function resolveEffective(theme: Theme): 'light' | 'dark' {
   if (theme !== 'system') return theme
+  if (typeof window === 'undefined') return 'light'
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
