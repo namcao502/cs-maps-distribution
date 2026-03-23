@@ -24,12 +24,20 @@ export function MapCard({
   onPickFolder,
   installedBsps,
   onInstalled,
+  selected = false,
+  onToggleSelect,
+  autoInstall = false,
+  onBatchTriggered,
 }: {
   map: MapEntry
   gameFolder: FileSystemDirectoryHandle | null
   onPickFolder: () => Promise<void>
   installedBsps: Set<string>
   onInstalled: () => void
+  selected?: boolean
+  onToggleSelect?: () => void
+  autoInstall?: boolean
+  onBatchTriggered?: () => void
 }) {
   const [status, setStatus] = useState<InstallStatus | null>(null)
   const [installed, setInstalled] = useState(() => isInstalledLocally(map.id))
@@ -40,6 +48,16 @@ export function MapCard({
   useEffect(() => {
     setInstalled(isBspInstalled(map.originalName, installedBsps) || isInstalledLocally(map.id))
   }, [installedBsps, map.originalName, map.id])
+
+  useEffect(() => {
+    if (!autoInstall) return
+    async function run() {
+      await handleInstall()
+      onBatchTriggered?.()
+    }
+    run()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoInstall])
 
   async function handleRawDownload() {
     const res = await fetch(`/api/download/${map.id}`)
@@ -101,6 +119,12 @@ export function MapCard({
     <>
       <div className="flex items-center justify-between px-4 py-3.5 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-sm hover:shadow-md transition-shadow">
         <div className="flex items-center gap-3 min-w-0">
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={e => { e.stopPropagation(); onToggleSelect?.() }}
+            className="w-4 h-4 shrink-0 cursor-pointer accent-blue-500"
+          />
           <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-md uppercase tracking-wide ${FORMAT_COLORS[map.format] ?? 'bg-[var(--bg-secondary)] text-[var(--text-primary)]'}`}>
             {map.format}
           </span>

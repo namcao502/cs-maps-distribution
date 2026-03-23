@@ -17,6 +17,8 @@ export function MapList({
 }) {
   const [query, setQuery] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [batchTrigger, setBatchTrigger] = useState<Set<string>>(new Set())
   const [installedBsps, setInstalledBsps] = useState<Set<string>>(new Set())
 
   useEffect(() => {
@@ -30,6 +32,27 @@ export function MapList({
     })
     return () => { cancelled = true }
   }, [gameFolder])
+
+  function toggleSelect(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  function triggerBatchInstall() {
+    setBatchTrigger(new Set(selectedIds))
+    setSelectedIds(new Set())
+  }
+
+  function clearBatchTrigger(id: string) {
+    setBatchTrigger(prev => {
+      const next = new Set(prev)
+      next.delete(id)
+      return next
+    })
+  }
 
   function handleInstalled() {
     if (!gameFolder) return
@@ -108,6 +131,14 @@ export function MapList({
           </button>
         ))}
       </div>
+      {selectedIds.size > 0 && (
+        <button
+          onClick={triggerBatchInstall}
+          className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-500 text-white rounded-xl text-sm font-medium hover:bg-blue-600 active:scale-95 transition-all"
+        >
+          ⚙ Install Selected ({selectedIds.size})
+        </button>
+      )}
       {filtered.length === 0 ? (
         <p className="text-[var(--text-muted)] text-center py-12">No maps found.</p>
       ) : (
@@ -119,6 +150,10 @@ export function MapList({
             onPickFolder={onPickFolder}
             installedBsps={installedBsps}
             onInstalled={handleInstalled}
+            selected={selectedIds.has(map.id)}
+            onToggleSelect={() => toggleSelect(map.id)}
+            autoInstall={batchTrigger.has(map.id)}
+            onBatchTriggered={() => clearBatchTrigger(map.id)}
           />
         ))
       )}
