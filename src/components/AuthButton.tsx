@@ -68,7 +68,7 @@ export function AuthButton({ adminEmail }: { adminEmail: string }) {
     <div className="relative">
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2 px-3 py-1.5 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-sm hover:bg-[var(--bg-secondary)] transition-colors"
+        className="flex items-center gap-2 px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg shadow-sm hover:bg-[var(--border)] active:scale-95 transition-all"
       >
         <img src={user.photoURL ?? undefined} alt="" className="w-7 h-7 rounded-full" />
         <span className="text-sm text-[var(--text-primary)] hidden sm:block">{user.displayName ?? user.email}</span>
