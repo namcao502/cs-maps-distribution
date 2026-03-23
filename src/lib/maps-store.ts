@@ -1,4 +1,5 @@
 import { getAdminDb } from '@/lib/firebase-admin'
+import { FieldValue } from 'firebase-admin/firestore'
 import type { MapEntry } from '@/types/map'
 
 function docToMapEntry(id: string, data: FirebaseFirestore.DocumentData): MapEntry {
@@ -10,6 +11,8 @@ function docToMapEntry(id: string, data: FirebaseFirestore.DocumentData): MapEnt
     size: data.size as number,
     sha256: data.sha256 as string,
     uploadedAt: data.uploadedAt as string,
+    downloadCount: (data.downloadCount as number) ?? 0,
+    installCount: (data.installCount as number) ?? 0,
     uploader: data.uploaderId
       ? {
           id: data.uploaderId as string,
@@ -36,6 +39,8 @@ export async function addMap(entry: MapEntry): Promise<void> {
     size: entry.size,
     sha256: entry.sha256,
     uploadedAt: entry.uploadedAt,
+    downloadCount: 0,
+    installCount: 0,
     uploaderId: entry.uploader?.id ?? null,
     uploaderName: entry.uploader?.name ?? null,
     uploaderAvatar: entry.uploader?.avatar ?? null,
@@ -44,6 +49,18 @@ export async function addMap(entry: MapEntry): Promise<void> {
 
 export async function removeMap(id: string): Promise<void> {
   await getAdminDb().collection('maps').doc(id).delete()
+}
+
+export async function incrementDownload(id: string): Promise<void> {
+  await getAdminDb().collection('maps').doc(id).update({
+    downloadCount: FieldValue.increment(1),
+  })
+}
+
+export async function incrementInstall(id: string): Promise<void> {
+  await getAdminDb().collection('maps').doc(id).update({
+    installCount: FieldValue.increment(1),
+  })
 }
 
 export async function getMapSha256s(): Promise<string[]> {

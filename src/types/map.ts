@@ -6,6 +6,8 @@ export interface MapEntry {
   size: number
   sha256: string
   uploadedAt: string
+  downloadCount: number
+  installCount: number
   uploader?: {
     id: string
     name: string
