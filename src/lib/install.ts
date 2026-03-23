@@ -143,23 +143,6 @@ const dirHandle = await getNestedDir(gameRoot, parts)
   return targetPath
 }
 
-/** Check if a map's .bsp is already present in the game folder */
-export async function isMapInstalled(
-  gameRoot: FileSystemDirectoryHandle,
-  mapName: string
-): Promise<boolean> {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const h = gameRoot as any
-    const cstrike = await h.getDirectoryHandle('cstrike', { create: false })
-    const maps = await cstrike.getDirectoryHandle('maps', { create: false })
-    await maps.getFileHandle(`${mapName}.bsp`, { create: false })
-    return true
-  } catch {
-    return false
-  }
-}
-
 /** Full install flow with progress callbacks */
 export async function installMap(
   map: MapEntry,

@@ -4,7 +4,7 @@ import type { MapEntry } from '@/types/map'
 import type { InstallStatus } from '@/lib/install'
 import { ProgressModal } from './ProgressModal'
 import { ConfirmModal } from './ConfirmModal'
-import { isFileSystemAccessSupported, installMap, isMapInstalled } from '@/lib/install'
+import { isFileSystemAccessSupported, installMap, isBspInstalled } from '@/lib/install'
 import { ensurePermission, markInstalled, isInstalledLocally } from '@/lib/folder-store'
 
 const FORMAT_COLORS: Record<string, string> = {
@@ -22,10 +22,14 @@ export function MapCard({
   map,
   gameFolder,
   onPickFolder,
+  installedBsps,
+  onInstalled,
 }: {
   map: MapEntry
   gameFolder: FileSystemDirectoryHandle | null
   onPickFolder: () => Promise<void>
+  installedBsps: Set<string>
+  onInstalled: () => void
 }) {
   const [status, setStatus] = useState<InstallStatus | null>(null)
   const [installed, setInstalled] = useState(() => isInstalledLocally(map.id))
@@ -34,11 +38,8 @@ export function MapCard({
   const supportsFileApi = isFileSystemAccessSupported()
 
   useEffect(() => {
-    if (!gameFolder) return
-    isMapInstalled(gameFolder, map.originalName).then(result => {
-      if (result) setInstalled(true)
-    })
-  }, [gameFolder, map.originalName])
+    setInstalled(isBspInstalled(map.originalName, installedBsps) || isInstalledLocally(map.id))
+  }, [installedBsps, map.originalName, map.id])
 
   async function handleRawDownload() {
     const res = await fetch(`/api/download/${map.id}`)
@@ -85,6 +86,7 @@ export function MapCard({
       await installMap(map, url, sha256, handle, setStatus)
       markInstalled(map.id)
       setInstalled(true)
+      onInstalled()
     } catch (err: unknown) {
       if ((err as { name?: string }).name === 'AbortError') return
       setStatus({ phase: 'error', message: (err as Error).message ?? 'Unknown error' })
