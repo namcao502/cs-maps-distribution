@@ -16,6 +16,9 @@ export async function POST(req: NextRequest) {
   if (!Array.isArray(mapIds) || mapIds.length === 0) {
     return NextResponse.json({ error: 'mapIds must be a non-empty array' }, { status: 400 })
   }
+  if (!mapIds.every((id): id is string => typeof id === 'string')) {
+    return NextResponse.json({ error: 'mapIds must contain only strings' }, { status: 400 })
+  }
 
   const id = uuidv4()
   await addPack({ id, name, description, mapIds, createdAt: new Date().toISOString() })

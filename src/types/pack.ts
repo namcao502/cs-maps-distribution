@@ -5,3 +5,7 @@ export interface MapPack {
   mapIds: string[]
   createdAt: string
 }
+
+import type { MapEntry } from '@/types/map'
+
+export type PackWithMaps = MapPack & { maps: MapEntry[] }

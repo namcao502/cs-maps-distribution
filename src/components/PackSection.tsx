@@ -1,11 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
 import type { MapEntry } from '@/types/map'
-import type { MapPack } from '@/types/pack'
+import type { MapPack, PackWithMaps } from '@/types/pack'
 import { installMap } from '@/lib/install'
 import { ensurePermission, markInstalled } from '@/lib/folder-store'
-
-type PackWithMaps = MapPack & { maps: MapEntry[] }
 type MapStatus = 'idle' | 'installing' | 'done' | 'error'
 type InstallStates = Record<string, Record<string, MapStatus>>
 
@@ -25,6 +23,7 @@ export function PackSection({
     fetch('/api/packs')
       .then(r => r.ok ? r.json() : [])
       .then(setPacks)
+      .catch(() => {})
   }, [])
 
   if (packs.length === 0) return null

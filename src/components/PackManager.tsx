@@ -1,9 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import type { MapEntry } from '@/types/map'
-import type { MapPack } from '@/types/pack'
-
-type PackWithMaps = MapPack & { maps: MapEntry[] }
+import type { MapPack, PackWithMaps } from '@/types/pack'
 
 export function PackManager({ maps }: { maps: MapEntry[] }) {
   const [packs, setPacks] = useState<PackWithMaps[]>([])
@@ -11,6 +9,7 @@ export function PackManager({ maps }: { maps: MapEntry[] }) {
   const [description, setDescription] = useState('')
   const [selectedMapIds, setSelectedMapIds] = useState<Set<string>>(new Set())
   const [creating, setCreating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   async function loadPacks() {
     const res = await fetch('/api/packs')
@@ -31,6 +30,7 @@ export function PackManager({ maps }: { maps: MapEntry[] }) {
     e.preventDefault()
     if (!name.trim() || selectedMapIds.size === 0) return
     setCreating(true)
+    setError(null)
     try {
       const res = await fetch('/api/admin/packs', {
         method: 'POST',
@@ -42,6 +42,8 @@ export function PackManager({ maps }: { maps: MapEntry[] }) {
         setDescription('')
         setSelectedMapIds(new Set())
         await loadPacks()
+      } else {
+        setError('Failed to create pack. Please try again.')
       }
     } finally {
       setCreating(false)
@@ -50,12 +52,20 @@ export function PackManager({ maps }: { maps: MapEntry[] }) {
 
   async function handleDelete(id: string) {
     const res = await fetch(`/api/admin/packs/${id}`, { method: 'DELETE' })
-    if (res.ok) setPacks(prev => prev.filter(p => p.id !== id))
+    if (res.ok) {
+      setPacks(prev => prev.filter(p => p.id !== id))
+    } else {
+      setError('Failed to delete pack. Please try again.')
+    }
   }
 
   return (
     <div className="mt-8">
       <h2 className="text-lg font-semibold mb-3 text-[var(--text-primary)]">Map Packs</h2>
+
+      {error && (
+        <p className="text-sm text-red-500 mb-2">{error}</p>
+      )}
 
       {/* Create form */}
       <form onSubmit={handleCreate} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4 mb-4 flex flex-col gap-3">
