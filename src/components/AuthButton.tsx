@@ -82,9 +82,14 @@ export function AuthButton({ adminEmail }: { adminEmail: string }) {
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className="absolute right-0 mt-1 w-48 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-lg z-20 py-1 overflow-hidden">
             {isAdmin ? (
-              <Link href="/admin" onClick={() => setOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-blue-600 hover:bg-[var(--bg-secondary)]">
-                Admin panel
-              </Link>
+              <>
+                <Link href="/admin" onClick={() => setOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-blue-600 hover:bg-[var(--bg-secondary)]">
+                  Admin panel
+                </Link>
+                <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]">
+                  User page
+                </Link>
+              </>
             ) : (
               <>
                 <Link href="/submissions" onClick={() => setOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]">

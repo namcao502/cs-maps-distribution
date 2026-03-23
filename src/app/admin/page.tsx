@@ -7,7 +7,6 @@ import { AdminMapList } from '@/components/AdminMapList'
 import { PendingQueue } from '@/components/PendingQueue'
 import { AuthButton } from '@/components/AuthButton'
 import { ThemeToggle } from '@/components/ThemeToggle'
-import Link from 'next/link'
 import type { MapEntry } from '@/types/map'
 
 export default function AdminPage() {
@@ -44,10 +43,6 @@ export default function AdminPage() {
             <p className="text-xs text-[var(--text-muted)] mt-0.5">Admin panel</p>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--border)] active:scale-95 transition-all shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-              User page
-            </Link>
             <ThemeToggle />
             <AuthButton adminEmail={process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? ''} />
           </div>
