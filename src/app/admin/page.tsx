@@ -32,8 +32,8 @@ export default function AdminPage() {
     if (authed) loadMaps()
   }, [authed, loadMaps])
 
-  if (checking) return <main className="max-w-sm mx-auto px-4 py-24 text-center text-gray-400">Loading...</main>
-  if (!authed) return <main className="max-w-sm mx-auto px-4 py-24 text-center text-gray-400">Access denied.</main>
+  if (checking) return <main className="max-w-sm mx-auto px-4 py-24 text-center text-[var(--text-muted)]">Loading...</main>
+  if (!authed) return <main className="max-w-sm mx-auto px-4 py-24 text-center text-[var(--text-muted)]">Access denied.</main>
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-12">
