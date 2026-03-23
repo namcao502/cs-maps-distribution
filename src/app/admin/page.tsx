@@ -6,8 +6,7 @@ import { UploadForm } from '@/components/UploadForm'
 import { AdminMapList } from '@/components/AdminMapList'
 import { PendingQueue } from '@/components/PendingQueue'
 import { PackManager } from '@/components/PackManager'
-import { AuthButton } from '@/components/AuthButton'
-import { ThemeToggle } from '@/components/ThemeToggle'
+import { SiteHeader } from '@/components/SiteHeader'
 import type { MapEntry } from '@/types/map'
 
 export default function AdminPage() {
@@ -37,18 +36,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)]">
-      <header className="bg-[var(--bg-card)] border-b border-[var(--border)] shadow-sm">
-        <div className="max-w-2xl mx-auto px-4 py-5 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">CS 1.6 Maps</h1>
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">Admin panel</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <AuthButton adminEmail={process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? ''} />
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="max-w-2xl mx-auto px-4 py-8">
         {checking ? (

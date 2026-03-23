@@ -5,9 +5,8 @@ import { PackSection } from '@/components/PackSection'
 import type { MapEntry } from '@/types/map'
 import { isFileSystemAccessSupported, pickGameFolder, validateGameFolder } from '@/lib/install'
 import { saveHandle, loadHandle } from '@/lib/folder-store'
-import { AuthButton } from '@/components/AuthButton'
+import { SiteHeader } from '@/components/SiteHeader'
 import { ConfirmModal } from '@/components/ConfirmModal'
-import { ThemeToggle } from '@/components/ThemeToggle'
 
 export default function HomePage() {
   const [maps, setMaps] = useState<MapEntry[]>([])
@@ -67,19 +66,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)]">
-      {/* Header */}
-      <header className="bg-[var(--bg-card)] border-b border-[var(--border)] shadow-sm">
-        <div className="max-w-2xl mx-auto px-4 py-5 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">CS 1.6 Maps</h1>
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">One-click map installer</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <AuthButton adminEmail={process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? ''} />
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       {/* Content */}
       <main className="max-w-2xl mx-auto px-4 py-8">

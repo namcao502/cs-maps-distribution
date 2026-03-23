@@ -24,29 +24,44 @@ export function MySubmissions() {
       .finally(() => setLoading(false))
   }, [])
 
+  async function handleDelete(id: string) {
+    const res = await fetch(`/api/submissions/${id}`, { method: 'DELETE' })
+    if (res.ok) setSubmissions(prev => prev.filter(s => s.id !== id))
+  }
+
   if (loading) return <p className="text-[var(--text-muted)] text-sm">Loading...</p>
   if (submissions.length === 0) return <p className="text-[var(--text-muted)] text-sm">No submissions yet.</p>
 
   return (
     <div className="flex flex-col gap-2">
       {submissions.map(sub => (
-        <div key={sub.id} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl px-4 py-3">
-          <div className="flex items-center justify-between">
+        <div key={sub.id} className="flex items-center justify-between px-4 py-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl">
+          <div className="min-w-0">
             <div>
               <span className="font-medium text-[var(--text-primary)]">{sub.originalName}</span>
               <span className="ml-2 text-xs text-[var(--text-muted)] uppercase">{sub.format}</span>
               <span className="ml-2 text-xs text-[var(--text-muted)]">{formatBytes(sub.size)}</span>
             </div>
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${STATUS_STYLES[sub.status]}`}>
-              {sub.status}
-            </span>
+            {sub.rejectionReason && (
+              <p className="text-xs text-red-500 mt-0.5">Reason: {sub.rejectionReason}</p>
+            )}
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">
+              Submitted {new Date(sub.submittedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+            </p>
           </div>
-          {sub.rejectionReason && (
-            <p className="text-xs text-red-500 mt-1">Reason: {sub.rejectionReason}</p>
-          )}
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">
-            Submitted {new Date(sub.submittedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-          </p>
+          <div className="flex items-center gap-2 ml-3 shrink-0">
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${STATUS_STYLES[sub.status]}`}>
+              {sub.status === 'pending' ? 'pending approve' : sub.status}
+            </span>
+            {sub.status === 'pending' && (
+              <button
+                onClick={() => handleDelete(sub.id)}
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-red-500 text-white hover:bg-red-600"
+              >
+                Delete
+              </button>
+            )}
+          </div>
         </div>
       ))}
     </div>

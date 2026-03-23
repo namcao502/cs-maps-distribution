@@ -49,9 +49,10 @@ export async function getSubmissionsByUser(userId: string): Promise<Submission[]
   const snap = await getAdminDb()
     .collection('submissions')
     .where('submitterId', '==', userId)
-    .orderBy('submittedAt', 'desc')
     .get()
-  return snap.docs.map(doc => docToSubmission(doc.id, doc.data()))
+  return snap.docs
+    .map(doc => docToSubmission(doc.id, doc.data()))
+    .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))
 }
 
 export async function getSubmissions(status?: string): Promise<Submission[]> {
@@ -82,6 +83,10 @@ export async function rejectSubmission(id: string, reason: string): Promise<void
     rejectionReason: reason,
     reviewedAt: new Date().toISOString(),
   })
+}
+
+export async function deleteSubmission(id: string): Promise<void> {
+  await getAdminDb().collection('submissions').doc(id).delete()
 }
 
 export async function hasPendingSubmissionBySha256(sha256: string): Promise<boolean> {

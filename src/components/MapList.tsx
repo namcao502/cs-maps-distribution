@@ -61,7 +61,9 @@ export function MapList({
 
   const filtered = maps.filter(m => {
     const matchesSearch = m.originalName.toLowerCase().includes(query.toLowerCase())
-    const matchesTags = selectedTags.length === 0 || selectedTags.some(t => m.tags.includes(t))
+    const matchesTags = selectedTags.length === 0 || selectedTags.some(t =>
+      m.tags.includes(t) || m.originalName.toLowerCase().startsWith(t.toLowerCase())
+    )
     return matchesSearch && matchesTags
   })
 

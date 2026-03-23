@@ -22,9 +22,7 @@ const MoonIcon = () => (
   </svg>
 )
 
-type Option = { value: 'light' | 'dark' | 'system'; icon: ReactNode; label: string }
-
-const OPTIONS: Option[] = [
+const CYCLE: Array<{ value: 'light' | 'system' | 'dark'; icon: ReactNode; label: string }> = [
   { value: 'light', icon: <SunIcon />, label: 'Light' },
   { value: 'system', icon: <MonitorIcon />, label: 'System' },
   { value: 'dark', icon: <MoonIcon />, label: 'Dark' },
@@ -32,23 +30,16 @@ const OPTIONS: Option[] = [
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
+  const current = CYCLE.find(o => o.value === theme) ?? CYCLE[1]
+  const next = CYCLE[(CYCLE.findIndex(o => o.value === theme) + 1) % CYCLE.length]
 
   return (
-    <div className="flex items-center rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] p-0.5 gap-0.5">
-      {OPTIONS.map(opt => (
-        <button
-          key={opt.value}
-          onClick={() => setTheme(opt.value)}
-          title={opt.label}
-          className={`flex items-center justify-center w-7 h-7 rounded-md transition-colors ${
-            theme === opt.value
-              ? 'bg-[var(--bg-card)] text-[var(--text-primary)] shadow-sm'
-              : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-          }`}
-        >
-          {opt.icon}
-        </button>
-      ))}
-    </div>
+    <button
+      onClick={() => setTheme(next.value)}
+      title={`Theme: ${current.label} (click for ${next.label})`}
+      className="flex items-center justify-center w-8 h-8 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition-colors"
+    >
+      {current.icon}
+    </button>
   )
 }
