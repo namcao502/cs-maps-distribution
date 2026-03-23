@@ -47,7 +47,7 @@ export function AuthButton({ adminEmail }: { adminEmail: string }) {
     return (
       <button
         onClick={signIn}
-        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-sm"
+        className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors shadow-sm"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -65,16 +65,16 @@ export function AuthButton({ adminEmail }: { adminEmail: string }) {
   return (
     <div className="flex items-center gap-3">
       <img src={user.photoURL ?? undefined} alt="" className="w-7 h-7 rounded-full" />
-      <span className="text-sm text-slate-700 hidden sm:block">{user.displayName ?? user.email}</span>
+      <span className="text-sm text-[var(--text-primary)] hidden sm:block">{user.displayName ?? user.email}</span>
       {isAdmin ? (
         <a href="/admin" className="text-sm font-medium text-blue-600 hover:text-blue-800">Admin</a>
       ) : (
         <>
-          <a href="/submissions" className="text-sm font-medium text-slate-600 hover:text-slate-800">My Submissions</a>
+          <a href="/submissions" className="text-sm font-medium text-[var(--text-primary)] hover:text-[var(--text-primary)]">My Submissions</a>
           <a href="/submissions?new=1" className="text-sm font-medium text-green-600 hover:text-green-800">Submit a Map</a>
         </>
       )}
-      <button onClick={signOut} className="text-xs text-slate-400 hover:text-slate-600">Sign out</button>
+      <button onClick={signOut} className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">Sign out</button>
     </div>
   )
 }
