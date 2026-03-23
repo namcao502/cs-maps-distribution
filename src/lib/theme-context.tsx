@@ -1,0 +1,50 @@
+'use client'
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+
+type Theme = 'light' | 'dark' | 'system'
+
+interface ThemeContextValue {
+  theme: Theme
+  setTheme: (t: Theme) => void
+}
+
+const ThemeContext = createContext<ThemeContextValue>({
+  theme: 'system',
+  setTheme: () => {},
+})
+
+function resolveEffective(theme: Theme): 'light' | 'dark' {
+  if (theme !== 'system') return theme
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setTheme] = useState<Theme>('system')
+
+  useEffect(() => {
+    function applyTheme() {
+      const effective = resolveEffective(theme)
+      document.documentElement.classList.toggle('dark', effective === 'dark')
+    }
+
+    applyTheme()
+
+    // Only listen to OS changes when in 'system' mode.
+    // In 'light' or 'dark' mode, the class is set above and no listener is needed.
+    if (theme === 'system') {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)')
+      mq.addEventListener('change', applyTheme)
+      return () => mq.removeEventListener('change', applyTheme)
+    }
+  }, [theme])
+
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  )
+}
+
+export function useTheme(): ThemeContextValue {
+  return useContext(ThemeContext)
+}
