@@ -21,6 +21,62 @@ export function isFileSystemAccessSupported(): boolean {
   return typeof window !== 'undefined' && 'showDirectoryPicker' in window
 }
 
+/**
+ * Returns true if any BSP in installedBsps matches originalName.
+ *
+ * Match rule (both values lowercased before comparison):
+ *   - exact: originalName === bspBasename
+ *   - prefix: originalName.startsWith(bspBasename) AND the character
+ *     immediately after bspBasename in originalName is '_', a digit, or
+ *     end-of-string (boundary guard prevents de_dust matching de_dust2)
+ *
+ * Examples (originalName | bspBasename | matches?):
+ *   de_hoschispotfinal_x  | de_hoschispotfinal  | yes  (boundary: '_')
+ *   de_dust2_final        | de_dust2            | yes  (boundary: '_')
+ *   de_dust2_final        | de_dust             | yes  (boundary: '2', digit)
+ *   de_hoschispotfinal    | de_hoschispot       | no   (next char 'f', not a boundary)
+ */
+export function isBspInstalled(
+  originalName: string,
+  installedBsps: Set<string>
+): boolean {
+  const name = originalName.toLowerCase()
+  for (const bsp of installedBsps) {
+    if (name === bsp) return true
+    if (name.startsWith(bsp)) {
+      const next = name[bsp.length]
+      if (next === '_' || next === undefined || (next >= '0' && next <= '9')) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
+/**
+ * Scans gameRoot/cstrike/maps/ and returns a Set of lowercased BSP basenames
+ * (without the .bsp extension). Returns an empty set on any error.
+ */
+export async function scanInstalledBsps(
+  gameRoot: FileSystemDirectoryHandle
+): Promise<Set<string>> {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const h = gameRoot as any
+    const cstrike = await h.getDirectoryHandle('cstrike', { create: false })
+    const maps = await cstrike.getDirectoryHandle('maps', { create: false })
+    const result = new Set<string>()
+    for await (const [name, entry] of maps.entries()) {
+      if (entry.kind === 'file' && name.toLowerCase().endsWith('.bsp')) {
+        result.add(name.slice(0, -4).toLowerCase())
+      }
+    }
+    return result
+  } catch {
+    return new Set()
+  }
+}
+
 /** Prompt user to pick the CS 1.6 game root folder */
 export async function pickGameFolder(): Promise<FileSystemDirectoryHandle> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
