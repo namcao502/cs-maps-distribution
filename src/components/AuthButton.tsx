@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import {
   GoogleAuthProvider,
   signInWithPopup,
@@ -67,11 +68,11 @@ export function AuthButton({ adminEmail }: { adminEmail: string }) {
       <img src={user.photoURL ?? undefined} alt="" className="w-7 h-7 rounded-full" />
       <span className="text-sm text-[var(--text-primary)] hidden sm:block">{user.displayName ?? user.email}</span>
       {isAdmin ? (
-        <a href="/admin" className="text-sm font-medium text-blue-600 hover:text-blue-800">Admin</a>
+        <Link href="/admin" className="text-sm font-medium text-blue-600 hover:text-blue-800">Admin</Link>
       ) : (
         <>
-          <a href="/submissions" className="text-sm font-medium text-[var(--text-primary)] hover:text-[var(--text-primary)]">My Submissions</a>
-          <a href="/submissions?new=1" className="text-sm font-medium text-green-600 hover:text-green-800">Submit a Map</a>
+          <Link href="/submissions" className="text-sm font-medium text-[var(--text-primary)] hover:text-[var(--text-primary)]">My Submissions</Link>
+          <Link href="/submissions?new=1" className="text-sm font-medium text-green-600 hover:text-green-800">Submit a Map</Link>
         </>
       )}
       <button onClick={signOut} className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">Sign out</button>
