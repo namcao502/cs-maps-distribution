@@ -14,7 +14,7 @@ export function ProgressModal({ status, onClose, onFallbackDownload }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+      <div className="bg-[var(--bg-card)] rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
 
         {/* Active phases */}
         {isActive && (
@@ -24,39 +24,39 @@ export function ProgressModal({ status, onClose, onFallbackDownload }: Props) {
                 <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
               </div>
               <div>
-                <p className="font-semibold text-slate-900 text-sm">
+                <p className="font-semibold text-[var(--text-primary)] text-sm">
                   {status.phase === 'downloading' && 'Downloading...'}
                   {status.phase === 'verifying' && 'Verifying integrity...'}
                   {status.phase === 'extracting' && 'Extracting archive...'}
                   {status.phase === 'writing' && 'Installing files...'}
                 </p>
                 {status.phase === 'writing' && (
-                  <p className="text-xs text-slate-400 mt-0.5 truncate max-w-[240px]">{status.current}</p>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5 truncate max-w-[240px]">{status.current}</p>
                 )}
               </div>
             </div>
 
             {status.phase === 'downloading' && (
               <div>
-                <div className="w-full bg-slate-100 rounded-full h-2">
+                <div className="w-full bg-[var(--bg-secondary)] rounded-full h-2">
                   <div
                     className="bg-blue-500 h-2 rounded-full transition-all duration-150"
                     style={{ width: `${Math.round(status.progress * 100)}%` }}
                   />
                 </div>
-                <p className="text-xs text-slate-400 mt-1.5 text-right">{Math.round(status.progress * 100)}%</p>
+                <p className="text-xs text-[var(--text-muted)] mt-1.5 text-right">{Math.round(status.progress * 100)}%</p>
               </div>
             )}
 
             {status.phase === 'writing' && (
               <div>
-                <div className="w-full bg-slate-100 rounded-full h-2">
+                <div className="w-full bg-[var(--bg-secondary)] rounded-full h-2">
                   <div
                     className="bg-blue-500 h-2 rounded-full transition-all duration-150"
                     style={{ width: `${Math.round((status.done / status.total) * 100)}%` }}
                   />
                 </div>
-                <p className="text-xs text-slate-400 mt-1.5 text-right">{status.done}/{status.total} files</p>
+                <p className="text-xs text-[var(--text-muted)] mt-1.5 text-right">{status.done}/{status.total} files</p>
               </div>
             )}
           </div>
@@ -72,8 +72,8 @@ export function ProgressModal({ status, onClose, onFallbackDownload }: Props) {
                 </svg>
               </div>
               <div>
-                <p className="font-semibold text-slate-900 text-sm">Map installed!</p>
-                <p className="text-xs text-slate-400">{status.result.written.length} file(s) written to <span className="font-mono">{status.result.gameRoot}</span></p>
+                <p className="font-semibold text-[var(--text-primary)] text-sm">Map installed!</p>
+                <p className="text-xs text-[var(--text-muted)]">{status.result.written.length} file(s) written to <span className="font-mono">{status.result.gameRoot}</span></p>
               </div>
             </div>
             <button
@@ -95,8 +95,8 @@ export function ProgressModal({ status, onClose, onFallbackDownload }: Props) {
                 </svg>
               </div>
               <div>
-                <p className="font-semibold text-slate-900 text-sm">Installation failed</p>
-                <p className="text-xs text-slate-500 mt-0.5">{status.message}</p>
+                <p className="font-semibold text-[var(--text-primary)] text-sm">Installation failed</p>
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">{status.message}</p>
               </div>
             </div>
             <div className="flex flex-col gap-2 mt-2">
@@ -110,7 +110,7 @@ export function ProgressModal({ status, onClose, onFallbackDownload }: Props) {
               )}
               <button
                 onClick={onClose}
-                className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium transition-colors"
+                className="w-full py-2.5 bg-[var(--bg-secondary)] hover:bg-[var(--border)] text-[var(--text-primary)] rounded-xl text-sm font-medium transition-colors"
               >
                 Close
               </button>
