@@ -137,6 +137,8 @@ git commit -m "feat: add CSS variable tokens for light/dark theming"
 **Files:**
 - Create: `src/lib/theme-context.tsx`
 
+**Design decision — no persistence:** The theme resets to `'system'` on every page load. This is intentional per the spec — no `localStorage` read/write is implemented. Do not add persistence.
+
 **Important implementation note:** The `matchMedia` change listener must be attached **only** when `theme === 'system'`. When `theme` is `'light'` or `'dark'`, applying the class is sufficient — do NOT attach the listener. If the listener were attached unconditionally, changing back to `'system'` would leave orphaned listeners and OS changes would incorrectly override an explicit `'light'` or `'dark'` selection.
 
 - [ ] **Step 1: Create the file**
