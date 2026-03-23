@@ -24,18 +24,18 @@ export function MySubmissions() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <p className="text-slate-400 text-sm">Loading...</p>
-  if (submissions.length === 0) return <p className="text-slate-400 text-sm">No submissions yet.</p>
+  if (loading) return <p className="text-[var(--text-muted)] text-sm">Loading...</p>
+  if (submissions.length === 0) return <p className="text-[var(--text-muted)] text-sm">No submissions yet.</p>
 
   return (
     <div className="flex flex-col gap-2">
       {submissions.map(sub => (
-        <div key={sub.id} className="bg-white border border-slate-200 rounded-xl px-4 py-3">
+        <div key={sub.id} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <span className="font-medium text-slate-900">{sub.originalName}</span>
-              <span className="ml-2 text-xs text-slate-400 uppercase">{sub.format}</span>
-              <span className="ml-2 text-xs text-slate-400">{formatBytes(sub.size)}</span>
+              <span className="font-medium text-[var(--text-primary)]">{sub.originalName}</span>
+              <span className="ml-2 text-xs text-[var(--text-muted)] uppercase">{sub.format}</span>
+              <span className="ml-2 text-xs text-[var(--text-muted)]">{formatBytes(sub.size)}</span>
             </div>
             <span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${STATUS_STYLES[sub.status]}`}>
               {sub.status}
@@ -44,7 +44,7 @@ export function MySubmissions() {
           {sub.rejectionReason && (
             <p className="text-xs text-red-500 mt-1">Reason: {sub.rejectionReason}</p>
           )}
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">
             Submitted {new Date(sub.submittedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
           </p>
         </div>

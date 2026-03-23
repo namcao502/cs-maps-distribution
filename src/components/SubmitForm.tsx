@@ -103,7 +103,7 @@ export function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
     <div className="flex flex-col gap-4">
       <div
         className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition ${
-          dragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+          dragging ? 'border-blue-400 bg-blue-50' : 'border-[var(--border)] hover:border-[var(--text-muted)]'
         }`}
         onDragOver={e => { e.preventDefault(); setDragging(true) }}
         onDragLeave={() => setDragging(false)}
@@ -121,20 +121,20 @@ export function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
           className="hidden"
           onChange={e => { if (e.target.files?.length) { enqueue(e.target.files); e.target.value = '' } }}
         />
-        <p className="text-gray-500">Submit a CS 1.6 map for review</p>
-        <p className="text-xs text-gray-400 mt-1">Max 20 MB per file · Drop or click to browse</p>
+        <p className="text-[var(--text-muted)]">Submit a CS 1.6 map for review</p>
+        <p className="text-xs text-[var(--text-muted)] mt-1">Max 20 MB per file · Drop or click to browse</p>
       </div>
 
       {queue.length > 0 && (
         <div className="flex flex-col gap-2">
           {queue.map(item => (
-            <div key={item.id} className="bg-white border rounded-lg px-4 py-3">
+            <div key={item.id} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg px-4 py-3">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium text-slate-800 truncate max-w-[60%]">{item.file.name}</span>
+                <span className="text-sm font-medium text-[var(--text-primary)] truncate max-w-[60%]">{item.file.name}</span>
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-xs text-gray-400">{formatBytes(item.file.size)}</span>
+                  <span className="text-xs text-[var(--text-muted)]">{formatBytes(item.file.size)}</span>
                   {item.status === 'queued' && (
-                    <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">In queue</span>
+                    <span className="text-xs bg-[var(--bg-secondary)] text-[var(--text-muted)] px-2 py-0.5 rounded-full">In queue</span>
                   )}
                   {item.status === 'uploading' && (
                     <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
@@ -151,7 +151,7 @@ export function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
               </div>
 
               {item.status === 'uploading' && (
-                <div className="w-full bg-gray-200 rounded-full h-1.5">
+                <div className="w-full bg-[var(--bg-secondary)] rounded-full h-1.5">
                   <div
                     className="bg-blue-500 h-1.5 rounded-full transition-all"
                     style={{ width: `${Math.round(item.progress * 100)}%` }}
@@ -167,7 +167,7 @@ export function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
           {!hasActive && (
             <button
               onClick={() => setQueue([])}
-              className="text-xs text-gray-400 hover:text-gray-600 self-end"
+              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] self-end"
             >
               Clear
             </button>
