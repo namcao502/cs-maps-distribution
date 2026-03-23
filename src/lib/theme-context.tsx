@@ -19,8 +19,27 @@ function resolveEffective(theme: Theme): 'light' | 'dark' {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
+const STORAGE_KEY = 'cs-theme'
+
+function readTheme(): Theme {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored === 'light' || stored === 'dark' || stored === 'system') return stored
+  } catch {}
+  return 'system'
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('system')
+  const [theme, setThemeState] = useState<Theme>('system')
+
+  useEffect(() => {
+    setThemeState(readTheme())
+  }, [])
+
+  function setTheme(t: Theme) {
+    try { localStorage.setItem(STORAGE_KEY, t) } catch {}
+    setThemeState(t)
+  }
 
   useEffect(() => {
     function applyTheme() {
@@ -40,7 +59,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [theme])
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme: setTheme }}>
       {children}
     </ThemeContext.Provider>
   )
