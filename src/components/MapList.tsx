@@ -61,19 +61,27 @@ export function MapList({
             </span>
           </div>
         </div>
-      <button
-        onClick={onPickFolder}
-        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
-          gameFolder
-            ? 'bg-[var(--bg-secondary)] border-[var(--border)] text-[var(--text-muted)]'
-            : 'bg-blue-500 border-blue-500 text-white hover:bg-blue-600'
-        }`}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-        </svg>
-        {gameFolder ? `📁 ${gameFolder.name}` : 'Choose CS 1.6 Folder'}
-      </button>
+      <div className="flex justify-center">
+        <button
+          onClick={onPickFolder}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
+            gameFolder
+              ? 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]'
+              : 'bg-blue-500 border-blue-500 text-white hover:bg-blue-600'
+          }`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          </svg>
+          {gameFolder ? (
+            <>
+              <span className="text-[var(--text-muted)] font-normal">Folder:</span>
+              <span className="font-semibold truncate max-w-[200px]">{gameFolder.name}</span>
+              <span className="text-xs text-blue-500 ml-1">Change</span>
+            </>
+          ) : 'Choose CS 1.6 Folder'}
+        </button>
+      </div>
       <SearchInput value={query} onChange={setQuery} />
       {filtered.length === 0 ? (
         <p className="text-[var(--text-muted)] text-center py-12">No maps found.</p>
