@@ -53,6 +53,8 @@ export function AdminMapList({
             <span className="ml-2 text-xs text-[var(--text-muted)]">
               {new Date(map.uploadedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
             </span>
+            <span className="ml-2 text-xs text-[var(--text-muted)]">↓ {map.downloadCount}</span>
+            <span className="ml-2 text-xs text-[var(--text-muted)]">⚙ {map.installCount}</span>
           </div>
           <button
             onClick={() => setPendingDelete(map)}
