@@ -24,6 +24,8 @@ const sampleEntry: MapEntry = {
   downloadCount: 0,
   installCount: 0,
   tags: [],
+  hidden: false,
+  uploader: undefined,
 }
 
 const sampleDocData = {
