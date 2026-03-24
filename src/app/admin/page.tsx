@@ -2,11 +2,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { getFirebaseAuth } from '@/lib/firebase-client'
-import { UploadForm } from '@/components/UploadForm'
-import { AdminMapList } from '@/components/AdminMapList'
-import { PendingQueue } from '@/components/PendingQueue'
-import { PackManager } from '@/components/PackManager'
-import { SiteHeader } from '@/components/SiteHeader'
+import { UploadForm } from '@/components/admin/UploadForm'
+import { AdminMapList } from '@/components/maps/AdminMapList'
+import { PendingQueue } from '@/components/submissions/PendingQueue'
+import { PackManager } from '@/components/packs/PackManager'
+import { SiteHeader } from '@/components/layout/SiteHeader'
 import type { MapEntry } from '@/types/map'
 
 export default function AdminPage() {

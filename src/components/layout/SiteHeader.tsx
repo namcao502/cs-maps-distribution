@@ -4,9 +4,9 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { onAuthStateChanged, type User } from 'firebase/auth'
 import { getFirebaseAuth } from '@/lib/firebase-client'
-import { ThemeToggle } from './ThemeToggle'
-import { AuthButton } from './AuthButton'
-import { NotificationBell } from './NotificationBell'
+import { ThemeToggle } from '@/components/layout/ThemeToggle'
+import { AuthButton } from '@/components/submissions/AuthButton'
+import { NotificationBell } from '@/components/layout/NotificationBell'
 
 export function SiteHeader() {
   const pathname = usePathname()

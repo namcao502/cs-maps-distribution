@@ -1,11 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { MapList } from '@/components/MapList'
-import { PackSection } from '@/components/PackSection'
+import { MapList } from '@/components/maps/MapList'
+import { PackSection } from '@/components/packs/PackSection'
 import type { MapEntry } from '@/types/map'
 import { isFileSystemAccessSupported, pickGameFolder, validateGameFolder } from '@/lib/install'
 import { saveHandle, loadHandle } from '@/lib/folder-store'
-import { SiteHeader } from '@/components/SiteHeader'
+import { SiteHeader } from '@/components/layout/SiteHeader'
 import { ConfirmModal } from '@/components/ConfirmModal'
 
 export default function HomePage() {

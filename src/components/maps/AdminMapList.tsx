@@ -1,8 +1,8 @@
 'use client'
 import { useState } from 'react'
 import type { MapEntry } from '@/types/map'
-import { ConfirmModal } from './ConfirmModal'
-import { SearchInput } from './SearchInput'
+import { ConfirmModal } from '@/components/ConfirmModal'
+import { SearchInput } from '@/components/maps/SearchInput'
 import { MAP_TAGS, TAG_LABELS } from '@/lib/tags'
 import { Button, Card } from '@/components/ui'
 

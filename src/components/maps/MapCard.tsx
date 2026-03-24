@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import type { MapEntry } from '@/types/map'
-import { ConfirmModal } from './ConfirmModal'
+import { ConfirmModal } from '@/components/ConfirmModal'
 import { isFileSystemAccessSupported, installMap, isBspInstalled } from '@/lib/install'
 import { ensurePermission, markInstalled, isInstalledLocally } from '@/lib/folder-store'
 import { useNotifications } from '@/lib/notification-context'

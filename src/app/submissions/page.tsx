@@ -1,7 +1,7 @@
 'use client'
-import { SubmitForm } from '@/components/SubmitForm'
-import { MySubmissions } from '@/components/MySubmissions'
-import { SiteHeader } from '@/components/SiteHeader'
+import { SubmitForm } from '@/components/submissions/SubmitForm'
+import { MySubmissions } from '@/components/submissions/MySubmissions'
+import { SiteHeader } from '@/components/layout/SiteHeader'
 
 export default function SubmissionsPage() {
   return (
