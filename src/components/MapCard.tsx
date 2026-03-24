@@ -6,16 +6,12 @@ import { isFileSystemAccessSupported, installMap, isBspInstalled } from '@/lib/i
 import { ensurePermission, markInstalled, isInstalledLocally } from '@/lib/folder-store'
 import { useNotifications } from '@/lib/notification-context'
 import type { InstallStatus } from '@/lib/install'
+import { Button, Badge } from '@/components/ui'
 
-const FORMAT_COLORS: Record<string, string> = {
-  zip: 'bg-blue-100 text-blue-600',
-  '7z': 'bg-violet-100 text-violet-600',
-  rar: 'bg-orange-100 text-orange-600',
-}
-
-const TAG_COLORS: Record<string, string> = {
-  'de_': 'bg-red-100 text-red-600',
-  'cs_': 'bg-yellow-100 text-yellow-600',
+const FORMAT_VARIANTS: Record<string, 'info'> = {
+  zip: 'info',
+  '7z': 'info',
+  rar: 'info',
 }
 
 const TAG_SHORT: Record<string, string> = {
@@ -134,13 +130,13 @@ export function MapCard({
             onChange={e => { e.stopPropagation(); onToggleSelect?.() }}
             className="w-4 h-4 shrink-0 cursor-pointer accent-blue-500"
           />
-          <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-md uppercase tracking-wide ${FORMAT_COLORS[map.format] ?? 'bg-[var(--bg-secondary)] text-[var(--text-primary)]'}`}>
+          <Badge variant={FORMAT_VARIANTS[map.format] ?? 'default'} className="shrink-0">
             {map.format}
-          </span>
-          {map.tags.filter(tag => tag in TAG_COLORS).map(tag => (
-            <span key={tag} className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-md uppercase tracking-wide ${TAG_COLORS[tag]}`}>
+          </Badge>
+          {map.tags.filter(tag => tag in TAG_SHORT).map(tag => (
+            <Badge key={tag} variant="default" className="shrink-0">
               {TAG_SHORT[tag]}
-            </span>
+            </Badge>
           ))}
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -165,26 +161,18 @@ export function MapCard({
 
         <div className="flex items-center gap-2 ml-3 shrink-0">
           {supportsFileApi ? (
-            <button
+            <Button
+              variant={installed ? 'secondary' : 'success'}
+              size="md"
+              loading={isInstalling}
               onClick={handleInstall}
-              disabled={isInstalling}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isInstalling
-                  ? 'bg-[var(--bg-secondary)] text-[var(--text-muted)] cursor-not-allowed'
-                  : installed
-                    ? 'bg-[var(--bg-secondary)] text-[var(--text-primary)] hover:bg-[var(--border)]'
-                    : 'bg-green-500 text-white hover:bg-green-600'
-              }`}
             >
               {isInstalling ? 'Installing…' : installed ? 'Reinstall' : gameFolder ? 'Install' : 'Choose Folder & Install'}
-            </button>
+            </Button>
           ) : (
-            <button
-              onClick={handleRawDownload}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
-            >
+            <Button variant="primary" size="md" onClick={handleRawDownload}>
               Download
-            </button>
+            </Button>
           )}
         </div>
       </div>
