@@ -169,11 +169,11 @@ export function MapList({
             </svg>
             {gameFolder ? (
               <>
-                <span className="text-[var(--text-muted)] font-normal">Folder:</span>
+                <span className="text-[var(--text-muted)] font-normal">Your folder:</span>
                 <span className="font-semibold truncate max-w-[200px]">{gameFolder.name}</span>
                 <span className="text-xs text-blue-500 ml-1">Change</span>
               </>
-            ) : 'Choose CS 1.6 Folder'}
+            ) : 'Your Folder'}
           </button>
           <CheatCodeBanner className="w-full" />
         </div>
