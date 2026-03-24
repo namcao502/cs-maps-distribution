@@ -8,6 +8,7 @@ export interface MapEntry {
   uploadedAt: string
   downloadCount: number
   installCount: number
+  order?: number
   tags: string[]
   hidden?: boolean
   uploader?: {
