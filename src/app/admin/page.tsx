@@ -7,6 +7,7 @@ import { AdminMapList } from '@/components/maps/AdminMapList'
 import { PendingQueue } from '@/components/submissions/PendingQueue'
 import { PackManager } from '@/components/packs/PackManager'
 import { SiteHeader } from '@/components/layout/SiteHeader'
+import { AdminDashboard } from '@/components/admin/AdminDashboard'
 import type { MapEntry } from '@/types/map'
 
 export default function AdminPage() {
@@ -45,6 +46,7 @@ export default function AdminPage() {
           <p className="text-center py-20 text-[var(--text-muted)] text-sm">Access denied.</p>
         ) : (
           <>
+            <AdminDashboard />
             <PendingQueue onApproved={loadMaps} />
             <h2 className="text-lg font-semibold mb-3">Upload Map</h2>
             <UploadForm onUploaded={loadMaps} />
