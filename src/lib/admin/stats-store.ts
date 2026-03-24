@@ -25,7 +25,6 @@ async function fetchStats() {
   const mapsAgg = await db.collection('maps').aggregate({
     totalMaps: AggregateField.count(),
     totalInstalls: AggregateField.sum('installCount'),
-    totalDownloads: AggregateField.sum('downloadCount'),
   }).get()
 
   const pendingAgg = await db.collection('submissions')
@@ -73,7 +72,6 @@ async function fetchStats() {
   return {
     totalMaps: aggData.totalMaps as number,
     totalInstalls: (aggData.totalInstalls as number) ?? 0,
-    totalDownloads: (aggData.totalDownloads as number) ?? 0,
     pendingSubmissions: pendingAgg.data().count as number,
     topMaps,
     recentActivity: mergeRecentActivity(reviewed, uploaded, 10),

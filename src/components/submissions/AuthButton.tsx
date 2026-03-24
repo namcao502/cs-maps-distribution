@@ -70,7 +70,10 @@ export function AuthButton({ adminEmail }: { adminEmail: string }) {
         onClick={() => setOpen(o => !o)}
         className="flex items-center gap-2 px-3 h-9 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg shadow-sm hover:bg-[var(--border)] active:scale-95 transition-all"
       >
-        <img src={user.photoURL ?? undefined} alt="" className="w-7 h-7 rounded-full" />
+        {user.photoURL
+          ? <img src={user.photoURL} alt="" className="w-7 h-7 rounded-full" referrerPolicy="no-referrer" />
+          : <span className="w-7 h-7 rounded-full bg-[var(--bg-elevated)] border border-[var(--border)] flex items-center justify-center text-xs font-semibold text-[var(--text-muted)]">{(user.displayName ?? user.email ?? '?')[0].toUpperCase()}</span>
+        }
         <span className="text-sm text-[var(--text-primary)] hidden sm:block">{user.displayName ?? user.email}</span>
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-muted)]">
           <path d="m6 9 6 6 6-6"/>

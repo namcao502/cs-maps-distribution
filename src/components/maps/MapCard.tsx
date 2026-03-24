@@ -152,7 +152,7 @@ export function MapCard({
             </span>
             {map.uploader && (
               <div className="flex items-center gap-1 mt-0.5">
-                <img src={map.uploader.avatar} alt="" className="w-4 h-4 rounded-full" />
+                {map.uploader.avatar && <img src={map.uploader.avatar} alt="" className="w-4 h-4 rounded-full" referrerPolicy="no-referrer" />}
                 <span className="text-xs text-[var(--text-muted)]">by {map.uploader.name}</span>
               </div>
             )}

@@ -73,7 +73,6 @@ export async function POST(req: NextRequest) {
     size: buffer.byteLength,
     sha256,
     uploadedAt: new Date().toISOString(),
-    downloadCount: 0,
     installCount: 0,
     tags,
   })

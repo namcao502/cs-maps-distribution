@@ -128,7 +128,7 @@ export function MapList({
       <div className="flex justify-center">
         <div className="grid grid-cols-1 gap-3 w-fit mx-auto">
           <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl px-4 py-3 text-xs text-[var(--text-muted)] font-mono">
-            <p className="text-[var(--text-primary)] font-sans font-medium text-sm mb-2">Pick your CS 1.6 root folder:</p>
+            <p className="text-[var(--text-primary)] font-sans font-medium text-sm mb-2">Pick your CS 1.6 root folder and install map!</p>
             <div className="flex flex-col gap-0.5">
               {[
                 { label: 'C:\\',            indent: 0, highlight: false },

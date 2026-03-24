@@ -11,7 +11,6 @@ function docToMapEntry(id: string, data: FirebaseFirestore.DocumentData): MapEnt
     size: data.size as number,
     sha256: data.sha256 as string,
     uploadedAt: data.uploadedAt as string,
-    downloadCount: (data.downloadCount as number) ?? 0,
     installCount: (data.installCount as number) ?? 0,
     tags: (data.tags as string[]) ?? [],
     hidden: (data.hidden as boolean) ?? false,
@@ -41,7 +40,6 @@ export async function addMap(entry: MapEntry): Promise<void> {
     size: entry.size,
     sha256: entry.sha256,
     uploadedAt: entry.uploadedAt,
-    downloadCount: 0,
     installCount: 0,
     tags: entry.tags,
     uploaderId: entry.uploader?.id ?? null,
@@ -52,12 +50,6 @@ export async function addMap(entry: MapEntry): Promise<void> {
 
 export async function removeMap(id: string): Promise<void> {
   await getAdminDb().collection('maps').doc(id).delete()
-}
-
-export async function incrementDownload(id: string): Promise<void> {
-  await getAdminDb().collection('maps').doc(id).update({
-    downloadCount: FieldValue.increment(1),
-  })
 }
 
 export async function incrementInstall(id: string): Promise<void> {

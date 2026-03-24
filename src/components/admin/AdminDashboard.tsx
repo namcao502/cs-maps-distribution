@@ -8,7 +8,6 @@ import type { ActivityEvent } from '@/lib/admin/stats-store'
 interface Stats {
   totalMaps: number
   totalInstalls: number
-  totalDownloads: number
   pendingSubmissions: number
   topMaps: Array<{ id: string; originalName: string; installCount: number }>
   recentActivity: ActivityEvent[]
@@ -46,7 +45,6 @@ export function AdminDashboard() {
       <StatsRow
         totalMaps={stats.totalMaps}
         totalInstalls={stats.totalInstalls}
-        totalDownloads={stats.totalDownloads}
         pendingSubmissions={stats.pendingSubmissions}
       />
       <TopMaps maps={stats.topMaps} />

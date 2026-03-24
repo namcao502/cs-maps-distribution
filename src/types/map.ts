@@ -6,7 +6,6 @@ export interface MapEntry {
   size: number
   sha256: string
   uploadedAt: string
-  downloadCount: number
   installCount: number
   tags: string[]
   hidden?: boolean

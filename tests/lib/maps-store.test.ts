@@ -21,7 +21,6 @@ const sampleEntry: MapEntry = {
   size: 1000,
   sha256: 'abc123',
   uploadedAt: '2026-03-22T12:00:00Z',
-  downloadCount: 0,
   installCount: 0,
   tags: [],
   hidden: false,

@@ -34,7 +34,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     size: submission.size,
     sha256: submission.sha256,
     uploadedAt: new Date().toISOString(),
-    downloadCount: 0,
     installCount: 0,
     tags,
     uploader: {

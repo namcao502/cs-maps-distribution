@@ -13,7 +13,6 @@ function makeMap(id: string, originalName: string): MapEntry {
     size: 0,
     sha256: '',
     uploadedAt: '',
-    downloadCount: 0,
     installCount: 0,
     tags: [],
     hidden: false,
