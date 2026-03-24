@@ -6,12 +6,11 @@ import { isFileSystemAccessSupported, installMap, isBspInstalled } from '@/lib/m
 import { ensurePermission, markInstalled, isInstalledLocally } from '@/lib/maps/folder-store'
 import { useNotifications } from '@/lib/auth/notification-context'
 import type { InstallStatus } from '@/lib/maps/install'
-import { Button, Badge } from '@/components/ui'
+import { Button } from '@/components/ui'
 
-const FORMAT_VARIANTS: Record<string, 'info'> = {
-  zip: 'info',
-  '7z': 'info',
-  rar: 'info',
+const TAG_COLORS: Record<string, string> = {
+  'de_': 'bg-red-100 text-red-600',
+  'cs_': 'bg-yellow-100 text-yellow-600',
 }
 
 const TAG_SHORT: Record<string, string> = {
@@ -130,17 +129,14 @@ export function MapCard({
             onChange={e => { e.stopPropagation(); onToggleSelect?.() }}
             className="w-4 h-4 shrink-0 cursor-pointer accent-blue-500"
           />
-          <Badge variant={FORMAT_VARIANTS[map.format] ?? 'default'} className="shrink-0">
-            {map.format}
-          </Badge>
-          {map.tags.filter(tag => tag in TAG_SHORT).map(tag => (
-            <Badge key={tag} variant="default" className="shrink-0">
+          {map.tags.filter(tag => tag in TAG_COLORS).map(tag => (
+            <span key={tag} className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-md uppercase tracking-wide ${TAG_COLORS[tag]}`}>
               {TAG_SHORT[tag]}
-            </Badge>
+            </span>
           ))}
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-[var(--text-primary)] truncate">{map.originalName}</span>
+              <span className="font-semibold text-[var(--text-primary)] truncate">{map.originalName}.{map.format}</span>
               {installed && (
                 <span className="shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">
                   ✓ Installed
@@ -163,14 +159,24 @@ export function MapCard({
           {supportsFileApi ? (
             <Button
               variant={installed ? 'secondary' : 'success'}
-              size="md"
+              size="lg"
               loading={isInstalling}
               onClick={handleInstall}
             >
+              {!isInstalling && (
+                installed ? (
+                  // Refresh/reinstall icon
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                ) : (
+                  // Download arrow into tray icon
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                )
+              )}
               {isInstalling ? 'Installing…' : installed ? 'Reinstall' : gameFolder ? 'Install' : 'Choose Folder & Install'}
             </Button>
           ) : (
-            <Button variant="primary" size="md" onClick={handleRawDownload}>
+            <Button variant="primary" size="lg" onClick={handleRawDownload}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Download
             </Button>
           )}

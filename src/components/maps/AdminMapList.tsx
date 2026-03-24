@@ -7,12 +7,6 @@ import { MAP_TAGS, TAG_LABELS } from '@/lib/maps/tags'
 import { Button, Card } from '@/components/ui'
 import { useNotifications } from '@/lib/auth/notification-context'
 
-const FORMAT_COLORS: Record<string, string> = {
-  zip: 'bg-blue-100 text-blue-600',
-  '7z': 'bg-violet-100 text-violet-600',
-  rar: 'bg-orange-100 text-orange-600',
-}
-
 const TAG_COLORS: Record<string, string> = {
   'de_': 'bg-red-100 text-red-600',
   'cs_': 'bg-yellow-100 text-yellow-600',
@@ -140,28 +134,7 @@ export function AdminMapList({
           className={`mb-2 transition-shadow hover:shadow-md ${map.hidden ? 'border-amber-400 opacity-60' : ''}`}
         >
           <div className="flex items-center justify-between px-4 py-3.5">
-            <div className="flex items-center gap-1 shrink-0 mr-1">
-              <button
-                onClick={() => moveMap(orderedIndex, 'up')}
-                disabled={orderedIndex === 0 || isSaving}
-                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
-                title="Move up"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
-              </button>
-              <button
-                onClick={() => moveMap(orderedIndex, 'down')}
-                disabled={orderedIndex === orderedMaps.length - 1 || isSaving}
-                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
-                title="Move down"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-            </div>
-            <div className="flex items-center gap-3 min-w-0">
-              <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-md uppercase tracking-wide ${FORMAT_COLORS[map.format] ?? 'bg-[var(--bg-secondary)] text-[var(--text-primary)]'}`}>
-                {map.format}
-              </span>
+            <div className="flex items-center gap-2 min-w-0">
               {map.tags.filter(t => t in TAG_COLORS).map(tag => (
                 <span key={tag} className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-md uppercase tracking-wide ${TAG_COLORS[tag]}`}>
                   {TAG_SHORT[tag]}
@@ -169,7 +142,7 @@ export function AdminMapList({
               ))}
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-[var(--text-primary)] truncate">{map.originalName}</span>
+                  <span className="font-semibold text-[var(--text-primary)] truncate">{map.originalName}.{map.format}</span>
                   {map.hidden && <span className="shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600">Hidden</span>}
                 </div>
                 <span className="text-xs text-[var(--text-muted)]">
@@ -184,7 +157,23 @@ export function AdminMapList({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0 ml-3">
+            <div className="flex items-center gap-1 shrink-0 ml-3">
+              <button
+                onClick={() => moveMap(orderedIndex, 'up')}
+                disabled={orderedIndex === 0 || isSaving}
+                className="p-2 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Move up"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+              </button>
+              <button
+                onClick={() => moveMap(orderedIndex, 'down')}
+                disabled={orderedIndex === orderedMaps.length - 1 || isSaving}
+                className="p-2 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Move down"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
               <Button
                 variant="ghost"
                 size="sm"

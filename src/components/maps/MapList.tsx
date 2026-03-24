@@ -28,7 +28,7 @@ function CheatCodeBanner({ className }: { className?: string }) {
           key={code}
           onClick={() => copy(code)}
           title={`Copy: ${code}`}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg text-xs font-mono text-[var(--text-primary)] hover:border-blue-400 hover:bg-[var(--bg-secondary)] transition-colors"
+          className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-sm font-mono text-[var(--text-primary)] hover:border-blue-400 hover:bg-[var(--bg-secondary)] transition-colors"
         >
           <span className="text-[var(--text-muted)] font-sans not-italic">{label}:</span>
           <span className="font-semibold">{code}</span>

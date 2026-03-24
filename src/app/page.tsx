@@ -1,7 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { MapList } from '@/components/maps/MapList'
-import { PackSection } from '@/components/packs/PackSection'
 import type { MapEntry } from '@/types/map'
 import { isFileSystemAccessSupported, pickGameFolder, validateGameFolder } from '@/lib/maps/install'
 import { saveHandle, loadHandle } from '@/lib/maps/folder-store'
@@ -30,8 +29,16 @@ export default function HomePage() {
     function onPageShow(e: PageTransitionEvent) {
       if (e.persisted) fetchMaps()
     }
+    // Re-fetch when tab is focused after being hidden (e.g. admin made changes in another tab)
+    function onVisibilityChange() {
+      if (document.visibilityState === 'visible') fetchMaps()
+    }
     window.addEventListener('pageshow', onPageShow)
-    return () => window.removeEventListener('pageshow', onPageShow)
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => {
+      window.removeEventListener('pageshow', onPageShow)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -86,7 +93,6 @@ export default function HomePage() {
           <div className="text-center py-20 text-[var(--text-muted)] text-sm">Loading maps...</div>
         ) : (
           <>
-            <PackSection gameFolder={gameFolder} onPickFolder={handlePickFolder} />
             <MapList maps={maps} gameFolder={gameFolder} onPickFolder={handlePickFolder} />
           </>
         )}

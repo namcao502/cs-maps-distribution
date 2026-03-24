@@ -26,13 +26,13 @@ export function AdminDashboard() {
 
   if (error) {
     return (
-      <p className="text-xs text-[var(--text-muted)] mb-6">Could not load dashboard stats.</p>
+      <p className="text-xs text-[var(--text-muted)]">Could not load dashboard stats.</p>
     )
   }
 
   if (!stats) {
     return (
-      <div className="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[0, 1, 2, 3].map(i => (
           <div key={i} className="h-20 bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl animate-pulse" />
         ))}
@@ -41,7 +41,7 @@ export function AdminDashboard() {
   }
 
   return (
-    <div className="mb-6">
+    <div>
       <StatsRow
         totalMaps={stats.totalMaps}
         totalInstalls={stats.totalInstalls}

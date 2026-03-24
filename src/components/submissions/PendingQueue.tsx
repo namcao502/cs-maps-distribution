@@ -70,7 +70,7 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
   if (queue.length === 0) return null
 
   return (
-    <div className="mb-8">
+    <div>
       <h2 className="text-lg font-semibold mb-3 text-orange-600">Pending Review ({queue.length})</h2>
       <div className="flex flex-col gap-3">
         {queue.map(sub => (
