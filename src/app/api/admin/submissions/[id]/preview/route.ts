@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSessionUser, isAdmin } from '@/lib/auth'
+import { getSessionUser, isAdmin } from '@/lib/auth/auth'
 import { getSubmissionById } from '@/lib/submissions-store'
-import { getObjectBuffer } from '@/lib/storage'
+import { getObjectBuffer } from '@/lib/storage/storage'
 import { listArchivePaths } from '@/lib/validate-archive'
 import { detectStructure } from '@/lib/extractors/detect'
 

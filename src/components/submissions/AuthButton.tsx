@@ -8,7 +8,7 @@ import {
   signOut as firebaseSignOut,
   type User,
 } from 'firebase/auth'
-import { getFirebaseAuth } from '@/lib/firebase-client'
+import { getFirebaseAuth } from '@/lib/auth/firebase-client'
 
 export function AuthButton({ adminEmail }: { adminEmail: string }) {
   const [user, setUser] = useState<User | null>(null)

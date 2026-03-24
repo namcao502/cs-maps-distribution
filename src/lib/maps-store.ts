@@ -1,4 +1,4 @@
-import { getAdminDb } from '@/lib/firebase-admin'
+import { getAdminDb } from '@/lib/auth/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
 import type { MapEntry } from '@/types/map'
 

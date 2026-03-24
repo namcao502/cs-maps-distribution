@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { getAdminAuth } from '@/lib/firebase-admin'
+import { getAdminAuth } from './firebase-admin'
 
 export interface SessionUser {
   /** Firebase UID — exposed as `id` for API route compatibility */

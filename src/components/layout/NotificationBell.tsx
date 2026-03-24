@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { useNotifications, type Notification } from '@/lib/notification-context'
+import { useNotifications, type Notification } from '@/lib/auth/notification-context'
 import type { InstallStatus } from '@/lib/install'
 import { Spinner } from '@/components/ui'
 

@@ -1,7 +1,7 @@
 // Mock firebase-admin so the module import doesn't fail in Jest
 jest.mock('@/lib/firebase-admin', () => ({ adminAuth: {} }))
 
-import { isAdmin } from '@/lib/auth'
+import { isAdmin } from '@/lib/auth/auth'
 
 describe('isAdmin', () => {
   const originalEnv = process.env

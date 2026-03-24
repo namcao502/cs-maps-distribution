@@ -1,4 +1,4 @@
-import { computeSHA256 } from '@/lib/hash'
+import { computeSHA256 } from '@/lib/storage/hash'
 
 describe('computeSHA256', () => {
   it('returns correct SHA-256 for known input', async () => {

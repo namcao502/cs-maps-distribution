@@ -1,4 +1,4 @@
-import { getAdminDb } from '@/lib/firebase-admin'
+import { getAdminDb } from '@/lib/auth/firebase-admin'
 import { v4 as uuidv4 } from 'uuid'
 import type { Submission } from '@/types/submission'
 

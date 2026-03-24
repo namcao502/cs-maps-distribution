@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
-import { getSessionUser, isAdmin } from '@/lib/auth'
-import { putObject } from '@/lib/storage'
+import { getSessionUser, isAdmin } from '@/lib/auth/auth'
+import { putObject } from '@/lib/storage/storage'
 import { addSubmission, hasPendingSubmissionBySha256 } from '@/lib/submissions-store'
-import { computeSHA256 } from '@/lib/hash'
+import { computeSHA256 } from '@/lib/storage/hash'
 import { validateMapArchive } from '@/lib/validate-archive'
 import { getMapSha256s } from '@/lib/maps-store'
 

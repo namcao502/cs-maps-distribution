@@ -1,4 +1,4 @@
-import { getAdminDb } from '@/lib/firebase-admin'
+import { getAdminDb } from '@/lib/auth/firebase-admin'
 import type { MapPack } from '@/types/pack'
 
 function docToPack(id: string, data: FirebaseFirestore.DocumentData): MapPack {

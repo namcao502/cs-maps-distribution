@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMaps, incrementDownload } from '@/lib/maps-store'
-import { getPresignedUrl } from '@/lib/storage'
+import { getPresignedUrl } from '@/lib/storage/storage'
 
 export async function GET(
   _req: NextRequest,

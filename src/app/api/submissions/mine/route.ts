@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getSessionUser } from '@/lib/auth'
+import { getSessionUser } from '@/lib/auth/auth'
 import { getSubmissionsByUser } from '@/lib/submissions-store'
 
 export async function GET() {

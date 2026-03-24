@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSessionUser, isAdmin } from '@/lib/auth'
+import { getSessionUser, isAdmin } from '@/lib/auth/auth'
 import { addPack } from '@/lib/packs-store'
 import { v4 as uuidv4 } from 'uuid'
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { getAdminAuth } from '@/lib/firebase-admin'
+import { getAdminAuth } from '@/lib/auth/firebase-admin'
 
 const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000
 const IS_PROD = process.env.NODE_ENV === 'production'

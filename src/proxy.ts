@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { getAdminAuth } from '@/lib/firebase-admin'
+import { getAdminAuth } from '@/lib/auth/firebase-admin'
 
 export async function proxy(request: NextRequest) {
   const sessionCookie = request.cookies.get('__session')?.value

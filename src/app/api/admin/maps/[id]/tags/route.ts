@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSessionUser, isAdmin } from '@/lib/auth'
+import { getSessionUser, isAdmin } from '@/lib/auth/auth'
 import { updateMapTags } from '@/lib/maps-store'
 import { MAP_TAGS, type MapTag } from '@/lib/tags'
 
