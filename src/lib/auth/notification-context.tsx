@@ -1,6 +1,6 @@
 'use client'
 import { createContext, useContext, useState, useCallback } from 'react'
-import type { InstallStatus } from '../install'
+import type { InstallStatus } from '../maps/install'
 
 export type Notification =
   | { id: string; type: 'success' | 'error'; message: string; read: boolean; at: Date }

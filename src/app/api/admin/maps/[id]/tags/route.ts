@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser, isAdmin } from '@/lib/auth/auth'
-import { updateMapTags } from '@/lib/maps-store'
-import { MAP_TAGS, type MapTag } from '@/lib/tags'
+import { updateMapTags } from '@/lib/maps/maps-store'
+import { MAP_TAGS, type MapTag } from '@/lib/maps/tags'
 
 export async function PATCH(
   req: NextRequest,

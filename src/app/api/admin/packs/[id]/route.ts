@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser, isAdmin } from '@/lib/auth/auth'
-import { removePack } from '@/lib/packs-store'
+import { removePack } from '@/lib/packs/packs-store'
 
 export async function DELETE(
   _req: NextRequest,

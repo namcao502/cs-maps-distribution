@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react'
 import type { MapEntry } from '@/types/map'
 import { MapCard } from '@/components/maps/MapCard'
 import { SearchInput } from '@/components/maps/SearchInput'
-import { scanInstalledBsps } from '@/lib/install'
-import { MAP_TAGS, TAG_LABELS } from '@/lib/tags'
+import { scanInstalledBsps } from '@/lib/maps/install'
+import { MAP_TAGS, TAG_LABELS } from '@/lib/maps/tags'
 import { Card } from '@/components/ui'
 
 const CHEAT_CODES = [

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser, isAdmin } from '@/lib/auth/auth'
-import { getSubmissionById, rejectSubmission } from '@/lib/submissions-store'
+import { getSubmissionById, rejectSubmission } from '@/lib/submissions/submissions-store'
 import { deleteObject } from '@/lib/storage/storage'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

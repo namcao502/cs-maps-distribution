@@ -1,4 +1,4 @@
-import { getMaps, addMap, removeMap, getMapSha256s } from '@/lib/maps-store'
+import { getMaps, addMap, removeMap, getMapSha256s } from '@/lib/maps/maps-store'
 import type { MapEntry } from '@/types/map'
 
 const mockGet = jest.fn()
@@ -9,7 +9,7 @@ const mockOrderBy = jest.fn()
 const mockDoc = jest.fn()
 const mockCollection = jest.fn()
 
-jest.mock('@/lib/firebase-admin', () => ({
+jest.mock('@/lib/auth/firebase-admin', () => ({
   getAdminDb: jest.fn(() => ({ collection: mockCollection })),
 }))
 

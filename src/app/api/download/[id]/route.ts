@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getMaps, incrementDownload } from '@/lib/maps-store'
+import { getMaps, incrementDownload } from '@/lib/maps/maps-store'
 import { getPresignedUrl } from '@/lib/storage/storage'
 
 export async function GET(

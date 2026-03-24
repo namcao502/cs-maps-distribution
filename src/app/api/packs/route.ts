@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getPacks } from '@/lib/packs-store'
-import { getMaps } from '@/lib/maps-store'
+import { getPacks } from '@/lib/packs/packs-store'
+import { getMaps } from '@/lib/maps/maps-store'
 
 export async function GET() {
   try {

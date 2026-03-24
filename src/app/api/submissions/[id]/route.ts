@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/auth/auth'
-import { getSubmissionById, deleteSubmission } from '@/lib/submissions-store'
+import { getSubmissionById, deleteSubmission } from '@/lib/submissions/submissions-store'
 
 export async function DELETE(
   _req: NextRequest,

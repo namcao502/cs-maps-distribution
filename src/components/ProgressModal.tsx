@@ -1,5 +1,5 @@
 'use client'
-import type { InstallStatus } from '@/lib/install'
+import type { InstallStatus } from '@/lib/maps/install'
 import { Modal } from './ui/Modal'
 import { Button } from './ui/Button'
 

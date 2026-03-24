@@ -2,10 +2,10 @@
 import { useState, useEffect } from 'react'
 import type { MapEntry } from '@/types/map'
 import { ConfirmModal } from '@/components/ConfirmModal'
-import { isFileSystemAccessSupported, installMap, isBspInstalled } from '@/lib/install'
-import { ensurePermission, markInstalled, isInstalledLocally } from '@/lib/folder-store'
+import { isFileSystemAccessSupported, installMap, isBspInstalled } from '@/lib/maps/install'
+import { ensurePermission, markInstalled, isInstalledLocally } from '@/lib/maps/folder-store'
 import { useNotifications } from '@/lib/auth/notification-context'
-import type { InstallStatus } from '@/lib/install'
+import type { InstallStatus } from '@/lib/maps/install'
 import { Button, Badge } from '@/components/ui'
 
 const FORMAT_VARIANTS: Record<string, 'info'> = {

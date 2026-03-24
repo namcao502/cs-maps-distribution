@@ -1,4 +1,4 @@
-import { getPacks, addPack, removePack } from '@/lib/packs-store'
+import { getPacks, addPack, removePack } from '@/lib/packs/packs-store'
 import type { MapPack } from '@/types/pack'
 
 const mockGet = jest.fn()
@@ -8,7 +8,7 @@ const mockOrderBy = jest.fn()
 const mockDoc = jest.fn()
 const mockCollection = jest.fn()
 
-jest.mock('@/lib/firebase-admin', () => ({
+jest.mock('@/lib/auth/firebase-admin', () => ({
   getAdminDb: jest.fn(() => ({ collection: mockCollection })),
 }))
 

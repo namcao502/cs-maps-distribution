@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 import { getSessionUser, isAdmin } from '@/lib/auth/auth'
-import { MAP_TAGS, type MapTag } from '@/lib/tags'
-import { getSubmissionById, approveSubmission } from '@/lib/submissions-store'
-import { addMap } from '@/lib/maps-store'
+import { MAP_TAGS, type MapTag } from '@/lib/maps/tags'
+import { getSubmissionById, approveSubmission } from '@/lib/submissions/submissions-store'
+import { addMap } from '@/lib/maps/maps-store'
 import { getObjectBuffer, putObject, deleteObject } from '@/lib/storage/storage'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

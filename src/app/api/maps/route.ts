@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getMaps } from '@/lib/maps-store'
+import { getMaps } from '@/lib/maps/maps-store'
 
 export async function GET() {
   try {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/auth/auth'
-import { getSubmissionsByUser } from '@/lib/submissions-store'
+import { getSubmissionsByUser } from '@/lib/submissions/submissions-store'
 
 export async function GET() {
   const user = await getSessionUser()

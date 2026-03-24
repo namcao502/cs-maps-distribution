@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser, isAdmin } from '@/lib/auth/auth'
-import { addPack } from '@/lib/packs-store'
+import { addPack } from '@/lib/packs/packs-store'
 import { v4 as uuidv4 } from 'uuid'
 
 export async function POST(req: NextRequest) {

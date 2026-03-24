@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { incrementInstall } from '@/lib/maps-store'
+import { incrementInstall } from '@/lib/maps/maps-store'
 
 export async function POST(
   _req: NextRequest,

@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useNotifications, type Notification } from '@/lib/auth/notification-context'
-import type { InstallStatus } from '@/lib/install'
+import type { InstallStatus } from '@/lib/maps/install'
 import { Spinner } from '@/components/ui'
 
 function PhaseLabel({ status }: { status: InstallStatus }) {

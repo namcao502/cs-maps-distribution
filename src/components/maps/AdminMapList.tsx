@@ -3,7 +3,7 @@ import { useState } from 'react'
 import type { MapEntry } from '@/types/map'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { SearchInput } from '@/components/maps/SearchInput'
-import { MAP_TAGS, TAG_LABELS } from '@/lib/tags'
+import { MAP_TAGS, TAG_LABELS } from '@/lib/maps/tags'
 import { Button, Card } from '@/components/ui'
 
 const FORMAT_COLORS: Record<string, string> = {

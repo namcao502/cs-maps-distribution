@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react'
 import type { MapEntry } from '@/types/map'
 import type { PackWithMaps } from '@/types/pack'
-import { installMap } from '@/lib/install'
-import { ensurePermission, markInstalled } from '@/lib/folder-store'
+import { installMap } from '@/lib/maps/install'
+import { ensurePermission, markInstalled } from '@/lib/maps/folder-store'
 import { Button } from '@/components/ui'
 
 type MapStatus = 'idle' | 'installing' | 'done' | 'error'

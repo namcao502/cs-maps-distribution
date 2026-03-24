@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useCallback } from 'react'
-import { MAP_TAGS, TAG_LABELS } from '@/lib/tags'
+import { MAP_TAGS, TAG_LABELS } from '@/lib/maps/tags'
 
 const MAX_SIZE = 20 * 1024 * 1024
 

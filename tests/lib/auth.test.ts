@@ -1,5 +1,5 @@
 // Mock firebase-admin so the module import doesn't fail in Jest
-jest.mock('@/lib/firebase-admin', () => ({ adminAuth: {} }))
+jest.mock('@/lib/auth/firebase-admin', () => ({ adminAuth: {} }))
 
 import { isAdmin } from '@/lib/auth/auth'
 

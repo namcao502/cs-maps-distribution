@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import type { Submission } from '@/types/submission'
-import { MAP_TAGS } from '@/lib/tags'
+import { MAP_TAGS } from '@/lib/maps/tags'
 import { Button, Card, StatusBadge } from '@/components/ui'
 
 function formatBytes(bytes: number) {

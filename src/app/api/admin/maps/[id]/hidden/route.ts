@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser, isAdmin } from '@/lib/auth/auth'
-import { updateMapHidden } from '@/lib/maps-store'
+import { updateMapHidden } from '@/lib/maps/maps-store'
 
 export async function PATCH(
   req: NextRequest,

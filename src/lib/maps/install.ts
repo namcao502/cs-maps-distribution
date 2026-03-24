@@ -1,6 +1,6 @@
-import { detectStructure } from './extractors/detect'
-import { extractArchive } from './extractors/index'
-import type { ExtractedFile } from './extractors/types'
+import { detectStructure } from '../extractors/detect'
+import { extractArchive } from '../extractors/index'
+import type { ExtractedFile } from '../extractors/types'
 import type { MapEntry } from '@/types/map'
 
 export interface InstallResult {

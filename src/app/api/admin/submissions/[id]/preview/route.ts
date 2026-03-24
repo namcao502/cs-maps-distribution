@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser, isAdmin } from '@/lib/auth/auth'
-import { getSubmissionById } from '@/lib/submissions-store'
+import { getSubmissionById } from '@/lib/submissions/submissions-store'
 import { getObjectBuffer } from '@/lib/storage/storage'
-import { listArchivePaths } from '@/lib/validate-archive'
+import { listArchivePaths } from '@/lib/submissions/validate-archive'
 import { detectStructure } from '@/lib/extractors/detect'
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

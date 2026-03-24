@@ -5,7 +5,7 @@
 import { unzip } from 'fflate'
 import fs from 'fs'
 import path from 'path'
-import { detectStructure } from './extractors/detect'
+import { detectStructure } from '../extractors/detect'
 
 async function readWasm(filename: string): Promise<ArrayBuffer> {
   const buf = await fs.promises.readFile(path.join(process.cwd(), 'public', filename))

@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 import { getSessionUser, isAdmin } from '@/lib/auth/auth'
 import { putObject } from '@/lib/storage/storage'
-import { addSubmission, hasPendingSubmissionBySha256 } from '@/lib/submissions-store'
+import { addSubmission, hasPendingSubmissionBySha256 } from '@/lib/submissions/submissions-store'
 import { computeSHA256 } from '@/lib/storage/hash'
-import { validateMapArchive } from '@/lib/validate-archive'
-import { getMapSha256s } from '@/lib/maps-store'
+import { validateMapArchive } from '@/lib/submissions/validate-archive'
+import { getMapSha256s } from '@/lib/maps/maps-store'
 
 const MAX_SIZE = 20 * 1024 * 1024
 const ALLOWED_EXTENSIONS = new Set(['zip', '7z', 'rar'])

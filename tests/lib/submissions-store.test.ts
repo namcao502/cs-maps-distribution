@@ -4,7 +4,7 @@ import {
   approveSubmission,
   rejectSubmission,
   hasPendingSubmissionBySha256,
-} from '@/lib/submissions-store'
+} from '@/lib/submissions/submissions-store'
 
 const mockGet = jest.fn()
 const mockSet = jest.fn()
@@ -15,7 +15,7 @@ const mockLimit = jest.fn()
 const mockDoc = jest.fn()
 const mockCollection = jest.fn()
 
-jest.mock('@/lib/firebase-admin', () => ({
+jest.mock('@/lib/auth/firebase-admin', () => ({
   getAdminDb: jest.fn(() => ({ collection: mockCollection })),
 }))
 
