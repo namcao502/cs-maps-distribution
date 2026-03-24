@@ -18,14 +18,21 @@ type NotificationContextType = {
 
 const NotificationContext = createContext<NotificationContextType | null>(null)
 
+const AUTO_DISMISS_MS = 3000
+
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [activeInstallId, setActiveInstallId] = useState<string | null>(null)
 
+  const dismiss = useCallback((id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id))
+  }, [])
+
   const push = useCallback((message: string, type: 'success' | 'error') => {
     const id = `${Date.now()}-${Math.random()}`
     setNotifications(prev => [{ id, type, message, read: false, at: new Date() }, ...prev].slice(0, 20))
-  }, [])
+    setTimeout(() => dismiss(id), AUTO_DISMISS_MS)
+  }, [dismiss])
 
   const startProgress = useCallback((id: string, mapName: string) => {
     const n: Notification = { id, type: 'progress', mapName, status: { phase: 'downloading', progress: 0 }, read: false, at: new Date() }
@@ -39,8 +46,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     ))
     if (status.phase === 'done' || status.phase === 'error') {
       setActiveInstallId(prev => prev === id ? null : prev)
+      setTimeout(() => dismiss(id), AUTO_DISMISS_MS)
     }
-  }, [])
+  }, [dismiss])
 
   const markAllRead = useCallback(() => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
