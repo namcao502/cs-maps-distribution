@@ -4,6 +4,7 @@ import type { MapEntry } from '@/types/map'
 import { ConfirmModal } from './ConfirmModal'
 import { SearchInput } from './SearchInput'
 import { MAP_TAGS, TAG_LABELS } from '@/lib/tags'
+import { Button, Card } from '@/components/ui'
 
 const FORMAT_COLORS: Record<string, string> = {
   zip: 'bg-blue-100 text-blue-600',
@@ -97,9 +98,9 @@ export function AdminMapList({
         <p className="text-[var(--text-muted)] text-center py-6">No maps found.</p>
       ) : null}
       {filtered.map(map => (
-        <div
+        <Card
           key={map.id}
-          className={`bg-[var(--bg-card)] border rounded-xl shadow-sm transition-shadow hover:shadow-md ${map.hidden ? 'border-amber-400 opacity-60' : 'border-[var(--border)]'}`}
+          className={`mb-2 transition-shadow hover:shadow-md ${map.hidden ? 'border-amber-400 opacity-60' : ''}`}
         >
           <div className="flex items-center justify-between px-4 py-3.5">
             <div className="flex items-center gap-3 min-w-0">
@@ -129,20 +130,19 @@ export function AdminMapList({
             </div>
 
             <div className="flex items-center gap-2 shrink-0 ml-3">
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => { setEditingTags(editingTags === map.id ? null : map.id); setDraftTags(map.tags ?? []) }}
-                className="px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-muted)] text-xs font-medium hover:border-blue-400 hover:text-blue-500 transition-colors"
               >
                 {editingTags === map.id ? 'Cancel' : 'Tags'}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => toggleHidden(map)}
                 disabled={togglingHidden === map.id}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors disabled:opacity-50 ${
-                  map.hidden
-                    ? 'bg-amber-50 border-amber-300 text-amber-600 hover:bg-amber-100'
-                    : 'bg-[var(--bg-secondary)] border-[var(--border)] text-[var(--text-muted)] hover:border-amber-400 hover:text-amber-500'
-                }`}
+                className="flex items-center gap-1.5"
               >
                 {map.hidden ? (
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -150,14 +150,16 @@ export function AdminMapList({
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                 )}
                 {togglingHidden === map.id ? '…' : map.hidden ? 'Show' : 'Hide'}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
                 onClick={() => setPendingDelete(map)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-muted)] text-xs font-medium hover:border-red-400 hover:text-red-500 transition-colors"
+                className="flex items-center gap-1.5"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -176,16 +178,18 @@ export function AdminMapList({
                   {TAG_LABELS[tag] ?? tag}
                 </button>
               ))}
-              <button
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={() => saveTags(map.id)}
                 disabled={savingTags}
-                className="px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-medium hover:bg-blue-600 disabled:opacity-50 transition-colors"
+                loading={savingTags}
               >
                 {savingTags ? 'Saving…' : 'Save'}
-              </button>
+              </Button>
             </div>
           )}
-        </div>
+        </Card>
       ))}
 
       {pendingDelete && (

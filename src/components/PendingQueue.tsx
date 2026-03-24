@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import type { Submission } from '@/types/submission'
 import { MAP_TAGS } from '@/lib/tags'
+import { Button, Card, StatusBadge } from '@/components/ui'
 
 function formatBytes(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -73,10 +74,11 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
       <h2 className="text-lg font-semibold mb-3 text-orange-600">Pending Review ({queue.length})</h2>
       <div className="flex flex-col gap-3">
         {queue.map(sub => (
-          <div key={sub.id} className="bg-[var(--bg-card)] border border-orange-200 rounded-xl p-4">
+          <Card key={sub.id} className="mb-3 p-4">
             <div className="flex items-center gap-2 mb-2">
               <img src={sub.submitterAvatar} alt="" className="w-6 h-6 rounded-full" />
               <span className="text-sm text-[var(--text-primary)]">{sub.submitterName}</span>
+              <StatusBadge status="pending" />
               <span className="text-xs text-[var(--text-muted)] ml-auto">
                 {new Date(sub.submittedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
               </span>
@@ -124,13 +126,14 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
               ))}
             </div>
             <div className="flex items-start gap-2 mt-2">
-              <button
+              <Button
+                variant="success"
+                size="sm"
                 onClick={() => handleApprove(sub.id)}
                 disabled={busy[sub.id]}
-                className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 disabled:opacity-50"
               >
                 Approve
-              </button>
+              </Button>
               <div className="flex-1 flex gap-2">
                 <input
                   type="text"
@@ -139,16 +142,17 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
                   onChange={e => setRejecting(r => ({ ...r, [sub.id]: e.target.value }))}
                   className="flex-1 border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm bg-[var(--bg-card)] text-[var(--text-primary)]"
                 />
-                <button
+                <Button
+                  variant="danger"
+                  size="sm"
                   onClick={() => handleReject(sub.id)}
                   disabled={busy[sub.id] || !(rejecting[sub.id] ?? '').trim()}
-                  className="px-3 py-1.5 bg-red-100 text-red-600 rounded-lg text-sm font-medium hover:bg-red-200 disabled:opacity-50"
                 >
                   Reject
-                </button>
+                </Button>
               </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
     </div>

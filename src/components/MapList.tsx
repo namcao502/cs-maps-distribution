@@ -5,6 +5,7 @@ import { MapCard } from './MapCard'
 import { SearchInput } from './SearchInput'
 import { scanInstalledBsps } from '@/lib/install'
 import { MAP_TAGS, TAG_LABELS } from '@/lib/tags'
+import { Card } from '@/components/ui'
 
 const CHEAT_CODES = [
   { code: 'impulse 101', label: 'Code' },
@@ -106,7 +107,11 @@ export function MapList({
   })
 
   if (maps.length === 0) {
-    return <p className="text-[var(--text-muted)] text-center py-12">No maps uploaded yet.</p>
+    return (
+      <Card className="p-8 text-center">
+        <p className="text-[var(--text-muted)] text-sm">No maps available yet.</p>
+      </Card>
+    )
   }
 
   return (

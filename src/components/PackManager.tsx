@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import type { MapEntry } from '@/types/map'
-import type { MapPack, PackWithMaps } from '@/types/pack'
+import type { PackWithMaps } from '@/types/pack'
+import { Button, Badge } from '@/components/ui'
 
 const FORMAT_COLORS: Record<string, string> = {
   zip: 'bg-blue-100 text-blue-600',
@@ -128,13 +129,15 @@ export function PackManager({ maps }: { maps: MapEntry[] }) {
             </div>
           ))}
         </div>
-        <button
+        <Button
           type="submit"
+          variant="primary"
+          size="sm"
           disabled={!name.trim() || selectedMapIds.size === 0 || creating}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          loading={creating}
         >
           {creating ? 'Creating…' : 'Create Pack'}
-        </button>
+        </Button>
       </form>
 
       {/* Pack list */}
@@ -142,18 +145,21 @@ export function PackManager({ maps }: { maps: MapEntry[] }) {
         {packs.map(pack => (
           <div key={pack.id} className="flex items-center justify-between px-4 py-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl">
             <div>
-              <p className="font-medium text-sm text-[var(--text-primary)]">{pack.name}</p>
+              <div className="flex items-center gap-2">
+                <Badge variant="default">{pack.name}</Badge>
+              </div>
               {pack.description && (
                 <p className="text-xs text-[var(--text-muted)]">{pack.description}</p>
               )}
               <p className="text-xs text-[var(--text-muted)]">{pack.maps.length} map{pack.maps.length !== 1 ? 's' : ''}</p>
             </div>
-            <button
+            <Button
+              variant="danger"
+              size="sm"
               onClick={() => handleDelete(pack.id)}
-              className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600 transition-colors"
             >
               Delete
-            </button>
+            </Button>
           </div>
         ))}
         {packs.length === 0 && (

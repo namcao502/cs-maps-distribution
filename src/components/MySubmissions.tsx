@@ -1,16 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
 import type { Submission } from '@/types/submission'
+import { Button, StatusBadge } from '@/components/ui'
 
 function formatBytes(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
-
-const STATUS_STYLES: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-700',
-  approved: 'bg-green-100 text-green-700',
-  rejected: 'bg-red-100 text-red-600',
 }
 
 export function MySubmissions() {
@@ -50,16 +45,15 @@ export function MySubmissions() {
             </p>
           </div>
           <div className="flex items-center gap-2 ml-3 shrink-0">
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${STATUS_STYLES[sub.status]}`}>
-              {sub.status === 'pending' ? 'pending approve' : sub.status}
-            </span>
+            <StatusBadge status={sub.status} />
             {sub.status === 'pending' && (
-              <button
+              <Button
+                variant="danger"
+                size="sm"
                 onClick={() => handleDelete(sub.id)}
-                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-red-500 text-white hover:bg-red-600"
               >
                 Delete
-              </button>
+              </Button>
             )}
           </div>
         </div>

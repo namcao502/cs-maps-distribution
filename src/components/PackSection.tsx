@@ -1,9 +1,11 @@
 'use client'
 import { useState, useEffect } from 'react'
 import type { MapEntry } from '@/types/map'
-import type { MapPack, PackWithMaps } from '@/types/pack'
+import type { PackWithMaps } from '@/types/pack'
 import { installMap } from '@/lib/install'
 import { ensurePermission, markInstalled } from '@/lib/folder-store'
+import { Button } from '@/components/ui'
+
 type MapStatus = 'idle' | 'installing' | 'done' | 'error'
 type InstallStates = Record<string, Record<string, MapStatus>>
 
@@ -104,18 +106,20 @@ export function PackSection({
                 <p className="text-xs text-[var(--text-muted)]">{pack.maps.length} map{pack.maps.length !== 1 ? 's' : ''}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0 ml-3">
-                <button
+                <Button
+                  variant="success"
+                  size="md"
                   onClick={() => installPack(pack.id, pack.maps)}
-                  className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-medium hover:bg-green-600 transition-colors"
                 >
                   Install All
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="md"
                   onClick={() => toggleExpand(pack.id)}
-                  className="px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--text-primary)] rounded-lg text-xs font-medium hover:bg-[var(--border)] transition-colors"
                 >
                   {expanded ? 'Close' : 'Pick & Install'}
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -134,12 +138,14 @@ export function PackSection({
                   </div>
                 ))}
                 {selectedPackMaps.length > 0 && (
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="md"
                     onClick={() => installPack(pack.id, selectedPackMaps)}
-                    className="mt-1 px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
+                    className="mt-1"
                   >
                     Install ({selectedPackMaps.length})
-                  </button>
+                  </Button>
                 )}
               </div>
             )}

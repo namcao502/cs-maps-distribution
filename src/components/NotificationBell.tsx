@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useNotifications, type Notification } from '@/lib/notification-context'
 import type { InstallStatus } from '@/lib/install'
+import { Spinner } from '@/components/ui'
 
 function PhaseLabel({ status }: { status: InstallStatus }) {
   if (status.phase === 'downloading') return <span>Downloading… {Math.round(status.progress * 100)}%</span>
@@ -47,7 +48,7 @@ function NotificationItem({ n }: { n: Notification }) {
     return (
       <li className="px-4 py-3 border-b border-[var(--border)] last:border-0">
         <div className="flex items-center gap-2">
-          {active && <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin shrink-0" />}
+          {active && <Spinner size="sm" />}
           <span className="text-xs font-semibold text-[var(--text-primary)] truncate">{n.mapName}</span>
         </div>
         <p className="text-xs text-[var(--text-muted)] mt-0.5"><PhaseLabel status={n.status} /></p>
