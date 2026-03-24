@@ -4,23 +4,104 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
+  /* Backgrounds */
   --bg-primary: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
   --bg-secondary: #f1f5f9;
-  --bg-card: #ffffff;
+
+  /* Text */
   --text-primary: #0f172a;
+  --text-secondary: #334155;
   --text-muted: #64748b;
-  --border: #e2e8f0;
+  --text-inverse: #ffffff;
+
+  /* Borders */
+  --border-default: #e2e8f0;
+  --border-subtle: #f1f5f9;
+  --border-strong: #cbd5e1;
+
+  /* Accent */
   --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-muted: #eff6ff;
+
+  /* Semantic */
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-danger-muted: #fef2f2;
+  --color-success: #22c55e;
+  --color-success-hover: #16a34a;
+  --color-success-muted: #f0fdf4;
+  --color-warning: #f59e0b;
+  --color-warning-muted: #fffbeb;
+  --color-info: #3b82f6;
+  --color-info-muted: #eff6ff;
+
+  /* Spacing (4px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.07), 0 1px 2px -1px rgb(0 0 0 / 0.07);
+  --shadow-md: 0 4px 12px 0 rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.08);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+
+  /* Legacy aliases (keep for backward compat during migration) */
+  --bg-card: var(--bg-surface);
+  --border: var(--border-default);
 }
 
 .dark {
   --bg-primary: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-elevated: #263347;
   --bg-secondary: #1e293b;
-  --bg-card: #1e293b;
+
   --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
-  --border: #334155;
+  --text-inverse: #0f172a;
+
+  --border-default: #334155;
+  --border-subtle: #1e293b;
+  --border-strong: #475569;
+
   --accent: #60a5fa;
+  --accent-hover: #3b82f6;
+  --accent-muted: #1e3a5f;
+
+  --color-danger: #f87171;
+  --color-danger-hover: #ef4444;
+  --color-danger-muted: #2d1515;
+  --color-success: #4ade80;
+  --color-success-hover: #22c55e;
+  --color-success-muted: #14261d;
+  --color-warning: #fbbf24;
+  --color-warning-muted: #27200a;
+  --color-info: #60a5fa;
+  --color-info-muted: #1e3a5f;
+
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 12px 0 rgb(0 0 0 / 0.4);
+
+  --bg-card: var(--bg-surface);
+  --border: var(--border-default);
 }
 
 body {
