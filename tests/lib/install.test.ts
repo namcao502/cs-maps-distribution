@@ -1,3 +1,4 @@
+/** @jest-environment jsdom */
 import { syncInstalledToLocalStorage } from '@/lib/maps/install'
 import { isInstalledLocally } from '@/lib/maps/folder-store'
 import type { MapEntry } from '@/types/map'

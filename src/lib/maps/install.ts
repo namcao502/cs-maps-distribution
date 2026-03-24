@@ -2,6 +2,7 @@ import { detectStructure } from '../extractors/detect'
 import { extractArchive } from '../extractors/index'
 import type { ExtractedFile } from '../extractors/types'
 import type { MapEntry } from '@/types/map'
+import { markInstalled } from '@/lib/maps/folder-store'
 
 export interface InstallResult {
   written: string[]
@@ -228,4 +229,20 @@ export async function installMap(
     phase: 'done',
     result: { written, gameRoot: gameRoot.name },
   })
+}
+
+/**
+ * For each map whose BSP basename is found in installedBsps, persists
+ * the installed state to localStorage. Call this after scanInstalledBsps
+ * so that installed badges survive page reloads without folder re-access.
+ */
+export function syncInstalledToLocalStorage(
+  maps: MapEntry[],
+  installedBsps: Set<string>
+): void {
+  for (const map of maps) {
+    if (isBspInstalled(map.originalName, installedBsps)) {
+      markInstalled(map.id)
+    }
+  }
 }
