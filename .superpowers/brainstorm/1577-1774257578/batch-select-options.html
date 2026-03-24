@@ -1,0 +1,70 @@
+<h2>Batch Install — Selection UI</h2>
+<p class="subtitle">How should users pick maps to batch install?</p>
+
+<div class="split">
+  <div class="mockup" data-choice="a" onclick="toggleSelect(this)" style="cursor:pointer">
+    <div class="mockup-header">A — Always-visible checkboxes</div>
+    <div class="mockup-body" style="display:flex;flex-direction:column;gap:8px;padding:12px">
+      <div style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff">
+        <input type="checkbox" checked onclick="event.stopPropagation()" style="width:16px;height:16px;flex-shrink:0">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:13px">de_dust2</div>
+          <div style="font-size:11px;color:#94a3b8">4.2 MB · Mar 22</div>
+        </div>
+        <button style="padding:6px 12px;background:#22c55e;color:white;border:none;border-radius:6px;font-size:12px">Install</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff">
+        <input type="checkbox" checked onclick="event.stopPropagation()" style="width:16px;height:16px;flex-shrink:0">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:13px">de_inferno</div>
+          <div style="font-size:11px;color:#94a3b8">3.8 MB · Mar 21</div>
+        </div>
+        <button style="padding:6px 12px;background:#22c55e;color:white;border:none;border-radius:6px;font-size:12px">Install</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff">
+        <input type="checkbox" onclick="event.stopPropagation()" style="width:16px;height:16px;flex-shrink:0">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:13px">cs_assault</div>
+          <div style="font-size:11px;color:#94a3b8">2.1 MB · Mar 20</div>
+        </div>
+        <button style="padding:6px 12px;background:#22c55e;color:white;border:none;border-radius:6px;font-size:12px">Install</button>
+      </div>
+      <div style="margin-top:4px;padding:10px;background:#3b82f6;color:white;border-radius:8px;text-align:center;font-weight:600;font-size:13px">
+        ⚙ Install Selected (2)
+      </div>
+      <p style="font-size:11px;color:#64748b;text-align:center;margin:0">Checkboxes always there. Select any time.</p>
+    </div>
+  </div>
+
+  <div class="mockup" data-choice="b" onclick="toggleSelect(this)" style="cursor:pointer">
+    <div class="mockup-header">B — "Select" toggle button</div>
+    <div class="mockup-body" style="display:flex;flex-direction:column;gap:8px;padding:12px">
+      <div style="display:flex;gap:8px;margin-bottom:4px">
+        <input class="mock-input" placeholder="Search maps…" style="flex:1">
+        <button style="padding:6px 12px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;font-weight:600">Select</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:13px">de_dust2</div>
+          <div style="font-size:11px;color:#94a3b8">4.2 MB · Mar 22</div>
+        </div>
+        <button style="padding:6px 12px;background:#22c55e;color:white;border:none;border-radius:6px;font-size:12px">Install</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:13px">de_inferno</div>
+          <div style="font-size:11px;color:#94a3b8">3.8 MB · Mar 21</div>
+        </div>
+        <button style="padding:6px 12px;background:#22c55e;color:white;border:none;border-radius:6px;font-size:12px">Install</button>
+      </div>
+      <p style="font-size:11px;color:#64748b;text-align:center;margin:4px 0 0">Normal view — click "Select" to show checkboxes</p>
+      <div style="border-top:1px dashed #e2e8f0;padding-top:8px">
+        <p style="font-size:11px;color:#94a3b8;text-align:center;font-style:italic;margin:0">After clicking "Select":</p>
+        <div style="display:flex;align-items:center;gap:8px;padding:10px;border:2px solid #3b82f6;border-radius:8px;background:#eff6ff;margin-top:6px">
+          <input type="checkbox" checked onclick="event.stopPropagation()" style="width:16px;height:16px;flex-shrink:0">
+          <div style="flex:1"><div style="font-weight:600;font-size:13px">de_dust2</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
