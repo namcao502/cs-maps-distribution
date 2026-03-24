@@ -1,9 +1,9 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { MapEntry } from '@/types/map'
 import { MapCard } from '@/components/maps/MapCard'
 import { SearchInput } from '@/components/maps/SearchInput'
-import { scanInstalledBsps } from '@/lib/maps/install'
+import { scanInstalledBsps, syncInstalledToLocalStorage } from '@/lib/maps/install'
 import { MAP_TAGS, TAG_LABELS } from '@/lib/maps/tags'
 import { Card } from '@/components/ui'
 
@@ -60,6 +60,9 @@ export function MapList({
   const [batchTrigger, setBatchTrigger] = useState<Set<string>>(new Set())
   const [installedBsps, setInstalledBsps] = useState<Set<string>>(new Set())
 
+  const mapsRef = useRef(maps)
+  useEffect(() => { mapsRef.current = maps }, [maps])
+
   useEffect(() => {
     if (!gameFolder) {
       setInstalledBsps(new Set())
@@ -67,7 +70,10 @@ export function MapList({
     }
     let cancelled = false
     scanInstalledBsps(gameFolder).then(result => {
-      if (!cancelled) setInstalledBsps(result)
+      if (!cancelled) {
+        setInstalledBsps(result)
+        syncInstalledToLocalStorage(mapsRef.current, result)
+      }
     })
     return () => { cancelled = true }
   }, [gameFolder])
@@ -95,7 +101,10 @@ export function MapList({
 
   function handleInstalled() {
     if (!gameFolder) return
-    scanInstalledBsps(gameFolder).then(setInstalledBsps)
+    scanInstalledBsps(gameFolder).then(result => {
+      setInstalledBsps(result)
+      syncInstalledToLocalStorage(mapsRef.current, result)
+    })
   }
 
   const filtered = maps.filter(m => {
