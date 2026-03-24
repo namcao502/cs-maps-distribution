@@ -7,6 +7,7 @@ export interface MapEntry {
   sha256: string
   uploadedAt: string
   installCount: number
+  order?: number
   tags: string[]
   hidden?: boolean
   uploader?: {

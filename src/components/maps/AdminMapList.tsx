@@ -1,10 +1,11 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { MapEntry } from '@/types/map'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { SearchInput } from '@/components/maps/SearchInput'
 import { MAP_TAGS, TAG_LABELS } from '@/lib/maps/tags'
 import { Button, Card } from '@/components/ui'
+import { useNotifications } from '@/lib/auth/notification-context'
 
 const FORMAT_COLORS: Record<string, string> = {
   zip: 'bg-blue-100 text-blue-600',
@@ -32,11 +33,13 @@ export function AdminMapList({
   onDeleted,
   onTagsUpdated,
   onHiddenUpdated,
+  onReorder,
 }: {
   maps: MapEntry[]
   onDeleted: (id: string) => void
   onTagsUpdated: (id: string, tags: string[]) => void
   onHiddenUpdated: (id: string, hidden: boolean) => void
+  onReorder?: (newMaps: MapEntry[]) => void
 }) {
   const [query, setQuery] = useState('')
   const [pendingDelete, setPendingDelete] = useState<MapEntry | null>(null)
@@ -45,6 +48,11 @@ export function AdminMapList({
   const [savingTags, setSavingTags] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [togglingHidden, setTogglingHidden] = useState<string | null>(null)
+  const [orderedMaps, setOrderedMaps] = useState<MapEntry[]>(maps)
+  const [isSaving, setIsSaving] = useState(false)
+  const { push } = useNotifications()
+
+  useEffect(() => { setOrderedMaps(maps) }, [maps])
 
   async function saveTags(id: string) {
     setSavingTags(true)
@@ -73,6 +81,30 @@ export function AdminMapList({
     setTogglingHidden(null)
   }
 
+  async function moveMap(index: number, direction: 'up' | 'down') {
+    const swapIndex = direction === 'up' ? index - 1 : index + 1
+    const prev = orderedMaps
+    const next = [...orderedMaps]
+    ;[next[index], next[swapIndex]] = [next[swapIndex], next[index]]
+    setOrderedMaps(next)
+    onReorder?.(next)
+    setIsSaving(true)
+    try {
+      const res = await fetch('/api/admin/maps/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: next.map(m => m.id) }),
+      })
+      if (!res.ok) throw new Error('Failed')
+    } catch {
+      setOrderedMaps(prev)
+      onReorder?.(prev)
+      push('Failed to save map order', 'error')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   async function confirmDelete(map: MapEntry) {
     setPendingDelete(null)
     const res = await fetch(`/api/delete/${map.id}`, { method: 'DELETE' })
@@ -83,26 +115,49 @@ export function AdminMapList({
     onDeleted(map.id)
   }
 
-  if (maps.length === 0) {
+  if (orderedMaps.length === 0) {
     return <p className="text-[var(--text-muted)] text-center py-6">No maps yet.</p>
   }
 
-  const filtered = maps.filter(m =>
+  const filtered = orderedMaps.filter(m =>
     m.originalName.toLowerCase().includes(query.toLowerCase())
   )
 
   return (
     <div className="flex flex-col gap-2 mt-6">
       <SearchInput value={query} onChange={setQuery} />
+      {isSaving && (
+        <p className="text-xs text-[var(--text-muted)] text-right mb-1">Saving order…</p>
+      )}
       {filtered.length === 0 ? (
         <p className="text-[var(--text-muted)] text-center py-6">No maps found.</p>
       ) : null}
-      {filtered.map(map => (
+      {filtered.map(map => {
+        const orderedIndex = orderedMaps.indexOf(map)
+        return (
         <Card
           key={map.id}
           className={`mb-2 transition-shadow hover:shadow-md ${map.hidden ? 'border-amber-400 opacity-60' : ''}`}
         >
           <div className="flex items-center justify-between px-4 py-3.5">
+            <div className="flex items-center gap-1 shrink-0 mr-1">
+              <button
+                onClick={() => moveMap(orderedIndex, 'up')}
+                disabled={orderedIndex === 0 || isSaving}
+                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Move up"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+              </button>
+              <button
+                onClick={() => moveMap(orderedIndex, 'down')}
+                disabled={orderedIndex === orderedMaps.length - 1 || isSaving}
+                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Move down"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+            </div>
             <div className="flex items-center gap-3 min-w-0">
               <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-md uppercase tracking-wide ${FORMAT_COLORS[map.format] ?? 'bg-[var(--bg-secondary)] text-[var(--text-primary)]'}`}>
                 {map.format}
@@ -190,7 +245,8 @@ export function AdminMapList({
             </div>
           )}
         </Card>
-      ))}
+        )
+      })}
 
       {pendingDelete && (
         <ConfirmModal

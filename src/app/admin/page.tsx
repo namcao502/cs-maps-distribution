@@ -55,6 +55,7 @@ export default function AdminPage() {
               onDeleted={id => setMaps(prev => prev.filter(m => m.id !== id))}
               onTagsUpdated={(id, tags) => setMaps(prev => prev.map(m => m.id === id ? { ...m, tags } : m))}
               onHiddenUpdated={(id, hidden) => setMaps(prev => prev.map(m => m.id === id ? { ...m, hidden } : m))}
+              onReorder={newMaps => setMaps(newMaps)}
             />
             <PackManager maps={maps} />
           </>
