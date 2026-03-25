@@ -1,6 +1,6 @@
 export const MAP_TAGS = ['de_', 'cs_'] as const
 export type MapTag = typeof MAP_TAGS[number]
-export type FilterTab = 'all' | 'de_' | 'cs_'
+export type FilterTab = 'all' | MapTag
 
 export const FILTER_TABS: { value: FilterTab; label: string }[] = [
   { value: 'all', label: 'ALL' },
@@ -8,12 +8,12 @@ export const FILTER_TABS: { value: FilterTab; label: string }[] = [
   { value: 'cs_', label: 'HOSTAGE' },
 ]
 
-export const TAG_LABELS: Record<string, string> = {
+export const TAG_LABELS: Record<MapTag, string> = {
   'de_': 'Bomb/Defuse (DE)',
   'cs_': 'Hostage Rescue (CS)',
 }
 
-export const TAG_SHORT: Record<string, string> = {
+export const TAG_SHORT: Record<MapTag, string> = {
   'de_': 'DE',
   'cs_': 'CS',
 }
