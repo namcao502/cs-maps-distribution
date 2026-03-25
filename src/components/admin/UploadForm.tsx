@@ -100,8 +100,9 @@ export function UploadForm({ onUploaded }: { onUploaded: () => void }) {
             const fd = new FormData()
             fd.append('file', screenshotFile)
             try {
-              await fetch(`/api/maps/${mapId}/screenshots`, { method: 'POST', body: fd })
-            } catch { /* screenshot upload failure is non-fatal */ }
+              const res = await fetch(`/api/maps/${mapId}/screenshots`, { method: 'POST', body: fd })
+              if (!res.ok) console.warn(`Screenshot upload failed: ${res.status}`)
+            } catch (e) { console.warn('Screenshot upload error', e) }
           }
         }
         onUploaded()
