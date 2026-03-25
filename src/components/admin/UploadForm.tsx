@@ -21,10 +21,18 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+function validateScreenshot(file: File): string | null {
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
+  if (!['jpg', 'jpeg', 'png', 'webp'].includes(ext)) return 'Only JPG, PNG, WebP allowed'
+  if (file.size > 2 * 1024 * 1024) return 'Max 2 MB per screenshot'
+  return null
+}
+
 export function UploadForm({ onUploaded }: { onUploaded: () => void }) {
   const [dragging, setDragging] = useState(false)
   const [queue, setQueue] = useState<QueueItem[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [screenshots, setScreenshots] = useState<(File | null)[]>([null, null, null])
   const processingRef = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -58,6 +66,7 @@ export function UploadForm({ onUploaded }: { onUploaded: () => void }) {
       formData.append('tags', JSON.stringify(selectedTags))
 
       let succeeded = false
+      let mapId: string | null = null
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest()
         xhr.open('POST', '/api/upload')
@@ -65,8 +74,14 @@ export function UploadForm({ onUploaded }: { onUploaded: () => void }) {
           if (e.lengthComputable) updateItem(id, { progress: e.loaded / e.total })
         }
         xhr.onload = () => {
-          if (xhr.status === 200) { succeeded = true; resolve() }
-          else {
+          if (xhr.status === 200) {
+            try {
+              const data = JSON.parse(xhr.responseText) as { id?: string }
+              if (data.id) mapId = data.id
+            } catch { /* ignore */ }
+            succeeded = true
+            resolve()
+          } else {
             try { reject(new Error(JSON.parse(xhr.responseText).error ?? 'Upload failed')) }
             catch { reject(new Error('Upload failed')) }
           }
@@ -79,12 +94,22 @@ export function UploadForm({ onUploaded }: { onUploaded: () => void }) {
 
       if (succeeded) {
         updateItem(id, { status: 'done', progress: 1 })
+        // Upload screenshots sequentially
+        if (mapId) {
+          for (const screenshotFile of screenshots.filter((f): f is File => f !== null)) {
+            const fd = new FormData()
+            fd.append('file', screenshotFile)
+            try {
+              await fetch(`/api/maps/${mapId}/screenshots`, { method: 'POST', body: fd })
+            } catch { /* screenshot upload failure is non-fatal */ }
+          }
+        }
         onUploaded()
       }
     }
 
     processingRef.current = false
-  }, [updateItem, onUploaded, selectedTags])
+  }, [updateItem, onUploaded, selectedTags, screenshots])
 
   function enqueue(files: FileList | File[]) {
     const newItems: QueueItem[] = Array.from(files).map(file => ({
@@ -143,6 +168,48 @@ export function UploadForm({ onUploaded }: { onUploaded: () => void }) {
         />
         <p className="text-[var(--text-muted)]">Drop .zip, .7z, or .rar files here, or click to browse</p>
         <p className="text-xs text-[var(--text-muted)] mt-1">Max 20 MB per file · Multiple files supported</p>
+      </div>
+
+      {/* Screenshots section */}
+      <div>
+        <p className="text-xs font-mono text-[var(--text-muted)] mb-2">
+          Screenshots <span className="text-[var(--text-subtle)]">(optional, up to 3)</span>
+        </p>
+        <div className="flex gap-2">
+          {screenshots.map((file, i) => (
+            <div key={i} className="flex-1">
+              {file ? (
+                <div className="flex items-center gap-1 bg-[var(--bg-inset)] border border-[var(--border)] rounded px-2 py-1.5 text-xs font-mono text-[var(--text-muted)]">
+                  <span className="truncate flex-1">{file.name}</span>
+                  <button
+                    type="button"
+                    className="text-[var(--color-danger)] hover:opacity-80 shrink-0"
+                    onClick={() => setScreenshots(prev => prev.map((f, idx) => idx === i ? null : f))}
+                  >
+                    ×
+                  </button>
+                </div>
+              ) : (
+                <label className="flex items-center justify-center h-10 border border-dashed border-[var(--border)] rounded cursor-pointer hover:border-[var(--accent-cyan)] transition-colors text-[var(--text-muted)] text-xs font-mono">
+                  + IMG
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={e => {
+                      const f = e.target.files?.[0]
+                      if (!f) return
+                      const err = validateScreenshot(f)
+                      if (err) { alert(err); return }
+                      setScreenshots(prev => prev.map((existing, idx) => idx === i ? f : existing))
+                      e.target.value = ''
+                    }}
+                  />
+                </label>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {queue.length > 0 && (
