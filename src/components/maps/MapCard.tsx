@@ -88,12 +88,18 @@ export function MapCard({
   }
 
   async function handleRawDownload() {
-    const res = await fetch(`/api/download/${map.id}`)
-    const { url } = await res.json()
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${map.originalName}.${map.format}`
-    a.click()
+    try {
+      const res = await fetch(`/api/download/${map.id}`)
+      if (!res.ok) throw new Error('Failed to get download URL')
+      const { url } = await res.json()
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${map.originalName}.${map.format}`
+      a.click()
+    } catch (err: unknown) {
+      if ((err as { name?: string }).name === 'AbortError') return
+      onInstallStatusChange?.(map.id, { phase: 'error', message: (err as Error).message ?? 'Download failed.' })
+    }
   }
 
   const badge = getTypeBadge(map.tags)
@@ -146,7 +152,7 @@ export function MapCard({
           {selected && <span className="text-black text-xs font-bold leading-none">✓</span>}
         </button>
         {isInstalling && (
-          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--border)]">
+          <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[var(--border)]">
             <div
               className="h-full bg-[var(--accent-orange)] transition-all duration-300"
               style={{ width: `${downloadProgress ?? 50}%` }}
