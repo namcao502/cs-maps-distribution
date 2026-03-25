@@ -8,3 +8,11 @@ test('screenshotKey generates correct path', () => {
 test('screenshotKey rejects index > 2', () => {
   expect(() => screenshotKey('map-123', 3, 'jpg')).toThrow()
 })
+
+test('screenshotKey rejects negative index', () => {
+  expect(() => screenshotKey('map-123', -1, 'jpg')).toThrow()
+})
+
+test('screenshotKey rejects unsupported extension', () => {
+  expect(() => screenshotKey('map-123', 0, 'gif')).toThrow('Unsupported format')
+})
