@@ -22,6 +22,7 @@ function docToMapEntry(id: string, data: FirebaseFirestore.DocumentData): MapEnt
         avatar: data.uploaderAvatar as string,
       },
     }),
+    screenshotKeys: (data.screenshotKeys as string[] | undefined) ?? [],
   }
 }
 
@@ -52,6 +53,7 @@ export async function addMap(entry: MapEntry): Promise<void> {
     uploaderId: entry.uploader?.id ?? null,
     uploaderName: entry.uploader?.name ?? null,
     uploaderAvatar: entry.uploader?.avatar ?? null,
+    screenshotKeys: [],
   })
 }
 
@@ -85,4 +87,8 @@ export async function reorderMaps(ids: string[]): Promise<void> {
     batch.update(db.collection('maps').doc(id), { order: index })
   })
   await batch.commit()
+}
+
+export async function updateScreenshotKeys(id: string, keys: string[]): Promise<void> {
+  await getAdminDb().collection('maps').doc(id).update({ screenshotKeys: keys })
 }

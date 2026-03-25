@@ -31,6 +31,7 @@ const sampleEntry: MapEntry = {
   installCount: 0,
   tags: [],
   hidden: false,
+  screenshotKeys: [],
 }
 
 const sampleDocData = {

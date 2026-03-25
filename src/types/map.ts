@@ -15,4 +15,5 @@ export interface MapEntry {
     name: string
     avatar: string
   }
+  screenshotKeys?: string[]   // e.g. ["screenshots/uuid/0.jpg"]
 }
