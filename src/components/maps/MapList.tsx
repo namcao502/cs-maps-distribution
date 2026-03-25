@@ -2,8 +2,10 @@
 import { useState, useEffect, useRef } from 'react'
 import type { MapEntry } from '@/types/map'
 import { MapCard } from '@/components/maps/MapCard'
-import { scanInstalledBsps, syncInstalledToLocalStorage } from '@/lib/maps/install'
+import { MapDetailModal } from '@/components/maps/MapDetailModal'
+import { scanInstalledBsps, syncInstalledToLocalStorage, installMap, isFileSystemAccessSupported, isBspInstalled } from '@/lib/maps/install'
 import type { InstallStatus } from '@/lib/maps/install'
+import { ensurePermission, markInstalled, isInstalledLocally } from '@/lib/maps/folder-store'
 import type { FilterTab } from '@/lib/maps/tags'
 import { Card } from '@/components/ui'
 
@@ -65,6 +67,7 @@ export function MapList({
   const [installedBsps, setInstalledBsps] = useState<Set<string>>(new Set())
   const [installStatuses, setInstallStatuses] = useState<Map<string, InstallStatus | null>>(new Map())
   const [sort, setSort] = useState<'popular' | 'newest' | 'az'>('popular')
+  const [openDetailMap, setOpenDetailMap] = useState<MapEntry | null>(null)
 
   const mapsRef = useRef(maps)
   useEffect(() => { mapsRef.current = maps }, [maps])
@@ -124,6 +127,44 @@ export function MapList({
     })
   }
 
+  async function handleModalInstall(map: MapEntry) {
+    updateInstallStatus(map.id, { phase: 'downloading', progress: 0 })
+    try {
+      let handle = gameFolder
+      if (!handle) { await onPickFolder(); return }
+      const permitted = await ensurePermission(handle)
+      if (!permitted) {
+        updateInstallStatus(map.id, { phase: 'error', message: 'Folder access denied.' })
+        return
+      }
+      const res = await fetch(`/api/download/${map.id}`)
+      if (!res.ok) throw new Error('Failed to get download URL')
+      const { url, sha256 } = await res.json()
+      await installMap(map, url, sha256, handle, (s: InstallStatus) => updateInstallStatus(map.id, s))
+      markInstalled(map.id)
+      fetch(`/api/maps/${map.id}/install`, { method: 'POST' }).catch(() => {})
+      handleInstalled()
+    } catch (err: unknown) {
+      if ((err as { name?: string }).name === 'AbortError') return
+      updateInstallStatus(map.id, { phase: 'error', message: (err as Error).message ?? 'Unknown error' })
+    }
+  }
+
+  async function handleModalDownload(map: MapEntry) {
+    try {
+      const res = await fetch(`/api/download/${map.id}`)
+      if (!res.ok) throw new Error('Failed to get download URL')
+      const { url } = await res.json()
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${map.originalName}.${map.format}`
+      a.click()
+    } catch (err: unknown) {
+      if ((err as { name?: string }).name === 'AbortError') return
+      updateInstallStatus(map.id, { phase: 'error', message: (err as Error).message ?? 'Download failed.' })
+    }
+  }
+
   const filtered = maps.filter(m =>
     (activeTab === 'all' || m.tags.includes(activeTab)) &&
     m.originalName.toLowerCase().includes(query.toLowerCase())
@@ -144,6 +185,7 @@ export function MapList({
   }
 
   return (
+    <>
     <div className="flex flex-col gap-3">
       <div className="flex justify-center">
         <div className="grid grid-cols-1 gap-3 w-fit mx-auto">
@@ -236,7 +278,7 @@ export function MapList({
               onPickFolder={onPickFolder}
               installedBsps={installedBsps}
               onInstalled={handleInstalled}
-              onOpenDetail={() => {}} // Task 12 wires this properly
+              onOpenDetail={map => setOpenDetailMap(map)}
               selected={selectedIds.has(map.id)}
               onToggleSelect={() => toggleSelect(map.id)}
               autoInstall={batchTrigger.has(map.id)}
@@ -248,5 +290,17 @@ export function MapList({
         </div>
       )}
     </div>
+
+    {openDetailMap && (
+      <MapDetailModal
+        map={openDetailMap}
+        onClose={() => setOpenDetailMap(null)}
+        onInstall={() => { void handleModalInstall(openDetailMap) }}
+        onDownload={() => { void handleModalDownload(openDetailMap) }}
+        status={installStatuses.get(openDetailMap.id) ?? null}
+        installed={isBspInstalled(openDetailMap.originalName, installedBsps) || isInstalledLocally(openDetailMap.id)}
+      />
+    )}
+    </>
   )
 }
