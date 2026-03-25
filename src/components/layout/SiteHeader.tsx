@@ -4,7 +4,6 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { onAuthStateChanged, type User } from 'firebase/auth'
 import { getFirebaseAuth } from '@/lib/auth/firebase-client'
-import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { AuthButton } from '@/components/submissions/AuthButton'
 import { NotificationBell } from '@/components/layout/NotificationBell'
 
@@ -44,7 +43,6 @@ export function SiteHeader() {
           </nav>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <ThemeToggle />
           <NotificationBell />
           <AuthButton adminEmail={process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? ''} />
         </div>

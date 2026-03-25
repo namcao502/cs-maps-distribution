@@ -1,38 +1,6 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNotifications, type Notification } from '@/lib/auth/notification-context'
-import type { InstallStatus } from '@/lib/maps/install'
-import { Spinner } from '@/components/ui'
-
-function PhaseLabel({ status }: { status: InstallStatus }) {
-  if (status.phase === 'downloading') return <span>Downloading… {Math.round(status.progress * 100)}%</span>
-  if (status.phase === 'verifying') return <span>Verifying…</span>
-  if (status.phase === 'extracting') return <span>Extracting…</span>
-  if (status.phase === 'writing') return <span>Installing… {status.done}/{status.total} files</span>
-  if (status.phase === 'done') return <span className="text-green-500">Installed ✓</span>
-  if (status.phase === 'error') return <span className="text-red-500">Failed: {status.message}</span>
-  return null
-}
-
-function ProgressBar({ status }: { status: InstallStatus }) {
-  let pct = 0
-  if (status.phase === 'downloading') pct = status.progress * 100
-  else if (status.phase === 'verifying' || status.phase === 'extracting') pct = 100
-  else if (status.phase === 'writing') pct = (status.done / status.total) * 100
-  else if (status.phase === 'done') pct = 100
-
-  const active = status.phase !== 'done' && status.phase !== 'error'
-  if (!active && status.phase !== 'done') return null
-
-  return (
-    <div className="w-full bg-[var(--bg-secondary)] rounded-full h-1 mt-1.5">
-      <div
-        className={`h-1 rounded-full transition-all duration-200 ${status.phase === 'done' ? 'bg-green-500' : 'bg-blue-500'}`}
-        style={{ width: `${pct}%` }}
-      />
-    </div>
-  )
-}
 
 function TimeStamp({ at }: { at: Date }) {
   return (
@@ -43,21 +11,6 @@ function TimeStamp({ at }: { at: Date }) {
 }
 
 function NotificationItem({ n }: { n: Notification }) {
-  if (n.type === 'progress') {
-    const active = n.status.phase !== 'done' && n.status.phase !== 'error'
-    return (
-      <li className="px-4 py-3 border-b border-[var(--border)] last:border-0">
-        <div className="flex items-center gap-2">
-          {active && <Spinner size="sm" />}
-          <span className="text-xs font-semibold text-[var(--text-primary)] truncate">{n.mapName}</span>
-        </div>
-        <p className="text-xs text-[var(--text-muted)] mt-0.5"><PhaseLabel status={n.status} /></p>
-        <ProgressBar status={n.status} />
-        <TimeStamp at={n.at} />
-      </li>
-    )
-  }
-
   return (
     <li className="flex items-start gap-3 px-4 py-3 border-b border-[var(--border)] last:border-0">
       <span className={`mt-0.5 shrink-0 text-sm ${n.type === 'success' ? 'text-green-500' : 'text-red-500'}`}>
@@ -72,13 +25,9 @@ function NotificationItem({ n }: { n: Notification }) {
 }
 
 export function NotificationBell() {
-  const { notifications, activeInstallId, markAllRead, clear } = useNotifications()
+  const { notifications, markAllRead, clear } = useNotifications()
   const [open, setOpen] = useState(false)
   const unread = notifications.filter(n => !n.read).length
-
-  useEffect(() => {
-    if (activeInstallId) setOpen(true)
-  }, [activeInstallId])
 
   function toggle() {
     setOpen(o => !o)

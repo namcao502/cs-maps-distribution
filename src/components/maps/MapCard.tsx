@@ -8,6 +8,8 @@ import { useNotifications } from '@/lib/auth/notification-context'
 import type { InstallStatus } from '@/lib/maps/install'
 import { Button } from '@/components/ui'
 
+// TODO: wired in Task 7 — push/notify helpers for install progress
+
 const TAG_COLORS: Record<string, string> = {
   'de_': 'bg-red-100 text-red-600',
   'cs_': 'bg-yellow-100 text-yellow-600',
@@ -49,7 +51,7 @@ export function MapCard({
   const [confirmReinstall, setConfirmReinstall] = useState(false)
   const [isInstalling, setIsInstalling] = useState(false)
   const supportsFileApi = isFileSystemAccessSupported()
-  const { startProgress, updateProgress } = useNotifications()
+  const { push } = useNotifications()
 
   useEffect(() => {
     setInstalled(isBspInstalled(map.originalName, installedBsps) || isInstalledLocally(map.id))
@@ -84,8 +86,7 @@ export function MapCard({
 
   async function doInstall() {
     setIsInstalling(true)
-    const notifId = `install-${map.id}-${Date.now()}`
-    startProgress(notifId, map.originalName)
+    // TODO: wired in Task 7 — replace with InstallStepper progress tracking
     try {
       let handle = gameFolder
       if (!handle) {
@@ -95,7 +96,8 @@ export function MapCard({
 
       const permitted = await ensurePermission(handle)
       if (!permitted) {
-        updateProgress(notifId, { phase: 'error', message: 'Folder access was denied.' })
+        // TODO: wired in Task 7 — report error via progress stepper
+        push('Folder access was denied.', 'error')
         return
       }
 
@@ -103,16 +105,19 @@ export function MapCard({
       if (!res.ok) throw new Error('Failed to get download URL')
       const { url, sha256 } = await res.json()
 
-      await installMap(map, url, sha256, handle, (s: InstallStatus) => updateProgress(notifId, s))
+      // TODO: wired in Task 7 — pass progress callback to InstallStepper
+      await installMap(map, url, sha256, handle, (_s: InstallStatus) => {})
       markInstalled(map.id)
       fetch(`/api/maps/${map.id}/install`, { method: 'POST' }).catch(() => {})
       setInstalled(true)
       setInstallCount(c => c + 1)
       onInstalled()
+      push(`${map.originalName} installed successfully.`, 'success')
     } catch (err: unknown) {
       if ((err as { name?: string }).name === 'AbortError') return
       const msg = (err as Error).message ?? 'Unknown error'
-      updateProgress(notifId, { phase: 'error', message: msg })
+      // TODO: wired in Task 7 — report error via progress stepper
+      push(msg, 'error')
     } finally {
       setIsInstalling(false)
     }
