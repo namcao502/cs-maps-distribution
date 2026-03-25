@@ -6,6 +6,7 @@ import { SearchInput } from '@/components/maps/SearchInput'
 import { MAP_TAGS, TAG_LABELS } from '@/lib/maps/tags'
 import { Button, Card } from '@/components/ui'
 import { useNotifications } from '@/lib/auth/notification-context'
+import { VALIDATE_SCREENSHOT_FORMAT, VALIDATE_SCREENSHOT_SIZE, MSG_SCREENSHOTS_UPLOADED } from '@/lib/constants/messages'
 
 const TAG_SHORT: Record<string, string> = {
   'de_': 'BOMB/DEFUSE',
@@ -19,8 +20,8 @@ function formatBytes(bytes: number): string {
 
 function validateScreenshot(file: File): string | null {
   const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
-  if (!['jpg', 'jpeg', 'png', 'webp'].includes(ext)) return 'Only JPG, PNG, WebP allowed'
-  if (file.size > 2 * 1024 * 1024) return 'Max 2 MB per screenshot'
+  if (!['jpg', 'jpeg', 'png', 'webp'].includes(ext)) return VALIDATE_SCREENSHOT_FORMAT
+  if (file.size > 2 * 1024 * 1024) return VALIDATE_SCREENSHOT_SIZE
   return null
 }
 
@@ -154,7 +155,7 @@ export function AdminMapList({
     }
     onScreenshotsUpdated(map.id, newKeys)
     setUploadingScreenshot(null)
-    if (newKeys.length > current.length) push('Screenshot(s) uploaded', 'success')
+    if (newKeys.length > current.length) push(MSG_SCREENSHOTS_UPLOADED, 'success')
   }
 
   if (orderedMaps.length === 0) {

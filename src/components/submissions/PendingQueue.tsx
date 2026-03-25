@@ -4,6 +4,7 @@ import type { Submission } from '@/types/submission'
 import { MAP_TAGS, TAG_LABELS } from '@/lib/maps/tags'
 import { Button, Card, StatusBadge } from '@/components/ui'
 import { useNotifications } from '@/lib/auth/notification-context'
+import { MSG_SUBMISSION_APPROVED, MSG_SUBMISSION_REJECTED } from '@/lib/constants/messages'
 
 function formatBytes(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -49,7 +50,7 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
     })
     if (res.ok) {
       setQueue(q => q.filter(s => s.id !== id))
-      push('Submission approved', 'success')
+      push(MSG_SUBMISSION_APPROVED, 'success')
       onApproved()
     } else {
       push((await res.json()).error ?? 'Approval failed', 'error')
@@ -68,7 +69,7 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
     })
     if (res.ok) {
       setQueue(q => q.filter(s => s.id !== id))
-      push('Submission rejected', 'success')
+      push(MSG_SUBMISSION_REJECTED, 'success')
     } else {
       push((await res.json()).error ?? 'Rejection failed', 'error')
       setBusy(b => ({ ...b, [id]: false }))

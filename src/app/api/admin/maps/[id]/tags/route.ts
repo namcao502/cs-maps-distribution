@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser, isAdmin } from '@/lib/auth/auth'
 import { updateMapTags } from '@/lib/maps/maps-store'
 import { MAP_TAGS, type MapTag } from '@/lib/maps/tags'
+import { ERR_UNAUTHORIZED } from '@/lib/constants/messages'
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getSessionUser()
-  if (!user || !isAdmin(user)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!user || !isAdmin(user)) return NextResponse.json({ error: ERR_UNAUTHORIZED }, { status: 401 })
 
   const { id } = await params
   const { tags: rawTags = [] } = await req.json()

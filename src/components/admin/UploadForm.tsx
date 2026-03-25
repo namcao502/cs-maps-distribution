@@ -2,6 +2,11 @@
 import { useState, useRef, useCallback } from 'react'
 import { MAP_TAGS, TAG_LABELS } from '@/lib/maps/tags'
 import { useNotifications } from '@/lib/auth/notification-context'
+import {
+  VALIDATE_SCREENSHOT_FORMAT, VALIDATE_SCREENSHOT_SIZE,
+  VALIDATE_ARCHIVE_FORMAT, VALIDATE_ARCHIVE_TOO_LARGE,
+  VALIDATE_ARCHIVE_CORRUPTED, VALIDATE_ARCHIVE_NO_BSP,
+} from '@/lib/constants/messages'
 
 const MAX_SIZE = 20 * 1024 * 1024
 
@@ -26,15 +31,15 @@ function formatBytes(bytes: number): string {
 
 function validateScreenshot(file: File): string | null {
   const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
-  if (!['jpg', 'jpeg', 'png', 'webp'].includes(ext)) return 'Only JPG, PNG, WebP allowed'
-  if (file.size > 2 * 1024 * 1024) return 'Max 2 MB per screenshot'
+  if (!['jpg', 'jpeg', 'png', 'webp'].includes(ext)) return VALIDATE_SCREENSHOT_FORMAT
+  if (file.size > 2 * 1024 * 1024) return VALIDATE_SCREENSHOT_SIZE
   return null
 }
 
 function validateMapFile(file: File): string | null {
-  if (file.size > MAX_SIZE) return 'File too large (max 20 MB)'
+  if (file.size > MAX_SIZE) return VALIDATE_ARCHIVE_TOO_LARGE
   const ext = file.name.split('.').pop()?.toLowerCase()
-  if (!['zip', '7z', 'rar'].includes(ext ?? '')) return 'Only .zip, .7z, .rar allowed'
+  if (!['zip', '7z', 'rar'].includes(ext ?? '')) return VALIDATE_ARCHIVE_FORMAT
   return null
 }
 
@@ -69,14 +74,14 @@ async function validateZipContents(file: File): Promise<string | null> {
   try {
     const buffer = await file.arrayBuffer()
     const entries = listZipEntries(buffer)
-    if (entries.length === 0) return 'Could not read archive contents. The file may be corrupted.'
+    if (entries.length === 0) return VALIDATE_ARCHIVE_CORRUPTED
     const norm = entries.map(e => e.toLowerCase().replace(/\\/g, '/'))
     const hasBsp = norm.some(e => e.endsWith('.bsp'))
     const hasCSDir = norm.some(e => CS_DIRS.some(d => e.startsWith(d) || e.includes('/' + d)))
-    if (!hasBsp && !hasCSDir) return 'Archive does not appear to contain a CS 1.6 map (no .bsp file found).'
+    if (!hasBsp && !hasCSDir) return VALIDATE_ARCHIVE_NO_BSP
     return null
   } catch {
-    return 'Could not read archive contents. The file may be corrupted.'
+    return VALIDATE_ARCHIVE_CORRUPTED
   }
 }
 

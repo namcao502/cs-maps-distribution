@@ -6,6 +6,9 @@ import { addMap, getMaps } from '@/lib/maps/maps-store'
 import { computeSHA256 } from '@/lib/storage/hash'
 import { validateMapArchive } from '@/lib/submissions/validate-archive'
 import { MAP_TAGS, type MapTag } from '@/lib/maps/tags'
+import {
+  ERR_UNAUTHORIZED, ERR_NO_FILE, ERR_FILE_TOO_LARGE, ERR_UNSUPPORTED_ARCHIVE,
+} from '@/lib/constants/messages'
 
 const MAX_SIZE = 20 * 1024 * 1024 // 20 MB
 const ALLOWED_EXTENSIONS = new Set(['zip', '7z', 'rar'])
@@ -13,31 +16,31 @@ const ALLOWED_EXTENSIONS = new Set(['zip', '7z', 'rar'])
 export async function POST(req: NextRequest) {
   const user = await getSessionUser()
   if (!user || !isAdmin(user)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: ERR_UNAUTHORIZED }, { status: 401 })
   }
 
   // Server-side size check via Content-Length
   const contentLength = Number(req.headers.get('content-length') ?? 0)
   if (contentLength > MAX_SIZE) {
-    return NextResponse.json({ error: 'File too large (max 20 MB)' }, { status: 413 })
+    return NextResponse.json({ error: ERR_FILE_TOO_LARGE }, { status: 413 })
   }
 
   const formData = await req.formData()
   const file = formData.get('file') as File | null
   if (!file) {
-    return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+    return NextResponse.json({ error: ERR_NO_FILE }, { status: 400 })
   }
 
   const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
   if (!ALLOWED_EXTENSIONS.has(ext)) {
-    return NextResponse.json({ error: 'Unsupported format. Use .zip, .7z, or .rar' }, { status: 400 })
+    return NextResponse.json({ error: ERR_UNSUPPORTED_ARCHIVE }, { status: 400 })
   }
 
   const buffer = await file.arrayBuffer()
 
   // Streaming byte count — authoritative size check
   if (buffer.byteLength > MAX_SIZE) {
-    return NextResponse.json({ error: 'File too large (max 20 MB)' }, { status: 413 })
+    return NextResponse.json({ error: ERR_FILE_TOO_LARGE }, { status: 413 })
   }
 
   const sha256 = await computeSHA256(buffer)

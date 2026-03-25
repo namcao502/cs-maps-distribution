@@ -1,0 +1,31 @@
+// API error messages
+export const ERR_UNAUTHORIZED = 'Unauthorized'
+export const ERR_SIGN_IN_REQUIRED = 'Sign in required'
+export const ERR_MAP_NOT_FOUND = 'Map not found'
+export const ERR_NOT_FOUND = 'Not found'
+export const ERR_ALREADY_REVIEWED = 'Already reviewed'
+export const ERR_NO_FILE = 'No file provided'
+export const ERR_FILE_TOO_LARGE = 'File too large (max 20 MB)'
+export const ERR_UNSUPPORTED_ARCHIVE = 'Unsupported format. Use .zip, .7z, or .rar'
+export const ERR_MAP_ALREADY_IN_LIBRARY = 'This map is already in the library'
+export const ERR_MAP_ALREADY_PENDING = 'This map is already pending review'
+export const ERR_REJECTION_REASON_REQUIRED = 'Rejection reason is required'
+export const ERR_SCREENSHOT_FORMAT = 'Unsupported format. Use JPG, PNG or WebP.'
+export const ERR_SCREENSHOT_TOO_LARGE = 'File too large (max 2 MB)'
+export const ERR_MAX_SCREENSHOTS = 'Maximum 3 screenshots per map'
+export const ERR_SCREENSHOT_NOT_FOUND = 'Screenshot not found'
+export const ERR_INVALID_INDEX = 'Invalid index'
+export const ERR_FILE_MISSING_FROM_STORAGE = 'File missing from storage'
+
+// Validation messages (client-side, shown in forms)
+export const VALIDATE_SCREENSHOT_FORMAT = 'Only JPG, PNG, WebP allowed'
+export const VALIDATE_SCREENSHOT_SIZE = 'Max 2 MB per screenshot'
+export const VALIDATE_ARCHIVE_FORMAT = 'Only .zip, .7z, .rar allowed'
+export const VALIDATE_ARCHIVE_TOO_LARGE = 'File too large (max 20 MB)'
+export const VALIDATE_ARCHIVE_CORRUPTED = 'Could not read archive contents. The file may be corrupted.'
+export const VALIDATE_ARCHIVE_NO_BSP = 'Archive does not appear to contain a CS 1.6 map (no .bsp file found).'
+
+// Success/status messages
+export const MSG_SUBMISSION_APPROVED = 'Submission approved'
+export const MSG_SUBMISSION_REJECTED = 'Submission rejected'
+export const MSG_SCREENSHOTS_UPLOADED = 'Screenshot(s) uploaded'
