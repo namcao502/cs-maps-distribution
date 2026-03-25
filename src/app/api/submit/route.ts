@@ -60,11 +60,13 @@ export async function POST(req: NextRequest) {
   const tags = rawTags.filter((t): t is MapTag => (MAP_TAGS as readonly string[]).includes(t))
 
   const screenshotKeys: string[] = []
+  const screenshotWarnings: string[] = []
   for (let i = 0; i < 3; i++) {
     const img = formData.get(`screenshot_${i}`) as File | null
     if (!img) continue
     const imgExt = path.extname(img.name).replace('.', '').toLowerCase()
-    if (!ALLOWED_IMG.has(imgExt) || img.size > 2 * 1024 * 1024) continue
+    if (!ALLOWED_IMG.has(imgExt)) { screenshotWarnings.push(`${img.name}: unsupported format`); continue }
+    if (img.size > 2 * 1024 * 1024) { screenshotWarnings.push(`${img.name}: exceeds 2 MB`); continue }
     const imgKey = `submission-screenshots/${id}/${i}.${imgExt}`
     await putObject(imgKey, Buffer.from(await img.arrayBuffer()))
     screenshotKeys.push(imgKey)
@@ -83,5 +85,5 @@ export async function POST(req: NextRequest) {
     screenshotKeys,
   })
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, ...(screenshotWarnings.length > 0 && { screenshotWarnings }) })
 }

@@ -14,6 +14,10 @@ export async function PATCH(
   const { tags: rawTags = [] } = await req.json()
   const tags = (rawTags as string[]).filter((t): t is MapTag => (MAP_TAGS as readonly string[]).includes(t))
 
-  await updateMapTags(id, tags)
-  return NextResponse.json({ ok: true })
+  try {
+    await updateMapTags(id, tags)
+    return NextResponse.json({ ok: true })
+  } catch {
+    return NextResponse.json({ error: 'Failed to update tags' }, { status: 500 })
+  }
 }

@@ -147,6 +147,7 @@ export function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
       item.screenshots.forEach((f, i) => { if (f) formData.append(`screenshot_${i}`, f) })
 
       let succeeded = false
+      let responseData: { screenshotWarnings?: string[] } = {}
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest()
         xhr.open('POST', '/api/submit')
@@ -154,8 +155,10 @@ export function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
           if (e.lengthComputable) updateStaged(item.id, { progress: e.loaded / e.total })
         }
         xhr.onload = () => {
-          if (xhr.status === 200) { succeeded = true; resolve() }
-          else {
+          if (xhr.status === 200) {
+            try { responseData = JSON.parse(xhr.responseText) } catch { /* ignore */ }
+            succeeded = true; resolve()
+          } else {
             try { reject(new Error(JSON.parse(xhr.responseText).error ?? 'Submit failed')) }
             catch { reject(new Error('Submit failed')) }
           }
@@ -168,6 +171,7 @@ export function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
       })
 
       if (succeeded) {
+        responseData.screenshotWarnings?.forEach(w => push(`Screenshot skipped: ${w}`, 'error'))
         push(`${item.file.name} submitted for review`, 'success')
         removeStaged(item.id)
         onSubmitted()

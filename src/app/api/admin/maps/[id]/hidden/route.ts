@@ -11,6 +11,10 @@ export async function PATCH(
 
   const { id } = await params
   const { hidden } = await req.json()
-  await updateMapHidden(id, !!hidden)
-  return NextResponse.json({ ok: true })
+  try {
+    await updateMapHidden(id, !!hidden)
+    return NextResponse.json({ ok: true })
+  } catch {
+    return NextResponse.json({ error: 'Failed to update map' }, { status: 500 })
+  }
 }
