@@ -36,7 +36,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-base)]">
-      <SiteHeader />
+      <SiteHeader installedCount={0} totalCount={0} query="" onQueryChange={() => {}} activeTab="all" onTabChange={() => {}} />
 
       <main className="max-w-2xl mx-auto px-4 py-8">
         {checking ? (

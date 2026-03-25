@@ -6,7 +6,7 @@ import { SiteHeader } from '@/components/layout/SiteHeader'
 export default function SubmissionsPage() {
   return (
     <div className="min-h-screen bg-[var(--bg-base)]">
-      <SiteHeader />
+      <SiteHeader installedCount={0} totalCount={0} query="" onQueryChange={() => {}} activeTab="all" onTabChange={() => {}} />
 
       <main className="max-w-2xl mx-auto px-4 py-8">
         <h2 className="text-lg font-semibold mb-2">Submit a Map</h2>
