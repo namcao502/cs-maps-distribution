@@ -2,9 +2,8 @@
 import { useState, useEffect, useRef } from 'react'
 import type { MapEntry } from '@/types/map'
 import { MapCard } from '@/components/maps/MapCard'
-import { SearchInput } from '@/components/maps/SearchInput'
 import { scanInstalledBsps, syncInstalledToLocalStorage } from '@/lib/maps/install'
-import { MAP_TAGS, TAG_LABELS } from '@/lib/maps/tags'
+import type { FilterTab } from '@/lib/maps/tags'
 import { Card } from '@/components/ui'
 
 const CHEAT_CODES = [
@@ -49,16 +48,21 @@ export function MapList({
   maps,
   gameFolder,
   onPickFolder,
+  query,
+  activeTab,
+  onInstalledCountChange,
 }: {
   maps: MapEntry[]
   gameFolder: FileSystemDirectoryHandle | null
   onPickFolder: () => Promise<void>
+  query: string
+  activeTab: FilterTab
+  onInstalledCountChange: (n: number) => void
 }) {
-  const [query, setQuery] = useState('')
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [batchTrigger, setBatchTrigger] = useState<Set<string>>(new Set())
   const [installedBsps, setInstalledBsps] = useState<Set<string>>(new Set())
+  const [sort, setSort] = useState<'popular' | 'newest' | 'az'>('popular')
 
   const mapsRef = useRef(maps)
   useEffect(() => { mapsRef.current = maps }, [maps])
@@ -66,17 +70,19 @@ export function MapList({
   useEffect(() => {
     if (!gameFolder) {
       setInstalledBsps(new Set())
+      onInstalledCountChange(0)
       return
     }
     let cancelled = false
     scanInstalledBsps(gameFolder).then(result => {
       if (!cancelled) {
         setInstalledBsps(result)
+        onInstalledCountChange(result.size)
         syncInstalledToLocalStorage(mapsRef.current, result)
       }
     })
     return () => { cancelled = true }
-  }, [gameFolder])
+  }, [gameFolder, onInstalledCountChange])
 
   function toggleSelect(id: string) {
     setSelectedIds(prev => {
@@ -103,16 +109,20 @@ export function MapList({
     if (!gameFolder) return
     scanInstalledBsps(gameFolder).then(result => {
       setInstalledBsps(result)
+      onInstalledCountChange(result.size)
       syncInstalledToLocalStorage(mapsRef.current, result)
     })
   }
 
-  const filtered = maps.filter(m => {
-    const matchesSearch = m.originalName.toLowerCase().includes(query.toLowerCase())
-    const matchesTags = selectedTags.length === 0 || selectedTags.some(t =>
-      m.tags.includes(t) || m.originalName.toLowerCase().startsWith(t.toLowerCase())
-    )
-    return matchesSearch && matchesTags
+  const filtered = maps.filter(m =>
+    (activeTab === 'all' || m.tags.includes(activeTab)) &&
+    m.originalName.toLowerCase().includes(query.toLowerCase())
+  )
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (sort === 'popular') return b.installCount - a.installCount
+    if (sort === 'newest') return b.uploadedAt.localeCompare(a.uploadedAt)
+    return a.originalName.localeCompare(b.originalName)
   })
 
   if (maps.length === 0) {
@@ -178,51 +188,51 @@ export function MapList({
           <CheatCodeBanner className="w-full" />
         </div>
       </div>
-      <SearchInput value={query} onChange={setQuery} />
-      <div className="flex flex-wrap gap-2 justify-center">
-        {MAP_TAGS.map(tag => (
-          <button
-            key={tag}
-            onClick={() =>
-              setSelectedTags(prev =>
-                prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-              )
-            }
-            className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-              selectedTags.includes(tag)
-                ? 'bg-blue-500 text-white border-blue-500'
-                : 'bg-[var(--bg-surface)] text-[var(--text-muted)] border-[var(--border)] hover:border-blue-400'
-            }`}
+      <div className="flex items-center gap-4 px-1 py-1.5 text-xs font-mono text-[var(--text-muted)]">
+        <span><span className="text-[var(--text-primary)]">{filtered.length}</span> maps</span>
+        <span>
+          Sort:{' '}
+          <select
+            value={sort}
+            onChange={e => setSort(e.target.value as typeof sort)}
+            className="bg-transparent text-[var(--accent-cyan)] border-none outline-none cursor-pointer font-mono text-xs"
           >
-            {TAG_LABELS[tag] ?? tag}
-          </button>
-        ))}
+            <option value="popular">Popular</option>
+            <option value="newest">Newest</option>
+            <option value="az">A–Z</option>
+          </select>
+        </span>
+        {selectedIds.size > 0 && (
+          <span className="ml-auto flex items-center gap-2">
+            <span>{selectedIds.size} selected</span>
+            <button
+              onClick={triggerBatchInstall}
+              className="bg-[var(--accent-orange)] text-black px-2 py-0.5 rounded text-[10px] font-bold font-mono"
+            >
+              INSTALL ALL
+            </button>
+          </span>
+        )}
       </div>
-      {selectedIds.size > 0 && (
-        <button
-          onClick={triggerBatchInstall}
-          className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-500 text-white rounded-xl text-sm font-medium hover:bg-blue-600 active:scale-95 transition-all"
-        >
-          ⚙ Install Selected ({selectedIds.size})
-        </button>
-      )}
       {filtered.length === 0 ? (
         <p className="text-[var(--text-muted)] text-center py-12">No maps found.</p>
       ) : (
-        filtered.map(map => (
-          <MapCard
-            key={map.id}
-            map={map}
-            gameFolder={gameFolder}
-            onPickFolder={onPickFolder}
-            installedBsps={installedBsps}
-            onInstalled={handleInstalled}
-            selected={selectedIds.has(map.id)}
-            onToggleSelect={() => toggleSelect(map.id)}
-            autoInstall={batchTrigger.has(map.id)}
-            onBatchTriggered={() => clearBatchTrigger(map.id)}
-          />
-        ))
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[10px]">
+          {sorted.map(map => (
+            <MapCard
+              key={map.id}
+              map={map}
+              gameFolder={gameFolder}
+              onPickFolder={onPickFolder}
+              installedBsps={installedBsps}
+              onInstalled={handleInstalled}
+              selected={selectedIds.has(map.id)}
+              onToggleSelect={() => toggleSelect(map.id)}
+              autoInstall={batchTrigger.has(map.id)}
+              onBatchTriggered={() => clearBatchTrigger(map.id)}
+            />
+          ))}
+        </div>
       )}
     </div>
   )

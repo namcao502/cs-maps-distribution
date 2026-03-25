@@ -89,7 +89,6 @@ export default function HomePage() {
         {loading ? (
           <div className="text-center py-20 text-[var(--text-muted)] text-sm font-mono">Loading maps...</div>
         ) : (
-          // @ts-expect-error Task 6 adds query, activeTab, onInstalledCountChange props to MapList
           <MapList maps={maps} gameFolder={gameFolder} onPickFolder={handlePickFolder} query={query} activeTab={activeTab} onInstalledCountChange={setInstalledCount} />
         )}
       </main>
