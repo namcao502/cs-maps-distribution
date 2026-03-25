@@ -8,11 +8,11 @@ type Size = 'sm' | 'md' | 'lg'
 const BASE = 'inline-flex items-center justify-center gap-1.5 font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed'
 
 const VARIANTS: Record<Variant, string> = {
-  primary:   'bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white focus-visible:ring-[var(--accent)]',
-  secondary: 'bg-[var(--bg-secondary)] hover:bg-[var(--border-default)] text-[var(--text-primary)] focus-visible:ring-[var(--border-strong)]',
-  ghost:     'hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] focus-visible:ring-[var(--border-strong)]',
-  danger:    'bg-[var(--color-danger)] hover:bg-[var(--color-danger-hover)] text-white focus-visible:ring-[var(--color-danger)]',
-  success:   'bg-[var(--color-success)] hover:bg-[var(--color-success-hover)] text-white focus-visible:ring-[var(--color-success)]',
+  primary:   'bg-[var(--accent-cyan)] hover:bg-[var(--accent-cyan)] text-white focus-visible:ring-[var(--accent-cyan)]',
+  secondary: 'bg-[var(--bg-inset)] hover:bg-[var(--border)] text-[var(--text-primary)] focus-visible:ring-[var(--border)]',
+  ghost:     'hover:bg-[var(--bg-inset)] text-[var(--text-primary)] focus-visible:ring-[var(--border)]',
+  danger:    'bg-[var(--color-danger)] hover:bg-[var(--color-danger)] text-white focus-visible:ring-[var(--color-danger)]',
+  success:   'bg-[var(--accent-green)] hover:bg-[var(--accent-green)] text-white focus-visible:ring-[var(--accent-green)]',
 }
 
 const SIZES: Record<Size, string> = {

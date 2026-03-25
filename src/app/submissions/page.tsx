@@ -5,7 +5,7 @@ import { SiteHeader } from '@/components/layout/SiteHeader'
 
 export default function SubmissionsPage() {
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)]">
+    <div className="min-h-screen bg-[var(--bg-base)]">
       <SiteHeader />
 
       <main className="max-w-2xl mx-auto px-4 py-8">

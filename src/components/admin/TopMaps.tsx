@@ -14,9 +14,9 @@ export function TopMaps({ maps }: { maps: MapStat[] }) {
           <li key={m.id} className="flex items-center gap-3">
             <span className="text-xs text-[var(--text-muted)] w-4 text-right">{i + 1}</span>
             <span className="text-sm text-[var(--text-primary)] w-32 truncate">{m.originalName}</span>
-            <div className="flex-1 bg-[var(--bg-secondary)] rounded-full h-2">
+            <div className="flex-1 bg-[var(--bg-inset)] rounded-full h-2">
               <div
-                className="bg-[var(--accent)] h-2 rounded-full transition-all"
+                className="bg-[var(--accent-cyan)] h-2 rounded-full transition-all"
                 style={{ width: `${(m.installCount / max) * 100}%` }}
               />
             </div>

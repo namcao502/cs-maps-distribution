@@ -34,7 +34,7 @@ export function AdminDashboard() {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[0, 1, 2, 3].map(i => (
-          <div key={i} className="h-20 bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl animate-pulse" />
+          <div key={i} className="h-20 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl animate-pulse" />
         ))}
       </div>
     )

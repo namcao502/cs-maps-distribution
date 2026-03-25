@@ -8,7 +8,7 @@ const ICONS: Record<ActivityEvent['type'], string> = {
 }
 
 const ICON_COLORS: Record<ActivityEvent['type'], string> = {
-  approved: 'text-[var(--color-success)]',
+  approved: 'text-[var(--accent-green)]',
   rejected: 'text-[var(--color-danger)]',
   uploaded: 'text-[var(--text-muted)]',
 }

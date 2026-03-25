@@ -30,7 +30,7 @@ export function MySubmissions() {
   return (
     <div className="flex flex-col gap-2">
       {submissions.map(sub => (
-        <div key={sub.id} className="flex items-center justify-between px-4 py-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl">
+        <div key={sub.id} className="flex items-center justify-between px-4 py-3 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl">
           <div className="min-w-0">
             <div>
               <span className="font-medium text-[var(--text-primary)]">{sub.originalName}</span>

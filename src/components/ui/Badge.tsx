@@ -4,11 +4,11 @@ type Variant = 'default' | 'success' | 'warning' | 'danger' | 'info'
 type Size = 'sm' | 'md'
 
 const VARIANTS: Record<Variant, string> = {
-  default: 'bg-[var(--bg-secondary)] text-[var(--text-primary)]',
-  success: 'bg-[var(--color-success-muted)] text-[var(--color-success)]',
-  warning: 'bg-[var(--color-warning-muted)] text-[var(--color-warning)]',
-  danger:  'bg-[var(--color-danger-muted)] text-[var(--color-danger)]',
-  info:    'bg-[var(--color-info-muted)] text-[var(--color-info)]',
+  default: 'bg-[var(--bg-inset)] text-[var(--text-primary)]',
+  success: 'bg-[var(--bg-inset)] text-[var(--accent-green)]',
+  warning: 'bg-[var(--bg-inset)] text-[var(--accent-orange)]',
+  danger:  'bg-[var(--bg-inset)] text-[var(--color-danger)]',
+  info:    'bg-[var(--bg-inset)] text-[var(--accent-cyan)]',
 }
 
 const SIZES: Record<Size, string> = {

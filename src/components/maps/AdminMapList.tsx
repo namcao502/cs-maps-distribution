@@ -216,7 +216,7 @@ export function AdminMapList({
                   className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
                     draftTags.includes(tag)
                       ? 'bg-blue-500 text-white border-blue-500'
-                      : 'bg-[var(--bg-secondary)] text-[var(--text-muted)] border-[var(--border)] hover:border-blue-400'
+                      : 'bg-[var(--bg-inset)] text-[var(--text-muted)] border-[var(--border)] hover:border-blue-400'
                   }`}
                 >
                   {TAG_LABELS[tag] ?? tag}

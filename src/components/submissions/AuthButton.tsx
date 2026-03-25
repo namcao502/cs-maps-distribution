@@ -49,7 +49,7 @@ export function AuthButton({ adminEmail }: { adminEmail: string }) {
     return (
       <button
         onClick={signIn}
-        className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors shadow-sm"
+        className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--bg-inset)] transition-colors"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -68,11 +68,11 @@ export function AuthButton({ adminEmail }: { adminEmail: string }) {
     <div className="relative">
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2 px-3 h-9 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg shadow-sm hover:bg-[var(--border)] active:scale-95 transition-all"
+        className="flex items-center gap-2 px-3 h-9 bg-[var(--bg-inset)] border border-[var(--border)] rounded-lg hover:bg-[var(--border)] active:scale-95 transition-all"
       >
         {user.photoURL
           ? <img src={user.photoURL} alt="" className="w-7 h-7 rounded-full" referrerPolicy="no-referrer" />
-          : <span className="w-7 h-7 rounded-full bg-[var(--bg-elevated)] border border-[var(--border)] flex items-center justify-center text-xs font-semibold text-[var(--text-muted)]">{(user.displayName ?? user.email ?? '?')[0].toUpperCase()}</span>
+          : <span className="w-7 h-7 rounded-full bg-[var(--bg-surface)] border border-[var(--border)] flex items-center justify-center text-xs font-semibold text-[var(--text-muted)]">{(user.displayName ?? user.email ?? '?')[0].toUpperCase()}</span>
         }
         <span className="text-sm text-[var(--text-primary)] hidden sm:block">{user.displayName ?? user.email}</span>
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-muted)]">
@@ -83,14 +83,14 @@ export function AuthButton({ adminEmail }: { adminEmail: string }) {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 mt-1 w-48 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-lg z-20 py-1 overflow-hidden">
+          <div className="absolute right-0 mt-1 w-48 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl z-20 py-1 overflow-hidden">
             {isAdmin && (
-              <Link href="/admin" onClick={() => setOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-blue-600 hover:bg-[var(--bg-secondary)]">
+              <Link href="/admin" onClick={() => setOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-blue-600 hover:bg-[var(--bg-inset)]">
                 Admin panel
               </Link>
             )}
             <div className="border-t border-[var(--border)] my-1" />
-            <button onClick={signOut} className="w-full text-left flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]">
+            <button onClick={signOut} className="w-full text-left flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-muted)] hover:bg-[var(--bg-inset)] hover:text-[var(--text-primary)]">
               Sign out
             </button>
           </div>

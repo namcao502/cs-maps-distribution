@@ -17,7 +17,7 @@ export function SiteHeader() {
   }, [])
 
   return (
-    <header className="sticky top-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] shadow-sm">
+    <header className="sticky top-0 z-50 bg-[var(--bg-surface)] border-b border-[var(--border)]">
       <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-6">
           <Link href="/" className="shrink-0">
@@ -33,8 +33,8 @@ export function SiteHeader() {
                 href={link.href}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   pathname === link.href
-                    ? 'bg-[var(--bg-secondary)] text-[var(--text-primary)]'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]'
+                    ? 'bg-[var(--bg-inset)] text-[var(--text-primary)]'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-inset)]'
                 }`}
               >
                 {link.label}

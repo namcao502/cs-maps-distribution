@@ -13,7 +13,7 @@ export function SearchInput({
   onChange: (value: string) => void
 }) {
   return (
-    <div className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-[var(--text-muted)]">
+    <div className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl text-[var(--text-muted)]">
       <SearchIcon />
       <input
         type="search"

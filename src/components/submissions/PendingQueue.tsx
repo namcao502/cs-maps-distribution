@@ -84,7 +84,7 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
               </span>
             </div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-bold px-2 py-0.5 rounded-md uppercase bg-[var(--bg-secondary)] text-[var(--text-primary)]">{sub.format}</span>
+              <span className="text-xs font-bold px-2 py-0.5 rounded-md uppercase bg-[var(--bg-inset)] text-[var(--text-primary)]">{sub.format}</span>
               <span className="font-medium text-[var(--text-primary)]">{sub.originalName}</span>
               <span className="text-xs text-[var(--text-muted)]">{formatBytes(sub.size)}</span>
             </div>
@@ -97,7 +97,7 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
             </button>
 
             {previews[sub.id] && (
-              <div className="text-xs bg-[var(--bg-secondary)] rounded p-2 mb-2">
+              <div className="text-xs bg-[var(--bg-inset)] rounded p-2 mb-2">
                 <p className="text-[var(--text-muted)]">Structure: <span className="font-mono">{previews[sub.id].structure}</span></p>
                 <p className="text-[var(--text-muted)] mt-0.5">Maps: {previews[sub.id].bspFiles.join(', ') || 'none'}</p>
               </div>
@@ -140,7 +140,7 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
                   placeholder="Rejection reason…"
                   value={rejecting[sub.id] ?? ''}
                   onChange={e => setRejecting(r => ({ ...r, [sub.id]: e.target.value }))}
-                  className="flex-1 border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm bg-[var(--bg-card)] text-[var(--text-primary)]"
+                  className="flex-1 border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm bg-[var(--bg-surface)] text-[var(--text-primary)]"
                 />
                 <Button
                   variant="danger"

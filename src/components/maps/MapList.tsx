@@ -28,7 +28,7 @@ function CheatCodeBanner({ className }: { className?: string }) {
           key={code}
           onClick={() => copy(code)}
           title={`Copy: ${code}`}
-          className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-sm font-mono text-[var(--text-primary)] hover:border-blue-400 hover:bg-[var(--bg-secondary)] transition-colors"
+          className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl text-sm font-mono text-[var(--text-primary)] hover:border-blue-400 hover:bg-[var(--bg-inset)] transition-colors"
         >
           <span className="text-[var(--text-muted)] font-sans not-italic">{label}:</span>
           <span className="font-semibold">{code}</span>
@@ -127,7 +127,7 @@ export function MapList({
     <div className="flex flex-col gap-3">
       <div className="flex justify-center">
         <div className="grid grid-cols-1 gap-3 w-fit mx-auto">
-          <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl px-4 py-3 text-xs text-[var(--text-muted)] font-mono">
+          <div className="bg-[var(--bg-inset)] border border-[var(--border)] rounded-xl px-4 py-3 text-xs text-[var(--text-muted)] font-mono">
             <p className="text-[var(--text-primary)] font-sans font-medium text-sm mb-2">Pick your CS 1.6 root folder and install map!</p>
             <div className="flex flex-col gap-0.5">
               {[
@@ -160,7 +160,7 @@ export function MapList({
             onClick={onPickFolder}
             className={`w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-medium transition-all active:scale-95 ${
               gameFolder
-                ? 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] hover:border-blue-400 hover:text-blue-500'
+                ? 'bg-[var(--bg-surface)] border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-inset)] hover:border-blue-400 hover:text-blue-500'
                 : 'bg-blue-500 border-blue-500 text-white hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5'
             }`}
           >
@@ -191,7 +191,7 @@ export function MapList({
             className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
               selectedTags.includes(tag)
                 ? 'bg-blue-500 text-white border-blue-500'
-                : 'bg-[var(--bg-card)] text-[var(--text-muted)] border-[var(--border)] hover:border-blue-400'
+                : 'bg-[var(--bg-surface)] text-[var(--text-muted)] border-[var(--border)] hover:border-blue-400'
             }`}
           >
             {TAG_LABELS[tag] ?? tag}

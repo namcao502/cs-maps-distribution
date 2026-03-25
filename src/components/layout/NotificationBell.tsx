@@ -38,7 +38,7 @@ export function NotificationBell() {
     <div className="relative">
       <button
         onClick={toggle}
-        className="relative flex items-center justify-center w-9 h-9 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition-colors"
+        className="relative flex items-center justify-center w-9 h-9 rounded-lg border border-[var(--border)] bg-[var(--bg-inset)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
         title="Notifications"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
@@ -55,7 +55,7 @@ export function NotificationBell() {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="fixed right-4 top-14 w-72 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-lg z-20 overflow-hidden">
+          <div className="fixed right-4 top-14 w-72 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl z-20 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--border)]">
               <span className="text-sm font-semibold text-[var(--text-primary)]">Notifications</span>
               {notifications.length > 0 && (

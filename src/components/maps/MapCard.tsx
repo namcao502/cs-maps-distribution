@@ -126,7 +126,7 @@ export function MapCard({
 
   return (
     <>
-      <div className="flex items-center justify-between px-4 py-3.5 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-between px-4 py-3.5 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl transition-colors">
         <div className="flex items-center gap-3 min-w-0">
           <input
             type="checkbox"

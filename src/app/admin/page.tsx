@@ -35,7 +35,7 @@ export default function AdminPage() {
   }, [authed, loadMaps])
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)]">
+    <div className="min-h-screen bg-[var(--bg-base)]">
       <SiteHeader />
 
       <main className="max-w-2xl mx-auto px-4 py-8">
