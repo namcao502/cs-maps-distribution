@@ -1,7 +1,4 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { onAuthStateChanged, type User } from 'firebase/auth'
-import { getFirebaseAuth } from '@/lib/auth/firebase-client'
 import { AuthButton } from '@/components/submissions/AuthButton'
 import { NotificationBell } from '@/components/layout/NotificationBell'
 import { SearchInput } from '@/components/maps/SearchInput'
@@ -24,16 +21,6 @@ export function SiteHeader({
   activeTab,
   onTabChange,
 }: SiteHeaderProps) {
-  const [user, setUser] = useState<User | null>(null)
-
-  useEffect(() => {
-    const auth = getFirebaseAuth()
-    return onAuthStateChanged(auth, setUser)
-  }, [])
-
-  // Suppress unused variable warning — user state drives future auth-gated UI
-  void user
-
   return (
     <header className="sticky top-0 z-50 bg-[var(--bg-surface)] border-b border-[var(--border)]">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">

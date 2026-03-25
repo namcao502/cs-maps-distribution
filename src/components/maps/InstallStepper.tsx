@@ -45,6 +45,7 @@ export function InstallStepper({ status }: { status: InstallStatus | null }) {
                               isActive ? 'var(--accent-orange)' : 'var(--bg-surface)',
                   border: `1px solid ${isFuture && !isDone ? 'var(--border)' : 'transparent'}`,
                   color: (isComplete || isDone) ? '#000' : isActive ? '#000' : 'var(--text-muted)',
+                  animation: isActive && !isError ? 'pulse 1s ease-in-out infinite' : 'none',
                 }}
               >
                 {isComplete || isDone ? '✓' : isActive && isError ? '✕' : i + 1}
