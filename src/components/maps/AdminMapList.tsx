@@ -6,7 +6,13 @@ import { SearchInput } from '@/components/maps/SearchInput'
 import { MAP_TAGS, TAG_LABELS } from '@/lib/maps/tags'
 import { Button, Card } from '@/components/ui'
 import { useNotifications } from '@/lib/auth/notification-context'
-import { VALIDATE_SCREENSHOT_FORMAT, VALIDATE_SCREENSHOT_SIZE, MSG_SCREENSHOTS_UPLOADED } from '@/lib/constants/messages'
+import {
+  VALIDATE_SCREENSHOT_FORMAT, VALIDATE_SCREENSHOT_SIZE, MSG_SCREENSHOTS_UPLOADED,
+  STATUS_SAVING_ORDER, STATUS_NO_MAPS_ADMIN, STATUS_NO_MAPS_FOUND,
+  BTN_MOVE_UP, BTN_MOVE_DOWN, BTN_SHOW, BTN_HIDE, BTN_DELETE, STATUS_ELLIPSIS,
+  STATUS_UPLOADING, BTN_ADD_SCREENSHOT, LABEL_SCREENSHOTS, INFO_SCREENSHOTS_UP_TO,
+  LABEL_DELETE_CONFIRM,
+} from '@/lib/constants/messages'
 
 const TAG_SHORT: Record<string, string> = {
   'de_': 'BOMB/DEFUSE',
@@ -159,7 +165,7 @@ export function AdminMapList({
   }
 
   if (orderedMaps.length === 0) {
-    return <p className="text-[var(--text-muted)] text-center py-6">No maps yet.</p>
+    return <p className="text-[var(--text-muted)] text-center py-6">{STATUS_NO_MAPS_ADMIN}</p>
   }
 
   const filtered = orderedMaps.filter(m =>
@@ -170,10 +176,10 @@ export function AdminMapList({
     <div className="flex flex-col gap-2 mt-6">
       <SearchInput value={query} onChange={setQuery} />
       {isSaving && (
-        <p className="text-xs text-[var(--text-muted)] text-right mb-1">Saving order…</p>
+        <p className="text-xs text-[var(--text-muted)] text-right mb-1">{STATUS_SAVING_ORDER}</p>
       )}
       {filtered.length === 0 ? (
-        <p className="text-[var(--text-muted)] text-center py-6">No maps found.</p>
+        <p className="text-[var(--text-muted)] text-center py-6">{STATUS_NO_MAPS_FOUND}</p>
       ) : null}
       {filtered.map(map => {
         const orderedIndex = orderedMaps.indexOf(map)
@@ -194,7 +200,7 @@ export function AdminMapList({
                   onClick={e => { e.stopPropagation(); moveMap(orderedIndex, 'up') }}
                   disabled={orderedIndex === 0 || isSaving}
                   className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
-                  title="Move up"
+                  title={BTN_MOVE_UP}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
                 </button>
@@ -202,7 +208,7 @@ export function AdminMapList({
                   onClick={e => { e.stopPropagation(); moveMap(orderedIndex, 'down') }}
                   disabled={orderedIndex === orderedMaps.length - 1 || isSaving}
                   className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
-                  title="Move down"
+                  title={BTN_MOVE_DOWN}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                 </button>
@@ -258,7 +264,7 @@ export function AdminMapList({
                         : 'bg-[var(--bg-inset)] text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--accent-cyan)]'
                     }`}
                   >
-                    {togglingTag === map.id ? '…' : activeTag ? TAG_SHORT[activeTag] : 'No tag'}
+                    {togglingTag === map.id ? STATUS_ELLIPSIS : activeTag ? TAG_SHORT[activeTag] : 'No tag'}
                   </button>
 
                   {/* Show / Hide */}
@@ -274,7 +280,7 @@ export function AdminMapList({
                     ) : (
                       <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                     )}
-                    {togglingHidden === map.id ? '…' : map.hidden ? 'Show' : 'Hide'}
+                    {togglingHidden === map.id ? STATUS_ELLIPSIS : map.hidden ? BTN_SHOW : BTN_HIDE}
                   </Button>
 
                   {/* Delete */}
@@ -285,13 +291,13 @@ export function AdminMapList({
                     className="flex items-center gap-1.5"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                    Delete
+                    {BTN_DELETE}
                   </Button>
                 </div>
 
                 {/* Screenshots */}
                 <div>
-                  <p className="text-xs font-mono text-[var(--text-muted)] mb-1.5">Screenshots <span className="text-[var(--text-subtle)]">(up to 3)</span></p>
+                  <p className="text-xs font-mono text-[var(--text-muted)] mb-1.5">{LABEL_SCREENSHOTS} <span className="text-[var(--text-subtle)]">{INFO_SCREENSHOTS_UP_TO}</span></p>
                   <div className="flex gap-2 items-start">
                     {(map.screenshotKeys ?? []).map((url, i) => {
                       const delKey = `${map.id}-${i}`
@@ -321,8 +327,8 @@ export function AdminMapList({
                     {(map.screenshotKeys ?? []).length < 3 && (
                       <label className={`flex flex-col items-center justify-center h-16 px-3 border border-dashed border-[var(--border)] rounded transition-colors text-[var(--text-muted)] text-xs font-mono shrink-0 ${uploadingScreenshot === map.id ? 'opacity-60 pointer-events-none' : 'cursor-pointer hover:border-[var(--accent-cyan)]'}`}>
                         {uploadingScreenshot === map.id
-                          ? <span className="flex items-center gap-1.5"><span className="animate-spin inline-block w-3 h-3 border-2 border-[var(--accent-cyan)] border-t-transparent rounded-full" />Uploading…</span>
-                          : '+ Add'}
+                          ? <span className="flex items-center gap-1.5"><span className="animate-spin inline-block w-3 h-3 border-2 border-[var(--accent-cyan)] border-t-transparent rounded-full" />{STATUS_UPLOADING}</span>
+                          : BTN_ADD_SCREENSHOT}
                         <input
                           type="file"
                           accept="image/jpeg,image/png,image/webp"
@@ -347,7 +353,7 @@ export function AdminMapList({
 
       {pendingDelete && (
         <ConfirmModal
-          message={`Delete "${pendingDelete.originalName}"?`}
+          message={LABEL_DELETE_CONFIRM(pendingDelete.originalName)}
           confirmLabel="Delete"
           destructive
           onConfirm={() => confirmDelete(pendingDelete)}

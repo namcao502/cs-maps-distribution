@@ -1,4 +1,5 @@
 import { Card } from '@/components/ui'
+import { LABEL_TOP_MAPS } from '@/lib/constants/messages'
 
 interface MapStat { id: string; originalName: string; installCount: number }
 
@@ -8,7 +9,7 @@ export function TopMaps({ maps }: { maps: MapStat[] }) {
 
   return (
     <Card className="p-4 mb-4">
-      <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Top Maps by Installs</h3>
+      <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">{LABEL_TOP_MAPS}</h3>
       <ol className="space-y-2">
         {maps.map((m, i) => (
           <li key={m.id} className="flex items-center gap-3">

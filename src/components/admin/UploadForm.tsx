@@ -6,6 +6,9 @@ import {
   VALIDATE_SCREENSHOT_FORMAT, VALIDATE_SCREENSHOT_SIZE,
   VALIDATE_ARCHIVE_FORMAT, VALIDATE_ARCHIVE_TOO_LARGE,
   VALIDATE_ARCHIVE_CORRUPTED, VALIDATE_ARCHIVE_NO_BSP,
+  STATUS_VALIDATING, INFO_DROP_ZONE, INFO_DROP_ZONE_ADMIN,
+  LABEL_TAGS, LABEL_TAGS_REQUIRED, LABEL_SCREENSHOTS, INFO_SCREENSHOTS_OPTIONAL, BTN_ADD_IMG,
+  STATUS_UPLOADING, LABEL_UPLOAD_FILES,
 } from '@/lib/constants/messages'
 
 const MAX_SIZE = 20 * 1024 * 1024
@@ -227,12 +230,12 @@ export function UploadForm({ onUploaded }: { onUploaded: () => void }) {
         {validating ? (
           <p className="text-[var(--accent-cyan)] text-sm flex items-center justify-center gap-2">
             <span className="animate-spin inline-block w-4 h-4 border-2 border-[var(--accent-cyan)] border-t-transparent rounded-full" />
-            Validating…
+            {STATUS_VALIDATING}
           </p>
         ) : (
           <>
-            <p className="text-[var(--text-muted)] text-sm">Drop .zip, .7z, or .rar files here, or click to browse</p>
-            <p className="text-xs text-[var(--text-muted)] mt-1">Max 20 MB per file · Multiple files supported</p>
+            <p className="text-[var(--text-muted)] text-sm">{INFO_DROP_ZONE}</p>
+            <p className="text-xs text-[var(--text-muted)] mt-1">{INFO_DROP_ZONE_ADMIN}</p>
           </>
         )}
       </div>
@@ -280,10 +283,10 @@ export function UploadForm({ onUploaded }: { onUploaded: () => void }) {
                   <div>
                     <p className="text-xs font-mono mb-1.5 flex items-center gap-2">
                       <span className={item.tags.length === 0 ? 'text-[var(--color-danger)]' : 'text-[var(--text-muted)]'}>
-                        Tags
+                        {LABEL_TAGS}
                       </span>
                       {item.tags.length === 0 && (
-                        <span className="text-[var(--color-danger)]">— required</span>
+                        <span className="text-[var(--color-danger)]">{LABEL_TAGS_REQUIRED}</span>
                       )}
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -307,7 +310,7 @@ export function UploadForm({ onUploaded }: { onUploaded: () => void }) {
                   {/* Screenshots */}
                   <div>
                     <p className="text-xs font-mono text-[var(--text-muted)] mb-1.5">
-                      Screenshots <span className="text-[var(--text-subtle)]">(optional, up to 3)</span>
+                      {LABEL_SCREENSHOTS} <span className="text-[var(--text-subtle)]">{INFO_SCREENSHOTS_OPTIONAL}</span>
                     </p>
                     <div className="flex gap-2">
                       {item.screenshots.map((file, i) => (
@@ -323,7 +326,7 @@ export function UploadForm({ onUploaded }: { onUploaded: () => void }) {
                             </div>
                           ) : (
                             <label className="flex items-center justify-center h-9 border border-dashed border-[var(--border)] rounded cursor-pointer hover:border-[var(--accent-cyan)] transition-colors text-[var(--text-muted)] text-xs font-mono">
-                              + IMG
+                              {BTN_ADD_IMG}
                               <input
                                 type="file"
                                 accept="image/jpeg,image/png,image/webp"
@@ -358,7 +361,7 @@ export function UploadForm({ onUploaded }: { onUploaded: () => void }) {
                 title={missingTags ? 'All files must have at least one tag' : undefined}
                 className="px-5 py-2 rounded-lg text-sm font-mono font-bold bg-[var(--accent-orange)] text-black hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
               >
-                {isProcessing ? 'Uploading…' : `Upload ${staged.filter(s => s.status === 'staged').length} file${staged.filter(s => s.status === 'staged').length > 1 ? 's' : ''}`}
+                {isProcessing ? STATUS_UPLOADING : LABEL_UPLOAD_FILES(staged.filter(s => s.status === 'staged').length)}
               </button>
             )}
           </div>

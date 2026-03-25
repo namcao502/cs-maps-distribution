@@ -6,6 +6,9 @@ import {
   VALIDATE_SCREENSHOT_FORMAT, VALIDATE_SCREENSHOT_SIZE,
   VALIDATE_ARCHIVE_FORMAT, VALIDATE_ARCHIVE_TOO_LARGE,
   VALIDATE_ARCHIVE_CORRUPTED, VALIDATE_ARCHIVE_NO_BSP,
+  STATUS_VALIDATING, INFO_DROP_ZONE, INFO_DROP_ZONE_SUBMIT,
+  LABEL_TAGS, LABEL_SCREENSHOTS, INFO_SCREENSHOTS_OPTIONAL, BTN_ADD_IMG,
+  STATUS_SUBMITTING, LABEL_SUBMIT_FILES,
 } from '@/lib/constants/messages'
 
 const MAX_SIZE = 20 * 1024 * 1024
@@ -213,12 +216,12 @@ export function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
         {validating ? (
           <p className="text-[var(--accent-cyan)] text-sm flex items-center justify-center gap-2">
             <span className="animate-spin inline-block w-4 h-4 border-2 border-[var(--accent-cyan)] border-t-transparent rounded-full" />
-            Validating…
+            {STATUS_VALIDATING}
           </p>
         ) : (
           <>
-            <p className="text-[var(--text-muted)] text-sm">Drop .zip, .7z, or .rar files here, or click to browse</p>
-            <p className="text-xs text-[var(--text-muted)] mt-1">Max 20 MB per file · Your map will be reviewed before publishing</p>
+            <p className="text-[var(--text-muted)] text-sm">{INFO_DROP_ZONE}</p>
+            <p className="text-xs text-[var(--text-muted)] mt-1">{INFO_DROP_ZONE_SUBMIT}</p>
           </>
         )}
       </div>
@@ -262,7 +265,7 @@ export function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
                   {/* Tags */}
                   <div>
                     <p className="text-xs font-mono mb-1.5 text-[var(--text-muted)]">
-                      Tags <span className="text-[var(--color-danger)]">*</span>
+                      {LABEL_TAGS} <span className="text-[var(--color-danger)]">*</span>
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {MAP_TAGS.map(tag => (
@@ -285,7 +288,7 @@ export function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
                   {/* Screenshots */}
                   <div>
                     <p className="text-xs font-mono text-[var(--text-muted)] mb-1.5">
-                      Screenshots <span className="text-[var(--text-subtle)]">(optional, up to 3)</span>
+                      {LABEL_SCREENSHOTS} <span className="text-[var(--text-subtle)]">{INFO_SCREENSHOTS_OPTIONAL}</span>
                     </p>
                     <div className="flex gap-2">
                       {item.screenshots.map((file, i) => (
@@ -301,7 +304,7 @@ export function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
                             </div>
                           ) : (
                             <label className="flex items-center justify-center h-9 border border-dashed border-[var(--border)] rounded cursor-pointer hover:border-[var(--accent-cyan)] transition-colors text-[var(--text-muted)] text-xs font-mono">
-                              + IMG
+                              {BTN_ADD_IMG}
                               <input
                                 type="file"
                                 accept="image/jpeg,image/png,image/webp"
@@ -334,7 +337,7 @@ export function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
                 disabled={uploading || isProcessing || hasUntagged}
                 className="px-5 py-2 rounded-lg text-sm font-mono font-bold bg-[var(--accent-cyan)] text-black hover:opacity-90 disabled:opacity-50 transition-opacity"
               >
-                {isProcessing ? 'Submitting…' : `Submit ${staged.filter(s => s.status === 'staged').length} file${staged.filter(s => s.status === 'staged').length > 1 ? 's' : ''}`}
+                {isProcessing ? STATUS_SUBMITTING : LABEL_SUBMIT_FILES(staged.filter(s => s.status === 'staged').length)}
               </button>
             )}
           </div>

@@ -9,6 +9,11 @@ import { ensurePermission, markInstalled, isInstalledLocally } from '@/lib/maps/
 import { FILTER_TABS, type FilterTab } from '@/lib/maps/tags'
 import { SearchInput } from '@/components/maps/SearchInput'
 import { Card } from '@/components/ui'
+import {
+  STATUS_NO_MAPS, STATUS_NO_MAPS_FOUND, INFO_PICK_CS_FOLDER, BTN_PICK_THIS, INFO_FOLDER_EXAMPLE,
+  INFO_YOUR_FOLDER, INFO_YOUR_FOLDER_LABEL, BTN_CHANGE, LABEL_INSTALL_COUNT, LABEL_SELECTED_COUNT,
+  BTN_INSTALL_ALL,
+} from '@/lib/constants/messages'
 
 const CHEAT_CODES = [
   { code: 'impulse 101', label: 'Code' },
@@ -174,7 +179,7 @@ export function MapList({
   if (maps.length === 0) {
     return (
       <Card className="p-8 text-center">
-        <p className="text-[var(--text-muted)] text-sm">No maps available yet.</p>
+        <p className="text-[var(--text-muted)] text-sm">{STATUS_NO_MAPS}</p>
       </Card>
     )
   }
@@ -185,7 +190,7 @@ export function MapList({
       <div className="flex justify-center">
         <div className="grid grid-cols-1 gap-3 w-fit mx-auto">
           <div className="bg-[var(--bg-inset)] border border-[var(--border)] rounded-xl px-4 py-3 text-xs text-[var(--text-muted)] font-mono">
-            <p className="text-[var(--text-primary)] font-sans font-medium text-sm mb-2">Pick your CS 1.6 root folder and install map!</p>
+            <p className="text-[var(--text-primary)] font-sans font-medium text-sm mb-2">{INFO_PICK_CS_FOLDER}</p>
             <div className="flex flex-col gap-0.5">
               {[
                 { label: 'C:\\',            indent: 0, highlight: false },
@@ -205,7 +210,7 @@ export function MapList({
                   ) : (
                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>
                   )}
-                  {label}{highlight && <span className="text-[var(--text-muted)] font-normal ml-1">← pick this</span>}
+                  {label}{highlight && <span className="text-[var(--text-muted)] font-normal ml-1">{BTN_PICK_THIS}</span>}
                 </span>
               ))}
             </div>
@@ -226,11 +231,11 @@ export function MapList({
             </svg>
             {gameFolder ? (
               <>
-                <span className="text-[var(--text-muted)] font-normal">Your folder:</span>
+                <span className="text-[var(--text-muted)] font-normal">{INFO_YOUR_FOLDER}</span>
                 <span className="font-semibold truncate max-w-[200px]">{gameFolder.name}</span>
-                <span className="text-xs text-blue-500 ml-1">Change</span>
+                <span className="text-xs text-blue-500 ml-1">{BTN_CHANGE}</span>
               </>
-            ) : 'Your Folder'}
+            ) : INFO_YOUR_FOLDER_LABEL}
           </button>
           <CheatCodeBanner className="w-full" />
         </div>
@@ -260,22 +265,25 @@ export function MapList({
 
       <div className="flex items-center gap-4 px-1 py-1.5 text-xs font-mono text-[var(--text-muted)]">
         <span className="text-[var(--accent-green)]">
-          {filtered.filter(m => isBspInstalled(m.originalName, installedBsps) || isInstalledLocally(m.id)).length} / {filtered.length} installed
+          {LABEL_INSTALL_COUNT(
+            filtered.filter(m => isBspInstalled(m.originalName, installedBsps) || isInstalledLocally(m.id)).length,
+            filtered.length
+          )}
         </span>
         {selectedIds.size > 0 && (
           <span className="ml-auto flex items-center gap-2">
-            <span>{selectedIds.size} selected</span>
+            <span>{LABEL_SELECTED_COUNT(selectedIds.size)}</span>
             <button
               onClick={triggerBatchInstall}
               className="bg-[var(--accent-orange)] text-black px-2 py-0.5 rounded text-[10px] font-bold font-mono"
             >
-              INSTALL ALL
+              {BTN_INSTALL_ALL}
             </button>
           </span>
         )}
       </div>
       {filtered.length === 0 ? (
-        <p className="text-[var(--text-muted)] text-center py-12">No maps found.</p>
+        <p className="text-[var(--text-muted)] text-center py-12">{STATUS_NO_MAPS_FOUND}</p>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-[10px]">
           {sorted.map(map => (

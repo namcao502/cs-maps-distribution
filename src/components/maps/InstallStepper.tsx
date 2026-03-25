@@ -1,13 +1,14 @@
 'use client'
 import type { InstallStatus } from '@/lib/maps/install'
+import { PHASE_DOWNLOAD, PHASE_VERIFY, PHASE_EXTRACT, PHASE_WRITE } from '@/lib/constants/messages'
 
 type Phase = 'downloading' | 'verifying' | 'extracting' | 'writing'
 
 const PHASES: { key: Phase; label: string }[] = [
-  { key: 'downloading', label: 'DOWNLOAD' },
-  { key: 'verifying', label: 'VERIFY' },
-  { key: 'extracting', label: 'EXTRACT' },
-  { key: 'writing', label: 'WRITE' },
+  { key: 'downloading', label: PHASE_DOWNLOAD },
+  { key: 'verifying', label: PHASE_VERIFY },
+  { key: 'extracting', label: PHASE_EXTRACT },
+  { key: 'writing', label: PHASE_WRITE },
 ]
 
 function phaseIndex(phase: string): number {

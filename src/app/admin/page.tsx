@@ -8,6 +8,7 @@ import { PendingQueue } from '@/components/submissions/PendingQueue'
 import { SiteHeader } from '@/components/layout/SiteHeader'
 import { AdminDashboard } from '@/components/admin/AdminDashboard'
 import type { MapEntry } from '@/types/map'
+import { BTN_HOME, STATUS_LOADING, STATUS_ACCESS_DENIED, LABEL_UPLOAD_MAP } from '@/lib/constants/messages'
 
 export default function AdminPage() {
   const [checking, setChecking] = useState(true)
@@ -40,17 +41,17 @@ export default function AdminPage() {
 
       <main className="max-w-2xl mx-auto px-4 py-8">
         <a href="/" className="inline-flex items-center gap-1.5 text-xs font-mono text-[var(--text-muted)] hover:text-[var(--accent-cyan)] mb-6 transition-colors">
-          ← Home
+          {BTN_HOME}
         </a>
         {checking ? (
-          <p className="text-center py-20 text-[var(--text-muted)] text-sm">Loading...</p>
+          <p className="text-center py-20 text-[var(--text-muted)] text-sm">{STATUS_LOADING}</p>
         ) : !authed ? (
-          <p className="text-center py-20 text-[var(--text-muted)] text-sm">Access denied.</p>
+          <p className="text-center py-20 text-[var(--text-muted)] text-sm">{STATUS_ACCESS_DENIED}</p>
         ) : (
           <div className="flex flex-col gap-8">
             <PendingQueue onApproved={loadMaps} />
             <div>
-              <h2 className="text-lg font-semibold mb-3">Upload Map</h2>
+              <h2 className="text-lg font-semibold mb-3">{LABEL_UPLOAD_MAP}</h2>
               <UploadForm onUploaded={loadMaps} />
             </div>
             <AdminMapList

@@ -4,6 +4,10 @@ import type { MapEntry } from '@/types/map'
 import { isFileSystemAccessSupported, installMap, isBspInstalled } from '@/lib/maps/install'
 import { ensurePermission, markInstalled, isInstalledLocally } from '@/lib/maps/folder-store'
 import type { InstallStatus } from '@/lib/maps/install'
+import {
+  BTN_REINSTALL, BTN_CANCEL, BTN_INSTALLING, BTN_INSTALLED, BTN_INSTALL, BTN_DOWNLOAD,
+  PHASE_DOWNLOADING, PHASE_VERIFYING, PHASE_EXTRACTING, PHASE_WRITING,
+} from '@/lib/constants/messages'
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -118,10 +122,10 @@ export function MapCard({
       : 'border-[var(--border)] hover:border-[var(--accent-cyan)]'
 
   const phaseLabel = installStatus
-    ? installStatus.phase === 'downloading' ? `Downloading... ${Math.round(installStatus.progress)}%`
-    : installStatus.phase === 'verifying' ? 'Verifying...'
-    : installStatus.phase === 'extracting' ? 'Extracting...'
-    : installStatus.phase === 'writing' ? `Writing ${installStatus.done}/${installStatus.total}...`
+    ? installStatus.phase === 'downloading' ? PHASE_DOWNLOADING(Math.round(installStatus.progress))
+    : installStatus.phase === 'verifying' ? PHASE_VERIFYING
+    : installStatus.phase === 'extracting' ? PHASE_EXTRACTING
+    : installStatus.phase === 'writing' ? PHASE_WRITING(installStatus.done, installStatus.total)
     : null
     : null
 
@@ -194,13 +198,13 @@ export function MapCard({
                 className="flex-1 py-1.5 rounded text-xs font-mono font-bold bg-[var(--accent-orange)] text-black hover:opacity-90 transition-opacity"
                 onClick={() => { setConfirmReinstall(false); void doInstall() }}
               >
-                Reinstall
+                {BTN_REINSTALL}
               </button>
               <button
                 className="px-2 py-1.5 rounded text-xs font-mono text-[var(--text-muted)] border border-[var(--border)] hover:text-[var(--text-primary)] transition-colors"
                 onClick={() => setConfirmReinstall(false)}
               >
-                Cancel
+                {BTN_CANCEL}
               </button>
             </div>
           ) : (
@@ -215,7 +219,7 @@ export function MapCard({
               onClick={() => { if (isInstalling) return; if (installed) { setConfirmReinstall(true) } else { void doInstall() } }}
               disabled={isInstalling}
             >
-              {isInstalling ? 'INSTALLING...' : installed ? '✓ INSTALLED' : 'INSTALL'}
+              {isInstalling ? BTN_INSTALLING : installed ? BTN_INSTALLED : BTN_INSTALL}
             </button>
           )
         ) : (
@@ -224,7 +228,7 @@ export function MapCard({
             className="w-full py-1.5 rounded text-xs font-mono font-bold bg-[var(--bg-inset)] text-[var(--text-muted)] border border-[var(--border)] hover:text-[var(--text-primary)] transition-colors"
             onClick={handleRawDownload}
           >
-            ↓ DOWNLOAD
+            {BTN_DOWNLOAD}
           </button>
         )}
       </div>

@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useNotifications, type Notification } from '@/lib/auth/notification-context'
+import { LABEL_NOTIFICATIONS, BTN_CLEAR_ALL, STATUS_NO_NOTIFICATIONS } from '@/lib/constants/messages'
 
 function TimeStamp({ at }: { at: Date }) {
   return (
@@ -57,15 +58,15 @@ export function NotificationBell() {
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className="fixed right-4 top-14 w-72 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl z-20 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--border)]">
-              <span className="text-sm font-semibold text-[var(--text-primary)]">Notifications</span>
+              <span className="text-sm font-semibold text-[var(--text-primary)]">{LABEL_NOTIFICATIONS}</span>
               {notifications.length > 0 && (
                 <button onClick={clear} className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
-                  Clear all
+                  {BTN_CLEAR_ALL}
                 </button>
               )}
             </div>
             {notifications.length === 0 ? (
-              <p className="px-4 py-6 text-sm text-[var(--text-muted)] text-center">No notifications yet</p>
+              <p className="px-4 py-6 text-sm text-[var(--text-muted)] text-center">{STATUS_NO_NOTIFICATIONS}</p>
             ) : (
               <ul className="max-h-72 overflow-y-auto">
                 {notifications.map(n => <NotificationItem key={n.id} n={n} />)}

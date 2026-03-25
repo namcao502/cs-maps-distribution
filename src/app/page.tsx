@@ -6,6 +6,7 @@ import { isFileSystemAccessSupported, pickGameFolder, validateGameFolder } from 
 import { saveHandle, loadHandle } from '@/lib/maps/folder-store'
 import { SiteHeader } from '@/components/layout/SiteHeader'
 import { ConfirmModal } from '@/components/ConfirmModal'
+import { INFO_NO_BROWSER_INSTALL, INFO_SELECT_CS_FOLDER, STATUS_LOADING_MAPS, INFO_WRONG_CS_FOLDER } from '@/lib/constants/messages'
 export default function HomePage() {
   const [maps, setMaps] = useState<MapEntry[]>([])
   const [loading, setLoading] = useState(true)
@@ -56,23 +57,23 @@ export default function HomePage() {
       <main className="max-w-7xl mx-auto px-4 py-4">
         {!supportsFileApi && (
           <div className="mb-6 px-4 py-3 bg-[var(--bg-surface)] border border-[var(--accent-orange)] rounded-lg text-sm text-[var(--accent-orange)]">
-            Your browser doesn&apos;t support one-click install. Use the <strong>Download</strong> button instead.
+            {INFO_NO_BROWSER_INSTALL}
           </div>
         )}
         {supportsFileApi && !gameFolder && (
           <div className="mb-4 px-4 py-3 bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-muted)]">
-            Select your CS 1.6 folder first — e.g. <code className="font-mono text-[var(--accent-cyan)]">C:\Games\Counter-Strike</code>
+            {INFO_SELECT_CS_FOLDER}
           </div>
         )}
         {loading ? (
-          <div className="text-center py-20 text-[var(--text-muted)] text-sm font-mono">Loading maps...</div>
+          <div className="text-center py-20 text-[var(--text-muted)] text-sm font-mono">{STATUS_LOADING_MAPS}</div>
         ) : (
           <MapList maps={maps} gameFolder={gameFolder} onPickFolder={handlePickFolder} />
         )}
       </main>
       {pendingHandle && (
         <ConfirmModal
-          message="This doesn't look like a CS 1.6 root folder (no 'cstrike' subfolder found). Continue anyway?"
+          message={INFO_WRONG_CS_FOLDER}
           confirmLabel="Continue"
           onConfirm={confirmFolder}
           onCancel={() => setPendingHandle(null)}

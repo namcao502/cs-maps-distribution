@@ -4,7 +4,10 @@ import type { Submission } from '@/types/submission'
 import { MAP_TAGS, TAG_LABELS } from '@/lib/maps/tags'
 import { Button, Card, StatusBadge } from '@/components/ui'
 import { useNotifications } from '@/lib/auth/notification-context'
-import { MSG_SUBMISSION_APPROVED, MSG_SUBMISSION_REJECTED } from '@/lib/constants/messages'
+import {
+  MSG_SUBMISSION_APPROVED, MSG_SUBMISSION_REJECTED,
+  LABEL_PENDING_REVIEW, INFO_REJECTION_PLACEHOLDER, BTN_APPROVE, BTN_REJECT,
+} from '@/lib/constants/messages'
 
 function formatBytes(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -80,7 +83,7 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-3 text-orange-600">Pending Review ({queue.length})</h2>
+      <h2 className="text-lg font-semibold mb-3 text-orange-600">{LABEL_PENDING_REVIEW(queue.length)}</h2>
       <div className="flex flex-col gap-3">
         {queue.map(sub => (
           <Card key={sub.id} className="mb-3 p-4">
@@ -124,7 +127,7 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
             <div className="flex items-center gap-2">
               <input
                 type="text"
-                placeholder="Rejection reason…"
+                placeholder={INFO_REJECTION_PLACEHOLDER}
                 value={rejecting[sub.id] ?? ''}
                 onChange={e => setRejecting(r => ({ ...r, [sub.id]: e.target.value }))}
                 className="flex-1 border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm bg-[var(--bg-surface)] text-[var(--text-primary)]"
@@ -135,7 +138,7 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
                 onClick={() => handleApprove(sub.id)}
                 disabled={busy[sub.id]}
               >
-                Approve
+                {BTN_APPROVE}
               </Button>
               <Button
                 variant="danger"
@@ -143,7 +146,7 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
                 onClick={() => handleReject(sub.id)}
                 disabled={busy[sub.id] || !(rejecting[sub.id] ?? '').trim()}
               >
-                Reject
+                {BTN_REJECT}
               </Button>
             </div>
           </Card>

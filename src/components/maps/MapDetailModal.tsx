@@ -4,6 +4,10 @@ import type { MapEntry } from '@/types/map'
 import type { InstallStatus } from '@/lib/maps/install'
 import { InstallStepper } from './InstallStepper'
 import { isFileSystemAccessSupported } from '@/lib/maps/install'
+import {
+  BTN_REINSTALL, BTN_CANCEL, BTN_INSTALLING, BTN_INSTALLED, BTN_INSTALL,
+  BTN_DOWNLOAD_LONG, STATUS_INSTALLS, STATUS_SHA256,
+} from '@/lib/constants/messages'
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -98,7 +102,7 @@ export function MapDetailModal({
             </div>
             <div className="text-right">
               <div className="font-mono font-bold text-[var(--accent-orange)] text-sm">↓ {map.installCount.toLocaleString()}</div>
-              <div className="text-xs text-[var(--text-muted)] font-mono">installs</div>
+              <div className="text-xs text-[var(--text-muted)] font-mono">{STATUS_INSTALLS}</div>
             </div>
           </div>
 
@@ -111,7 +115,7 @@ export function MapDetailModal({
               {formatBytes(map.size)}
             </span>
             <span className="bg-[var(--bg-inset)] border border-[var(--border)] text-[var(--text-subtle)] text-xs font-mono px-2 py-0.5 rounded-sm">
-              SHA256 ✓
+              {STATUS_SHA256}
             </span>
           </div>
 
@@ -129,13 +133,13 @@ export function MapDetailModal({
                     className="flex-1 py-2 rounded-md text-sm font-mono font-bold bg-[var(--accent-orange)] text-black hover:opacity-90 transition-opacity"
                     onClick={() => { setConfirmReinstall(false); onInstall() }}
                   >
-                    Reinstall
+                    {BTN_REINSTALL}
                   </button>
                   <button
                     className="px-4 py-2 rounded-md text-sm font-mono text-[var(--text-subtle)] border border-[var(--border)] hover:text-[var(--text-primary)] transition-colors"
                     onClick={() => setConfirmReinstall(false)}
                   >
-                    Cancel
+                    {BTN_CANCEL}
                   </button>
                 </>
               ) : (
@@ -150,7 +154,7 @@ export function MapDetailModal({
                   onClick={() => { if (isInstalling) return; if (installed) { setConfirmReinstall(true) } else { onInstall() } }}
                   disabled={isInstalling}
                 >
-                  {isInstalling ? 'INSTALLING...' : installed ? '✓ INSTALLED' : 'INSTALL'}
+                  {isInstalling ? BTN_INSTALLING : installed ? BTN_INSTALLED : BTN_INSTALL}
                 </button>
               )
             )}
@@ -159,7 +163,7 @@ export function MapDetailModal({
                 className="px-4 py-2 rounded-md text-sm font-mono text-[var(--text-subtle)] border border-[var(--border)] hover:text-[var(--text-primary)] transition-colors"
                 onClick={onDownload}
               >
-                ↓ Download
+                {BTN_DOWNLOAD_LONG}
               </button>
             )}
           </div>

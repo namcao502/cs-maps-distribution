@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui'
 import type { ActivityEvent } from '@/lib/admin/stats-store'
+import { LABEL_RECENT_ACTIVITY } from '@/lib/constants/messages'
 
 const ICONS: Record<ActivityEvent['type'], string> = {
   approved: '✓',
@@ -27,7 +28,7 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
 
   return (
     <Card className="p-4 mb-6">
-      <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Recent Activity</h3>
+      <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">{LABEL_RECENT_ACTIVITY}</h3>
       <ul className="space-y-2">
         {events.map((e, i) => (
           <li key={i} className="flex items-center gap-3 text-sm">
