@@ -1,36 +1,42 @@
 'use client'
 import { useState, useEffect } from 'react'
 import type { Submission } from '@/types/submission'
-import { MAP_TAGS } from '@/lib/maps/tags'
+import { MAP_TAGS, TAG_LABELS } from '@/lib/maps/tags'
 import { Button, Card, StatusBadge } from '@/components/ui'
+import { useNotifications } from '@/lib/auth/notification-context'
 
 function formatBytes(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-interface Preview { structure: string; bspFiles: string[] }
-
 export function PendingQueue({ onApproved }: { onApproved: () => void }) {
   const [queue, setQueue] = useState<Submission[]>([])
-  const [previews, setPreviews] = useState<Record<string, Preview>>({})
   const [rejecting, setRejecting] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState<Record<string, boolean>>({})
   const [pendingTags, setPendingTags] = useState<Record<string, string[]>>({})
+  const { push } = useNotifications()
 
   useEffect(() => {
     fetch('/api/admin/submissions?status=pending')
       .then(r => r.ok ? r.json() : [])
-      .then(setQueue)
+      .then((subs: Submission[]) => {
+        setQueue(subs)
+        const initial: Record<string, string[]> = {}
+        subs.forEach(s => { initial[s.id] = s.tags ?? [] })
+        setPendingTags(initial)
+      })
   }, [])
 
-  async function loadPreview(id: string) {
-    if (previews[id]) return
-    const res = await fetch(`/api/admin/submissions/${id}/preview`)
-    if (res.ok) {
-      const data = await res.json()
-      setPreviews(p => ({ ...p, [id]: data }))
-    }
+  function toggleTag(id: string, tag: string) {
+    setPendingTags(pt => {
+      const current = pt[id] ?? []
+      const withoutType = current.filter(t => !(MAP_TAGS as readonly string[]).includes(t))
+      return {
+        ...pt,
+        [id]: current.includes(tag) ? withoutType : [...withoutType, tag],
+      }
+    })
   }
 
   async function handleApprove(id: string) {
@@ -43,9 +49,10 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
     })
     if (res.ok) {
       setQueue(q => q.filter(s => s.id !== id))
+      push('Submission approved', 'success')
       onApproved()
     } else {
-      alert((await res.json()).error ?? 'Approval failed')
+      push((await res.json()).error ?? 'Approval failed', 'error')
       setBusy(b => ({ ...b, [id]: false }))
     }
   }
@@ -61,8 +68,9 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
     })
     if (res.ok) {
       setQueue(q => q.filter(s => s.id !== id))
+      push('Submission rejected', 'success')
     } else {
-      alert((await res.json()).error ?? 'Rejection failed')
+      push((await res.json()).error ?? 'Rejection failed', 'error')
       setBusy(b => ({ ...b, [id]: false }))
     }
   }
@@ -83,49 +91,43 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
                 {new Date(sub.submittedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
               </span>
             </div>
-            <div className="flex items-center gap-2 mb-2">
+
+            <div className="flex items-center gap-2 mb-3">
               <span className="text-xs font-bold px-2 py-0.5 rounded-md uppercase bg-[var(--bg-inset)] text-[var(--text-primary)]">{sub.format}</span>
               <span className="font-medium text-[var(--text-primary)]">{sub.originalName}</span>
               <span className="text-xs text-[var(--text-muted)]">{formatBytes(sub.size)}</span>
             </div>
 
-            <button
-              onClick={() => loadPreview(sub.id)}
-              className="text-xs text-blue-500 hover:text-blue-700 mb-2"
-            >
-              {previews[sub.id] ? '▼ Archive preview' : '▶ Load archive preview'}
-            </button>
-
-            {previews[sub.id] && (
-              <div className="text-xs bg-[var(--bg-inset)] rounded p-2 mb-2">
-                <p className="text-[var(--text-muted)]">Structure: <span className="font-mono">{previews[sub.id].structure}</span></p>
-                <p className="text-[var(--text-muted)] mt-0.5">Maps: {previews[sub.id].bspFiles.join(', ') || 'none'}</p>
-              </div>
-            )}
-
-            <div className="flex flex-wrap gap-2 mt-2">
-              {MAP_TAGS.map(tag => (
-                <label key={tag} className="flex items-center gap-1.5 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={(pendingTags[sub.id] ?? []).includes(tag)}
-                    onChange={() =>
-                      setPendingTags(pt => {
-                        const current = pt[sub.id] ?? []
-                        return {
-                          ...pt,
-                          [sub.id]: current.includes(tag)
-                            ? current.filter(t => t !== tag)
-                            : [...current, tag],
-                        }
-                      })
-                    }
-                  />
-                  <span className="text-xs text-[var(--text-primary)]">{tag}</span>
-                </label>
-              ))}
+            {/* Tag pills */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              {MAP_TAGS.map(tag => {
+                const active = (pendingTags[sub.id] ?? []).includes(tag)
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => toggleTag(sub.id, tag)}
+                    className={`px-3 py-1 rounded text-xs font-mono border transition-colors ${
+                      active
+                        ? 'bg-[var(--accent-cyan)] text-black border-[var(--accent-cyan)]'
+                        : 'bg-[var(--bg-surface)] text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--accent-cyan)]'
+                    }`}
+                  >
+                    {TAG_LABELS[tag]}
+                  </button>
+                )
+              })}
             </div>
-            <div className="flex items-start gap-2 mt-2">
+
+            {/* Reject reason + action buttons */}
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Rejection reason…"
+                value={rejecting[sub.id] ?? ''}
+                onChange={e => setRejecting(r => ({ ...r, [sub.id]: e.target.value }))}
+                className="flex-1 border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm bg-[var(--bg-surface)] text-[var(--text-primary)]"
+              />
               <Button
                 variant="success"
                 size="sm"
@@ -134,23 +136,14 @@ export function PendingQueue({ onApproved }: { onApproved: () => void }) {
               >
                 Approve
               </Button>
-              <div className="flex-1 flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Rejection reason…"
-                  value={rejecting[sub.id] ?? ''}
-                  onChange={e => setRejecting(r => ({ ...r, [sub.id]: e.target.value }))}
-                  className="flex-1 border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm bg-[var(--bg-surface)] text-[var(--text-primary)]"
-                />
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => handleReject(sub.id)}
-                  disabled={busy[sub.id] || !(rejecting[sub.id] ?? '').trim()}
-                >
-                  Reject
-                </Button>
-              </div>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => handleReject(sub.id)}
+                disabled={busy[sub.id] || !(rejecting[sub.id] ?? '').trim()}
+              >
+                Reject
+              </Button>
             </div>
           </Card>
         ))}

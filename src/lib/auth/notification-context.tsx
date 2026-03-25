@@ -9,28 +9,38 @@ export type Notification = {
   at: Date
 }
 
+export type Toast = {
+  id: string
+  type: 'success' | 'error'
+  message: string
+}
+
 type NotificationContextType = {
   notifications: Notification[]
+  toasts: Toast[]
   push: (message: string, type: 'success' | 'error') => void
+  dismissToast: (id: string) => void
   markAllRead: () => void
   clear: () => void
 }
 
 const NotificationContext = createContext<NotificationContextType | null>(null)
-const AUTO_DISMISS_MS = 3000
+const TOAST_MS = 3000
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([])
+  const [toasts, setToasts] = useState<Toast[]>([])
 
-  const dismiss = useCallback((id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id))
+  const dismissToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id))
   }, [])
 
   const push = useCallback((message: string, type: 'success' | 'error') => {
     const id = `${Date.now()}-${Math.random()}`
     setNotifications(prev => [{ id, type, message, read: false, at: new Date() }, ...prev].slice(0, 20))
-    setTimeout(() => dismiss(id), AUTO_DISMISS_MS)
-  }, [dismiss])
+    setToasts(prev => [...prev, { id, type, message }])
+    setTimeout(() => dismissToast(id), TOAST_MS)
+  }, [dismissToast])
 
   const markAllRead = useCallback(() => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
@@ -39,7 +49,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const clear = useCallback(() => setNotifications([]), [])
 
   return (
-    <NotificationContext.Provider value={{ notifications, push, markAllRead, clear }}>
+    <NotificationContext.Provider value={{ notifications, toasts, push, dismissToast, markAllRead, clear }}>
       {children}
     </NotificationContext.Provider>
   )

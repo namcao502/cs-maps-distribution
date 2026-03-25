@@ -19,8 +19,18 @@
   --radius-lg: 16px;
 }
 
-body {
-  background-color: var(--bg-base);
-  color: var(--text-primary);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+@layer base {
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-geist-sans), system-ui, sans-serif;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  label[for],
+  label > input[type="file"] + *,
+  label:has(> input[type="file"]) {
+    cursor: pointer;
+  }
 }

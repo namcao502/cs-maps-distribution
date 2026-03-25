@@ -12,4 +12,6 @@ export interface Submission {
   status: 'pending' | 'approved' | 'rejected'
   rejectionReason: string | null
   reviewedAt: string | null
+  tags?: string[]
+  screenshotKeys?: string[]
 }

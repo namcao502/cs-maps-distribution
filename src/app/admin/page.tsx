@@ -36,16 +36,18 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-base)]">
-      <SiteHeader installedCount={0} totalCount={0} query="" onQueryChange={() => {}} activeTab="all" onTabChange={() => {}} />
+      <SiteHeader />
 
       <main className="max-w-2xl mx-auto px-4 py-8">
+        <a href="/" className="inline-flex items-center gap-1.5 text-xs font-mono text-[var(--text-muted)] hover:text-[var(--accent-cyan)] mb-6 transition-colors">
+          ← Home
+        </a>
         {checking ? (
           <p className="text-center py-20 text-[var(--text-muted)] text-sm">Loading...</p>
         ) : !authed ? (
           <p className="text-center py-20 text-[var(--text-muted)] text-sm">Access denied.</p>
         ) : (
           <div className="flex flex-col gap-8">
-            <AdminDashboard />
             <PendingQueue onApproved={loadMaps} />
             <div>
               <h2 className="text-lg font-semibold mb-3">Upload Map</h2>
@@ -56,8 +58,10 @@ export default function AdminPage() {
               onDeleted={() => loadMaps()}
               onTagsUpdated={(id, tags) => setMaps(prev => prev.map(m => m.id === id ? { ...m, tags } : m))}
               onHiddenUpdated={(id, hidden) => setMaps(prev => prev.map(m => m.id === id ? { ...m, hidden } : m))}
+              onScreenshotsUpdated={(id, keys) => setMaps(prev => prev.map(m => m.id === id ? { ...m, screenshotKeys: keys } : m))}
               onReorder={newMaps => setMaps(newMaps)}
             />
+            <AdminDashboard />
           </div>
         )}
       </main>

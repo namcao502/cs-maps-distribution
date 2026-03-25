@@ -6,19 +6,12 @@ import { isFileSystemAccessSupported, pickGameFolder, validateGameFolder } from 
 import { saveHandle, loadHandle } from '@/lib/maps/folder-store'
 import { SiteHeader } from '@/components/layout/SiteHeader'
 import { ConfirmModal } from '@/components/ConfirmModal'
-import type { FilterTab } from '@/lib/maps/tags'
-
 export default function HomePage() {
   const [maps, setMaps] = useState<MapEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [gameFolder, setGameFolder] = useState<FileSystemDirectoryHandle | null>(null)
   const [supportsFileApi, setSupportsFileApi] = useState(false)
   const [pendingHandle, setPendingHandle] = useState<FileSystemDirectoryHandle | null>(null)
-
-  // Lifted state for SiteHeader
-  const [query, setQuery] = useState('')
-  const [activeTab, setActiveTab] = useState<FilterTab>('all')
-  const [installedCount, setInstalledCount] = useState(0)
 
   function fetchMaps() {
     setLoading(true)
@@ -30,14 +23,6 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchMaps()
-    function onPageShow(e: PageTransitionEvent) { if (e.persisted) fetchMaps() }
-    function onVisibilityChange() { if (document.visibilityState === 'visible') fetchMaps() }
-    window.addEventListener('pageshow', onPageShow)
-    document.addEventListener('visibilitychange', onVisibilityChange)
-    return () => {
-      window.removeEventListener('pageshow', onPageShow)
-      document.removeEventListener('visibilitychange', onVisibilityChange)
-    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -67,14 +52,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-base)]">
-      <SiteHeader
-        installedCount={installedCount}
-        totalCount={maps.length}
-        query={query}
-        onQueryChange={setQuery}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
+      <SiteHeader />
       <main className="max-w-7xl mx-auto px-4 py-4">
         {!supportsFileApi && (
           <div className="mb-6 px-4 py-3 bg-[var(--bg-surface)] border border-[var(--accent-orange)] rounded-lg text-sm text-[var(--accent-orange)]">
@@ -89,7 +67,7 @@ export default function HomePage() {
         {loading ? (
           <div className="text-center py-20 text-[var(--text-muted)] text-sm font-mono">Loading maps...</div>
         ) : (
-          <MapList maps={maps} gameFolder={gameFolder} onPickFolder={handlePickFolder} query={query} activeTab={activeTab} onInstalledCountChange={setInstalledCount} />
+          <MapList maps={maps} gameFolder={gameFolder} onPickFolder={handlePickFolder} />
         )}
       </main>
       {pendingHandle && (

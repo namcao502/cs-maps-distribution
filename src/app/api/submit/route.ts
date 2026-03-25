@@ -6,6 +6,10 @@ import { addSubmission, hasPendingSubmissionBySha256 } from '@/lib/submissions/s
 import { computeSHA256 } from '@/lib/storage/hash'
 import { validateMapArchive } from '@/lib/submissions/validate-archive'
 import { getMapSha256s } from '@/lib/maps/maps-store'
+import { MAP_TAGS, type MapTag } from '@/lib/maps/tags'
+import path from 'path'
+
+const ALLOWED_IMG = new Set(['jpg', 'jpeg', 'png', 'webp'])
 
 const MAX_SIZE = 20 * 1024 * 1024
 const ALLOWED_EXTENSIONS = new Set(['zip', '7z', 'rar'])
@@ -52,6 +56,20 @@ export async function POST(req: NextRequest) {
 
   await putObject(storageKey, Buffer.from(new Uint8Array(buffer)))
 
+  const rawTags = JSON.parse((formData.get('tags') as string | null) ?? '[]') as string[]
+  const tags = rawTags.filter((t): t is MapTag => (MAP_TAGS as readonly string[]).includes(t))
+
+  const screenshotKeys: string[] = []
+  for (let i = 0; i < 3; i++) {
+    const img = formData.get(`screenshot_${i}`) as File | null
+    if (!img) continue
+    const imgExt = path.extname(img.name).replace('.', '').toLowerCase()
+    if (!ALLOWED_IMG.has(imgExt) || img.size > 2 * 1024 * 1024) continue
+    const imgKey = `submission-screenshots/${id}/${i}.${imgExt}`
+    await putObject(imgKey, Buffer.from(await img.arrayBuffer()))
+    screenshotKeys.push(imgKey)
+  }
+
   await addSubmission({
     originalName,
     storageKey,
@@ -61,6 +79,8 @@ export async function POST(req: NextRequest) {
     submitterId: user.id,
     submitterName: user.user_metadata?.full_name ?? user.email ?? 'Unknown',
     submitterAvatar: user.user_metadata?.avatar_url ?? '',
+    tags,
+    screenshotKeys,
   })
 
   return NextResponse.json({ ok: true })

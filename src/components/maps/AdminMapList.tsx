@@ -7,14 +7,9 @@ import { MAP_TAGS, TAG_LABELS } from '@/lib/maps/tags'
 import { Button, Card } from '@/components/ui'
 import { useNotifications } from '@/lib/auth/notification-context'
 
-const TAG_COLORS: Record<string, string> = {
-  'de_': 'bg-red-100 text-red-600',
-  'cs_': 'bg-yellow-100 text-yellow-600',
-}
-
 const TAG_SHORT: Record<string, string> = {
-  'de_': 'DE',
-  'cs_': 'CS',
+  'de_': 'BOMB/DEFUSE',
+  'cs_': 'HOSTAGE RESCUE',
 }
 
 function formatBytes(bytes: number): string {
@@ -22,46 +17,56 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+function validateScreenshot(file: File): string | null {
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
+  if (!['jpg', 'jpeg', 'png', 'webp'].includes(ext)) return 'Only JPG, PNG, WebP allowed'
+  if (file.size > 2 * 1024 * 1024) return 'Max 2 MB per screenshot'
+  return null
+}
+
 export function AdminMapList({
   maps,
   onDeleted,
   onTagsUpdated,
   onHiddenUpdated,
+  onScreenshotsUpdated,
   onReorder,
 }: {
   maps: MapEntry[]
   onDeleted: (id: string) => void
   onTagsUpdated: (id: string, tags: string[]) => void
   onHiddenUpdated: (id: string, hidden: boolean) => void
+  onScreenshotsUpdated: (id: string, keys: string[]) => void
   onReorder?: (newMaps: MapEntry[]) => void
 }) {
   const [query, setQuery] = useState('')
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [pendingDelete, setPendingDelete] = useState<MapEntry | null>(null)
-  const [editingTags, setEditingTags] = useState<string | null>(null)
-  const [draftTags, setDraftTags] = useState<string[]>([])
-  const [savingTags, setSavingTags] = useState(false)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [togglingHidden, setTogglingHidden] = useState<string | null>(null)
+  const [togglingTag, setTogglingTag] = useState<string | null>(null)
+  const [deletingScreenshot, setDeletingScreenshot] = useState<string | null>(null)
+  const [uploadingScreenshot, setUploadingScreenshot] = useState<string | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [orderedMaps, setOrderedMaps] = useState<MapEntry[]>(maps)
   const [isSaving, setIsSaving] = useState(false)
   const { push } = useNotifications()
 
   useEffect(() => { setOrderedMaps(maps) }, [maps])
 
-  async function saveTags(id: string) {
-    setSavingTags(true)
-    const res = await fetch(`/api/admin/maps/${id}/tags`, {
+  async function toggleTag(map: MapEntry, tag: string) {
+    const newTags = [tag, ...map.tags.filter(t => !MAP_TAGS.includes(t as typeof MAP_TAGS[number]))]
+    setTogglingTag(map.id)
+    const res = await fetch(`/api/admin/maps/${map.id}/tags`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tags: draftTags }),
+      body: JSON.stringify({ tags: newTags }),
     })
     if (res.ok) {
-      onTagsUpdated(id, draftTags)
-      setEditingTags(null)
+      onTagsUpdated(map.id, newTags)
     } else {
-      alert('Failed to save tags')
+      push('Failed to save tags', 'error')
     }
-    setSavingTags(false)
+    setTogglingTag(null)
   }
 
   async function toggleHidden(map: MapEntry) {
@@ -71,7 +76,12 @@ export function AdminMapList({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ hidden: !map.hidden }),
     })
-    if (res.ok) onHiddenUpdated(map.id, !map.hidden)
+    if (res.ok) {
+      onHiddenUpdated(map.id, !map.hidden)
+      push(map.hidden ? `${map.originalName} is now visible` : `${map.originalName} is now hidden`, 'success')
+    } else {
+      push('Failed to update visibility', 'error')
+    }
     setTogglingHidden(null)
   }
 
@@ -103,10 +113,48 @@ export function AdminMapList({
     setPendingDelete(null)
     const res = await fetch(`/api/delete/${map.id}`, { method: 'DELETE' })
     if (!res.ok) {
-      setDeleteError('Failed to delete map. Please try again.')
+      push('Failed to delete map. Please try again.', 'error')
       return
     }
+    push(`${map.originalName} deleted`, 'success')
     onDeleted(map.id)
+  }
+
+  async function deleteScreenshot(map: MapEntry, index: number) {
+    setDeletingScreenshot(`${map.id}-${index}`)
+    const res = await fetch(`/api/maps/${map.id}/screenshots/${index}`, { method: 'DELETE' })
+    if (res.ok) {
+      const newKeys = (map.screenshotKeys ?? []).filter((_, i) => i !== index)
+      onScreenshotsUpdated(map.id, newKeys)
+    } else {
+      push('Failed to delete screenshot', 'error')
+    }
+    setDeletingScreenshot(null)
+  }
+
+  async function uploadScreenshots(map: MapEntry, files: FileList) {
+    const current = map.screenshotKeys ?? []
+    const slots = 3 - current.length
+    if (slots <= 0) return
+    const toUpload = Array.from(files).slice(0, slots)
+    setUploadingScreenshot(map.id)
+    const newKeys = [...current]
+    for (const file of toUpload) {
+      const err = validateScreenshot(file)
+      if (err) { push(`${file.name}: ${err}`, 'error'); continue }
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch(`/api/maps/${map.id}/screenshots`, { method: 'POST', body: fd })
+      if (res.ok) {
+        newKeys.push(URL.createObjectURL(file))
+      } else {
+        const data = await res.json().catch(() => ({}))
+        push(data.error ?? 'Failed to upload screenshot', 'error')
+      }
+    }
+    onScreenshotsUpdated(map.id, newKeys)
+    setUploadingScreenshot(null)
+    if (newKeys.length > current.length) push('Screenshot(s) uploaded', 'success')
   }
 
   if (orderedMaps.length === 0) {
@@ -128,112 +176,171 @@ export function AdminMapList({
       ) : null}
       {filtered.map(map => {
         const orderedIndex = orderedMaps.indexOf(map)
+        const expanded = expandedId === map.id
+        const activeTag = MAP_TAGS.find(t => map.tags.includes(t)) ?? null
+        const nextTag = activeTag === 'de_' ? 'cs_' : 'de_'
+
         return (
-        <Card
-          key={map.id}
-          className={`mb-2 transition-shadow hover:shadow-md ${map.hidden ? 'border-amber-400 opacity-60' : ''}`}
-        >
-          <div className="flex items-center justify-between px-4 py-3.5">
-            <div className="flex items-center gap-2 min-w-0">
-              {map.tags.filter(t => t in TAG_COLORS).map(tag => (
-                <span key={tag} className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-md uppercase tracking-wide ${TAG_COLORS[tag]}`}>
-                  {TAG_SHORT[tag]}
-                </span>
-              ))}
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-[var(--text-primary)] truncate">{map.originalName}.{map.format}</span>
-                  {map.hidden && <span className="shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600">Hidden</span>}
-                </div>
-                <span className="text-xs text-[var(--text-muted)]">
-                  {formatBytes(map.size)} · {new Date(map.uploadedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} · ⚙ {map.installCount}
-                </span>
-                {map.uploader && (
-                  <div className="flex items-center gap-1 mt-0.5">
-                    {map.uploader.avatar && <img src={map.uploader.avatar} alt="" className="w-4 h-4 rounded-full" referrerPolicy="no-referrer" />}
-                    <span className="text-xs text-[var(--text-muted)]">by {map.uploader.name}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1 shrink-0 ml-3">
-              <button
-                onClick={() => moveMap(orderedIndex, 'up')}
-                disabled={orderedIndex === 0 || isSaving}
-                className="p-2 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
-                title="Move up"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
-              </button>
-              <button
-                onClick={() => moveMap(orderedIndex, 'down')}
-                disabled={orderedIndex === orderedMaps.length - 1 || isSaving}
-                className="p-2 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
-                title="Move down"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => { setEditingTags(editingTags === map.id ? null : map.id); setDraftTags(map.tags ?? []) }}
-              >
-                {editingTags === map.id ? 'Cancel' : 'Tags'}
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => toggleHidden(map)}
-                disabled={togglingHidden === map.id}
-                className="flex items-center gap-1.5"
-              >
-                {map.hidden ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                )}
-                {togglingHidden === map.id ? '…' : map.hidden ? 'Show' : 'Hide'}
-              </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={() => setPendingDelete(map)}
-                className="flex items-center gap-1.5"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                Delete
-              </Button>
-            </div>
-          </div>
-
-          {editingTags === map.id && (
-            <div className="px-4 pb-3 pt-0 border-t border-[var(--border)] mt-0 flex flex-wrap items-center gap-2 pt-3">
-              {MAP_TAGS.map(tag => (
+          <Card
+            key={map.id}
+            className={`mb-2 transition-shadow ${map.hidden ? 'border-amber-400 opacity-60' : ''}`}
+          >
+            {/* Row */}
+            <div className="flex items-center gap-2 px-3 py-3">
+              {/* Reorder */}
+              <div className="flex flex-col shrink-0">
                 <button
-                  key={tag}
-                  onClick={() => setDraftTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])}
-                  className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                    draftTags.includes(tag)
-                      ? 'bg-blue-500 text-white border-blue-500'
-                      : 'bg-[var(--bg-inset)] text-[var(--text-muted)] border-[var(--border)] hover:border-blue-400'
-                  }`}
+                  onClick={e => { e.stopPropagation(); moveMap(orderedIndex, 'up') }}
+                  disabled={orderedIndex === 0 || isSaving}
+                  className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Move up"
                 >
-                  {TAG_LABELS[tag] ?? tag}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
                 </button>
-              ))}
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => saveTags(map.id)}
-                disabled={savingTags}
-                loading={savingTags}
+                <button
+                  onClick={e => { e.stopPropagation(); moveMap(orderedIndex, 'down') }}
+                  disabled={orderedIndex === orderedMaps.length - 1 || isSaving}
+                  className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Move down"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+              </div>
+
+              {/* Clickable info area */}
+              <button
+                className="flex-1 flex items-center gap-3 min-w-0 text-left"
+                onClick={() => setExpandedId(expanded ? null : map.id)}
               >
-                {savingTags ? 'Saving…' : 'Save'}
-              </Button>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-[var(--text-primary)] truncate">{map.originalName}.{map.format}</span>
+                  </div>
+                  <span className="text-xs text-[var(--text-muted)]">
+                    {formatBytes(map.size)} · {new Date(map.uploadedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} · ⚙ {map.installCount}
+                  </span>
+                  {map.uploader && (
+                    <div className="flex items-center gap-1 mt-0.5">
+                      {map.uploader.avatar && <img src={map.uploader.avatar} alt="" className="w-4 h-4 rounded-full" referrerPolicy="no-referrer" />}
+                      <span className="text-xs text-[var(--text-muted)]">by {map.uploader.name}</span>
+                    </div>
+                  )}
+                </div>
+                {activeTag && (
+                  <span className="shrink-0 w-[8.5rem] text-center text-xs font-mono px-1.5 py-0.5 rounded bg-[var(--accent-cyan)] text-black">
+                    {TAG_SHORT[activeTag]}
+                  </span>
+                )}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                  className={`shrink-0 text-[var(--text-muted)] transition-transform ${expanded ? 'rotate-180' : ''}`}
+                >
+                  <path d="m6 9 6 6 6-6"/>
+                </svg>
+              </button>
             </div>
-          )}
-        </Card>
+
+            {/* Expanded edit panel */}
+            {expanded && (
+              <div className="border-t border-[var(--border)] px-3 py-3 flex flex-col gap-3">
+                {/* Actions row */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Tag toggle */}
+                  <button
+                    onClick={() => toggleTag(map, activeTag ? nextTag : 'de_')}
+                    disabled={togglingTag === map.id}
+                    title={TAG_LABELS[activeTag ?? 'de_']}
+                    className={`w-[8.5rem] text-center text-xs font-mono px-2 py-1.5 rounded border transition-colors disabled:opacity-50 ${
+                      activeTag
+                        ? 'bg-[var(--accent-cyan)] text-black border-[var(--accent-cyan)]'
+                        : 'bg-[var(--bg-inset)] text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--accent-cyan)]'
+                    }`}
+                  >
+                    {togglingTag === map.id ? '…' : activeTag ? TAG_SHORT[activeTag] : 'No tag'}
+                  </button>
+
+                  {/* Show / Hide */}
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => toggleHidden(map)}
+                    disabled={togglingHidden === map.id}
+                    className="flex items-center gap-1.5"
+                  >
+                    {map.hidden ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    )}
+                    {togglingHidden === map.id ? '…' : map.hidden ? 'Show' : 'Hide'}
+                  </Button>
+
+                  {/* Delete */}
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => setPendingDelete(map)}
+                    className="flex items-center gap-1.5"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    Delete
+                  </Button>
+                </div>
+
+                {/* Screenshots */}
+                <div>
+                  <p className="text-xs font-mono text-[var(--text-muted)] mb-1.5">Screenshots <span className="text-[var(--text-subtle)]">(up to 3)</span></p>
+                  <div className="flex gap-2 items-start">
+                    {(map.screenshotKeys ?? []).map((url, i) => {
+                      const delKey = `${map.id}-${i}`
+                      return (
+                        <div key={i} className="relative group w-24 shrink-0">
+                          <img src={url} alt="" className="w-full h-16 object-cover rounded border border-[var(--border)]" />
+                          <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/60 opacity-0 group-hover:opacity-100 rounded transition-opacity">
+                            <button
+                              onClick={() => setPreviewUrl(url)}
+                              className="w-8 h-8 flex items-center justify-center rounded-md bg-white/10 text-white hover:bg-[var(--accent-cyan)] hover:text-black transition-colors text-base"
+                              title="Preview"
+                            >
+                              ⤢
+                            </button>
+                            <button
+                              onClick={() => deleteScreenshot(map, i)}
+                              disabled={deletingScreenshot === delKey}
+                              className="w-8 h-8 flex items-center justify-center rounded-md bg-white/10 text-red-400 hover:bg-red-500 hover:text-white transition-colors text-base disabled:opacity-50"
+                              title="Remove"
+                            >
+                              {deletingScreenshot === delKey ? '…' : '✕'}
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                    {(map.screenshotKeys ?? []).length < 3 && (
+                      <label className={`flex flex-col items-center justify-center h-16 px-3 border border-dashed border-[var(--border)] rounded transition-colors text-[var(--text-muted)] text-xs font-mono shrink-0 ${uploadingScreenshot === map.id ? 'opacity-60 pointer-events-none' : 'cursor-pointer hover:border-[var(--accent-cyan)]'}`}>
+                        {uploadingScreenshot === map.id
+                          ? <span className="flex items-center gap-1.5"><span className="animate-spin inline-block w-3 h-3 border-2 border-[var(--accent-cyan)] border-t-transparent rounded-full" />Uploading…</span>
+                          : '+ Add'}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          multiple
+                          className="hidden"
+                          onChange={e => {
+                            if (e.target.files?.length) {
+                              void uploadScreenshots(map, e.target.files)
+                              e.target.value = ''
+                            }
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </Card>
         )
       })}
 
@@ -246,14 +353,25 @@ export function AdminMapList({
           onCancel={() => setPendingDelete(null)}
         />
       )}
-      {deleteError && (
-        <ConfirmModal
-          message={deleteError}
-          confirmLabel="OK"
-          cancelLabel=""
-          onConfirm={() => setDeleteError(null)}
-          onCancel={() => setDeleteError(null)}
-        />
+
+      {previewUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+          onClick={() => setPreviewUrl(null)}
+        >
+          <img
+            src={previewUrl}
+            alt="Screenshot preview"
+            className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl object-contain"
+            onClick={e => e.stopPropagation()}
+          />
+          <button
+            className="absolute top-4 right-4 text-white text-xl font-bold hover:text-[var(--accent-cyan)] transition-colors"
+            onClick={() => setPreviewUrl(null)}
+          >
+            ✕
+          </button>
+        </div>
       )}
     </div>
   )

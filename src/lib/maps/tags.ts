@@ -4,8 +4,8 @@ export type FilterTab = 'all' | MapTag
 
 export const FILTER_TABS: { value: FilterTab; label: string }[] = [
   { value: 'all', label: 'ALL' },
-  { value: 'de_', label: 'DEFUSE' },
-  { value: 'cs_', label: 'HOSTAGE' },
+  { value: 'de_', label: 'BOMB/DEFUSE' },
+  { value: 'cs_', label: 'HOSTAGE RESCUE' },
 ]
 
 export const TAG_LABELS: Record<MapTag, string> = {

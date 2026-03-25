@@ -4,6 +4,7 @@ import { StatsRow } from './StatsRow'
 import { TopMaps } from './TopMaps'
 import { ActivityFeed } from './ActivityFeed'
 import type { ActivityEvent } from '@/lib/admin/stats-store'
+import { useNotifications } from '@/lib/auth/notification-context'
 
 interface Stats {
   totalMaps: number
@@ -15,20 +16,14 @@ interface Stats {
 
 export function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null)
-  const [error, setError] = useState(false)
+  const { push } = useNotifications()
 
   useEffect(() => {
     fetch('/api/admin/stats')
       .then(r => r.ok ? r.json() : Promise.reject(r))
       .then(setStats)
-      .catch(() => setError(true))
-  }, [])
-
-  if (error) {
-    return (
-      <p className="text-xs text-[var(--text-muted)]">Could not load dashboard stats.</p>
-    )
-  }
+      .catch(() => push('Could not load dashboard stats', 'error'))
+  }, [push])
 
   if (!stats) {
     return (

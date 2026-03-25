@@ -26,6 +26,8 @@ export function MapDetailModal({
   installed?: boolean
 }) {
   const [activeScreenshot, setActiveScreenshot] = useState(0)
+  const [imgLoading, setImgLoading] = useState(false)
+  const [confirmReinstall, setConfirmReinstall] = useState(false)
   const screenshots = map.screenshotKeys ?? []
   const supportsFileApi = isFileSystemAccessSupported()
   const isInstalling = status != null && status.phase !== 'done' && status.phase !== 'error'
@@ -41,11 +43,23 @@ export function MapDetailModal({
         onClick={e => e.stopPropagation()}
       >
         {/* Screenshot gallery */}
-        <div className="relative h-44 bg-[var(--bg-inset)]" style={{
+        <div className="relative h-72 bg-[var(--bg-inset)]" style={{
           background: screenshots[activeScreenshot] ? undefined : 'linear-gradient(135deg, #1a2744, #0f1e3a)'
         }}>
           {screenshots[activeScreenshot] && (
-            <img src={screenshots[activeScreenshot]} alt={map.originalName} className="w-full h-full object-cover" />
+            <img
+              key={screenshots[activeScreenshot]}
+              src={screenshots[activeScreenshot]}
+              alt={map.originalName}
+              className={`w-full h-full object-cover transition-opacity duration-200 ${imgLoading ? 'opacity-0' : 'opacity-100'}`}
+              onLoadStart={() => setImgLoading(true)}
+              onLoad={() => setImgLoading(false)}
+            />
+          )}
+          {imgLoading && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="w-7 h-7 border-2 border-[var(--accent-cyan)] border-t-transparent rounded-full animate-spin" />
+            </div>
           )}
           {/* Close */}
           <button
@@ -59,7 +73,7 @@ export function MapDetailModal({
               {screenshots.map((_, i) => (
                 <button
                   key={i}
-                  onClick={() => setActiveScreenshot(i)}
+                  onClick={() => { setActiveScreenshot(i); setImgLoading(true) }}
                   className="w-8 h-5 rounded-sm border transition-colors"
                   style={{
                     borderColor: i === activeScreenshot ? 'var(--accent-cyan)' : 'var(--border)',
@@ -103,32 +117,51 @@ export function MapDetailModal({
 
           {/* Install stepper */}
           <div className="mb-3">
-            <InstallStepper status={status} />
+            <InstallStepper status={status} installed={installed} />
           </div>
 
           {/* Actions */}
           <div className="flex gap-2">
             {supportsFileApi && (
+              confirmReinstall ? (
+                <>
+                  <button
+                    className="flex-1 py-2 rounded-md text-sm font-mono font-bold bg-[var(--accent-orange)] text-black hover:opacity-90 transition-opacity"
+                    onClick={() => { setConfirmReinstall(false); onInstall() }}
+                  >
+                    Reinstall
+                  </button>
+                  <button
+                    className="px-4 py-2 rounded-md text-sm font-mono text-[var(--text-subtle)] border border-[var(--border)] hover:text-[var(--text-primary)] transition-colors"
+                    onClick={() => setConfirmReinstall(false)}
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  className={`flex-1 py-2 rounded-md text-sm font-mono font-bold tracking-wide transition-colors ${
+                    isInstalling
+                      ? 'bg-[var(--bg-inset)] text-[var(--accent-orange)] border border-[var(--accent-orange)]'
+                      : installed
+                        ? 'bg-transparent text-[var(--accent-green)] border border-[var(--accent-green)] hover:opacity-80'
+                        : 'bg-[var(--accent-orange)] text-black hover:opacity-90'
+                  }`}
+                  onClick={() => { if (isInstalling) return; if (installed) { setConfirmReinstall(true) } else { onInstall() } }}
+                  disabled={isInstalling}
+                >
+                  {isInstalling ? 'INSTALLING...' : installed ? '✓ INSTALLED' : 'INSTALL'}
+                </button>
+              )
+            )}
+            {!confirmReinstall && (
               <button
-                className={`flex-1 py-2 rounded-md text-sm font-mono font-bold tracking-wide transition-colors ${
-                  isInstalling
-                    ? 'bg-[var(--bg-inset)] text-[var(--accent-orange)] border border-[var(--accent-orange)]'
-                    : installed
-                      ? 'bg-transparent text-[var(--accent-green)] border border-[var(--accent-green)]'
-                      : 'bg-[var(--accent-orange)] text-black hover:opacity-90'
-                }`}
-                onClick={onInstall}
-                disabled={isInstalling}
+                className="px-4 py-2 rounded-md text-sm font-mono text-[var(--text-subtle)] border border-[var(--border)] hover:text-[var(--text-primary)] transition-colors"
+                onClick={onDownload}
               >
-                {isInstalling ? 'INSTALLING...' : installed ? '✓ INSTALLED' : 'INSTALL'}
+                ↓ Download
               </button>
             )}
-            <button
-              className="px-4 py-2 rounded-md text-sm font-mono text-[var(--text-subtle)] border border-[var(--border)] hover:text-[var(--text-primary)] transition-colors"
-              onClick={onDownload}
-            >
-              ↓ Download
-            </button>
           </div>
         </div>
       </div>

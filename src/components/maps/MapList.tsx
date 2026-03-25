@@ -6,7 +6,8 @@ import { MapDetailModal } from '@/components/maps/MapDetailModal'
 import { scanInstalledBsps, syncInstalledToLocalStorage, installMap, isFileSystemAccessSupported, isBspInstalled } from '@/lib/maps/install'
 import type { InstallStatus } from '@/lib/maps/install'
 import { ensurePermission, markInstalled, isInstalledLocally } from '@/lib/maps/folder-store'
-import type { FilterTab } from '@/lib/maps/tags'
+import { FILTER_TABS, type FilterTab } from '@/lib/maps/tags'
+import { SearchInput } from '@/components/maps/SearchInput'
 import { Card } from '@/components/ui'
 
 const CHEAT_CODES = [
@@ -47,26 +48,22 @@ function CheatCodeBanner({ className }: { className?: string }) {
   )
 }
 
+
 export function MapList({
   maps,
   gameFolder,
   onPickFolder,
-  query,
-  activeTab,
-  onInstalledCountChange,
 }: {
   maps: MapEntry[]
   gameFolder: FileSystemDirectoryHandle | null
   onPickFolder: () => Promise<void>
-  query: string
-  activeTab: FilterTab
-  onInstalledCountChange: (n: number) => void
 }) {
+  const [query, setQuery] = useState('')
+  const [activeTab, setActiveTab] = useState<FilterTab>('all')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [batchTrigger, setBatchTrigger] = useState<Set<string>>(new Set())
   const [installedBsps, setInstalledBsps] = useState<Set<string>>(new Set())
   const [installStatuses, setInstallStatuses] = useState<Map<string, InstallStatus | null>>(new Map())
-  const [sort, setSort] = useState<'popular' | 'newest' | 'az'>('popular')
   const [openDetailMap, setOpenDetailMap] = useState<MapEntry | null>(null)
 
   const mapsRef = useRef(maps)
@@ -75,19 +72,17 @@ export function MapList({
   useEffect(() => {
     if (!gameFolder) {
       setInstalledBsps(new Set())
-      onInstalledCountChange(0)
       return
     }
     let cancelled = false
     scanInstalledBsps(gameFolder).then(result => {
       if (!cancelled) {
         setInstalledBsps(result)
-        onInstalledCountChange(result.size)
         syncInstalledToLocalStorage(mapsRef.current, result)
       }
     })
     return () => { cancelled = true }
-  }, [gameFolder, onInstalledCountChange])
+  }, [gameFolder])
 
   function updateInstallStatus(id: string, status: InstallStatus | null) {
     setInstallStatuses(prev => {
@@ -122,7 +117,6 @@ export function MapList({
     if (!gameFolder) return
     scanInstalledBsps(gameFolder).then(result => {
       setInstalledBsps(result)
-      onInstalledCountChange(result.size)
       syncInstalledToLocalStorage(mapsRef.current, result)
     })
   }
@@ -155,10 +149,15 @@ export function MapList({
       const res = await fetch(`/api/download/${map.id}`)
       if (!res.ok) throw new Error('Failed to get download URL')
       const { url } = await res.json()
+      const fileRes = await fetch(url)
+      if (!fileRes.ok) throw new Error('Download failed')
+      const blob = await fileRes.blob()
+      const objectUrl = URL.createObjectURL(blob)
       const a = document.createElement('a')
-      a.href = url
+      a.href = objectUrl
       a.download = `${map.originalName}.${map.format}`
       a.click()
+      URL.revokeObjectURL(objectUrl)
     } catch (err: unknown) {
       if ((err as { name?: string }).name === 'AbortError') return
       updateInstallStatus(map.id, { phase: 'error', message: (err as Error).message ?? 'Download failed.' })
@@ -170,11 +169,7 @@ export function MapList({
     m.originalName.toLowerCase().includes(query.toLowerCase())
   )
 
-  const sorted = [...filtered].sort((a, b) => {
-    if (sort === 'popular') return b.installCount - a.installCount
-    if (sort === 'newest') return b.uploadedAt.localeCompare(a.uploadedAt)
-    return a.originalName.localeCompare(b.originalName)
-  })
+  const sorted = filtered
 
   if (maps.length === 0) {
     return (
@@ -240,19 +235,32 @@ export function MapList({
           <CheatCodeBanner className="w-full" />
         </div>
       </div>
+      {/* Search + filter */}
+      <div className="flex flex-col gap-2">
+        <SearchInput value={query} onChange={setQuery} />
+        <nav className="flex items-center">
+          {FILTER_TABS.map(tab => {
+            const count = tab.value === 'all' ? maps.length : maps.filter(m => m.tags.includes(tab.value)).length
+            return (
+              <button
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
+                className={`px-3 py-1.5 text-xs font-mono font-semibold transition-colors border-b-2 ${
+                  activeTab === tab.value
+                    ? 'text-[var(--accent-cyan)] border-[var(--accent-cyan)]'
+                    : 'text-[var(--text-muted)] border-transparent hover:text-[var(--text-primary)]'
+                }`}
+              >
+                {tab.label} <span className="opacity-60">({count})</span>
+              </button>
+            )
+          })}
+        </nav>
+      </div>
+
       <div className="flex items-center gap-4 px-1 py-1.5 text-xs font-mono text-[var(--text-muted)]">
-        <span><span className="text-[var(--text-primary)]">{filtered.length}</span> maps</span>
-        <span>
-          Sort:{' '}
-          <select
-            value={sort}
-            onChange={e => setSort(e.target.value as typeof sort)}
-            className="bg-transparent text-[var(--accent-cyan)] border-none outline-none cursor-pointer font-mono text-xs"
-          >
-            <option value="popular">Popular</option>
-            <option value="newest">Newest</option>
-            <option value="az">A–Z</option>
-          </select>
+        <span className="text-[var(--accent-green)]">
+          {filtered.filter(m => isBspInstalled(m.originalName, installedBsps) || isInstalledLocally(m.id)).length} / {filtered.length} installed
         </span>
         {selectedIds.size > 0 && (
           <span className="ml-auto flex items-center gap-2">
@@ -269,7 +277,7 @@ export function MapList({
       {filtered.length === 0 ? (
         <p className="text-[var(--text-muted)] text-center py-12">No maps found.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[10px]">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-[10px]">
           {sorted.map(map => (
             <MapCard
               key={map.id}

@@ -14,9 +14,9 @@ function phaseIndex(phase: string): number {
   return PHASES.findIndex(p => p.key === phase)
 }
 
-export function InstallStepper({ status }: { status: InstallStatus | null }) {
+export function InstallStepper({ status, installed = false }: { status: InstallStatus | null; installed?: boolean }) {
   const activeIdx = status ? phaseIndex(status.phase) : -1
-  const isDone = status?.phase === 'done'
+  const isDone = installed || status?.phase === 'done'
   const isError = status?.phase === 'error'
 
   let progress = 0

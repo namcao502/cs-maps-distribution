@@ -9,10 +9,12 @@ import {
   type User,
 } from 'firebase/auth'
 import { getFirebaseAuth } from '@/lib/auth/firebase-client'
+import { useNotifications } from '@/lib/auth/notification-context'
 
 export function AuthButton({ adminEmail }: { adminEmail: string }) {
   const [user, setUser] = useState<User | null>(null)
   const [open, setOpen] = useState(false)
+  const { push } = useNotifications()
 
   useEffect(() => {
     const auth = getFirebaseAuth()
@@ -32,8 +34,8 @@ export function AuthButton({ adminEmail }: { adminEmail: string }) {
         body: JSON.stringify({ idToken }),
       })
       window.location.reload()
-    } catch (err) {
-      console.error('Sign-in failed:', err)
+    } catch {
+      push('Sign-in failed. Please try again.', 'error')
     }
   }
 

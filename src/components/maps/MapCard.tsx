@@ -11,8 +11,8 @@ function formatBytes(bytes: number): string {
 }
 
 function getTypeBadge(tags: string[]): { label: string; color: string } | null {
-  if (tags.includes('de_')) return { label: 'DE', color: 'var(--accent-orange)' }
-  if (tags.includes('cs_')) return { label: 'CS', color: 'var(--accent-red)' }
+  if (tags.includes('de_')) return { label: 'BOMB/DEFUSE', color: 'var(--accent-orange)' }
+  if (tags.includes('cs_')) return { label: 'HOSTAGE RESCUE', color: 'var(--accent-red)' }
   return null
 }
 
@@ -45,6 +45,7 @@ export function MapCard({
 }) {
   const [installed, setInstalled] = useState(() => isInstalledLocally(map.id))
   const [installCount, setInstallCount] = useState(map.installCount)
+  const [confirmReinstall, setConfirmReinstall] = useState(false)
   const supportsFileApi = isFileSystemAccessSupported()
   const isInstalling = installStatus != null && installStatus.phase !== 'done' && installStatus.phase !== 'error'
 
@@ -92,10 +93,15 @@ export function MapCard({
       const res = await fetch(`/api/download/${map.id}`)
       if (!res.ok) throw new Error('Failed to get download URL')
       const { url } = await res.json()
+      const fileRes = await fetch(url)
+      if (!fileRes.ok) throw new Error('Download failed')
+      const blob = await fileRes.blob()
+      const objectUrl = URL.createObjectURL(blob)
       const a = document.createElement('a')
-      a.href = url
+      a.href = objectUrl
       a.download = `${map.originalName}.${map.format}`
       a.click()
+      URL.revokeObjectURL(objectUrl)
     } catch (err: unknown) {
       if ((err as { name?: string }).name === 'AbortError') return
       onInstallStatusChange?.(map.id, { phase: 'error', message: (err as Error).message ?? 'Download failed.' })
@@ -125,7 +131,7 @@ export function MapCard({
       {/* Thumbnail zone */}
       <div
         data-testid="card-thumbnail"
-        className="relative h-20 cursor-pointer"
+        className="relative h-28 cursor-pointer"
         style={{ background: screenshotUrl ? undefined : 'linear-gradient(135deg, #1a2744, #0f1e3a)' }}
         onClick={() => onOpenDetail(map)}
       >
@@ -134,7 +140,7 @@ export function MapCard({
         )}
         {badge && (
           <span
-            className="absolute top-1.5 left-2 text-xs font-mono font-bold px-1.5 py-0.5 rounded-sm text-black"
+            className="absolute top-1.5 left-2 text-xs font-mono font-bold px-1.5 py-0.5 rounded-sm text-black inline-block text-center min-w-[7rem]"
             style={{ background: badge.color }}
           >
             {badge.label}
@@ -182,19 +188,36 @@ export function MapCard({
         </div>
 
         {supportsFileApi ? (
-          <button
-            className={`w-full py-1.5 rounded text-xs font-mono font-bold tracking-wide transition-colors ${
-              isInstalling
-                ? 'bg-[var(--bg-inset)] text-[var(--accent-orange)] border border-[var(--accent-orange)]'
-                : installed
-                  ? 'bg-transparent text-[var(--accent-green)] border border-[var(--accent-green)]'
-                  : 'bg-[var(--accent-orange)] text-black hover:opacity-90'
-            }`}
-            onClick={() => { if (!isInstalling) void doInstall() }}
-            disabled={isInstalling}
-          >
-            {isInstalling ? 'INSTALLING...' : installed ? '✓ INSTALLED' : 'INSTALL'}
-          </button>
+          confirmReinstall ? (
+            <div className="flex gap-1">
+              <button
+                className="flex-1 py-1.5 rounded text-xs font-mono font-bold bg-[var(--accent-orange)] text-black hover:opacity-90 transition-opacity"
+                onClick={() => { setConfirmReinstall(false); void doInstall() }}
+              >
+                Reinstall
+              </button>
+              <button
+                className="px-2 py-1.5 rounded text-xs font-mono text-[var(--text-muted)] border border-[var(--border)] hover:text-[var(--text-primary)] transition-colors"
+                onClick={() => setConfirmReinstall(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              className={`w-full py-1.5 rounded text-xs font-mono font-bold tracking-wide transition-colors ${
+                isInstalling
+                  ? 'bg-[var(--bg-inset)] text-[var(--accent-orange)] border border-[var(--accent-orange)]'
+                  : installed
+                    ? 'bg-transparent text-[var(--accent-green)] border border-[var(--accent-green)] hover:opacity-80'
+                    : 'bg-[var(--accent-orange)] text-black hover:opacity-90'
+              }`}
+              onClick={() => { if (isInstalling) return; if (installed) { setConfirmReinstall(true) } else { void doInstall() } }}
+              disabled={isInstalling}
+            >
+              {isInstalling ? 'INSTALLING...' : installed ? '✓ INSTALLED' : 'INSTALL'}
+            </button>
+          )
         ) : (
           <button
             aria-label="install (download)"

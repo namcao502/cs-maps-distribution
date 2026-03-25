@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    staleTimes: {
+      dynamic: 300,
+      static: 300,
+    },
+  },
   turbopack: {
     resolveAlias: {
       // 7z-wasm references Node's 'module' built-in for feature detection.

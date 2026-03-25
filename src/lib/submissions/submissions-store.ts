@@ -17,12 +17,17 @@ function docToSubmission(id: string, data: FirebaseFirestore.DocumentData): Subm
     status: data.status as 'pending' | 'approved' | 'rejected',
     rejectionReason: (data.rejectionReason as string) ?? null,
     reviewedAt: (data.reviewedAt as string) ?? null,
+    tags: (data.tags as string[]) ?? [],
+    screenshotKeys: (data.screenshotKeys as string[]) ?? [],
   }
 }
 
 type NewSubmission = Pick<Submission,
   'originalName' | 'storageKey' | 'format' | 'size' | 'sha256' |
-  'submitterId' | 'submitterName' | 'submitterAvatar'>
+  'submitterId' | 'submitterName' | 'submitterAvatar'> & {
+  tags?: string[]
+  screenshotKeys?: string[]
+}
 
 export async function addSubmission(sub: NewSubmission): Promise<Submission> {
   const id = uuidv4()
@@ -40,6 +45,8 @@ export async function addSubmission(sub: NewSubmission): Promise<Submission> {
     status: 'pending',
     rejectionReason: null,
     reviewedAt: null,
+    tags: sub.tags ?? [],
+    screenshotKeys: sub.screenshotKeys ?? [],
   }
   await getAdminDb().collection('submissions').doc(id).set(data)
   return docToSubmission(id, data)
