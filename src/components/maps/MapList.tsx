@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import type { MapEntry } from '@/types/map'
 import { MapCard } from '@/components/maps/MapCard'
 import { scanInstalledBsps, syncInstalledToLocalStorage } from '@/lib/maps/install'
+import type { InstallStatus } from '@/lib/maps/install'
 import type { FilterTab } from '@/lib/maps/tags'
 import { Card } from '@/components/ui'
 
@@ -62,6 +63,7 @@ export function MapList({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [batchTrigger, setBatchTrigger] = useState<Set<string>>(new Set())
   const [installedBsps, setInstalledBsps] = useState<Set<string>>(new Set())
+  const [installStatuses, setInstallStatuses] = useState<Map<string, InstallStatus | null>>(new Map())
   const [sort, setSort] = useState<'popular' | 'newest' | 'az'>('popular')
 
   const mapsRef = useRef(maps)
@@ -83,6 +85,14 @@ export function MapList({
     })
     return () => { cancelled = true }
   }, [gameFolder, onInstalledCountChange])
+
+  function updateInstallStatus(id: string, status: InstallStatus | null) {
+    setInstallStatuses(prev => {
+      const next = new Map(prev)
+      next.set(id, status)
+      return next
+    })
+  }
 
   function toggleSelect(id: string) {
     setSelectedIds(prev => {
@@ -226,10 +236,13 @@ export function MapList({
               onPickFolder={onPickFolder}
               installedBsps={installedBsps}
               onInstalled={handleInstalled}
+              onOpenDetail={() => {}} // Task 12 wires this properly
               selected={selectedIds.has(map.id)}
               onToggleSelect={() => toggleSelect(map.id)}
               autoInstall={batchTrigger.has(map.id)}
               onBatchTriggered={() => clearBatchTrigger(map.id)}
+              installStatus={installStatuses.get(map.id) ?? null}
+              onInstallStatusChange={updateInstallStatus}
             />
           ))}
         </div>

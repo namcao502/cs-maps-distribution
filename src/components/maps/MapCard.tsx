@@ -1,28 +1,19 @@
 'use client'
 import { useState, useEffect } from 'react'
 import type { MapEntry } from '@/types/map'
-import { ConfirmModal } from '@/components/ConfirmModal'
 import { isFileSystemAccessSupported, installMap, isBspInstalled } from '@/lib/maps/install'
 import { ensurePermission, markInstalled, isInstalledLocally } from '@/lib/maps/folder-store'
-import { useNotifications } from '@/lib/auth/notification-context'
 import type { InstallStatus } from '@/lib/maps/install'
-import { Button } from '@/components/ui'
-
-// TODO: wired in Task 7 — push/notify helpers for install progress
-
-const TAG_COLORS: Record<string, string> = {
-  'de_': 'bg-red-100 text-red-600',
-  'cs_': 'bg-yellow-100 text-yellow-600',
-}
-
-const TAG_SHORT: Record<string, string> = {
-  'de_': 'DE',
-  'cs_': 'CS',
-}
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function getTypeBadge(tags: string[]): { label: string; color: string } | null {
+  if (tags.includes('de_')) return { label: 'DE', color: 'var(--accent-orange)' }
+  if (tags.includes('cs_')) return { label: 'CS', color: 'var(--accent-red)' }
+  return null
 }
 
 export function MapCard({
@@ -31,27 +22,33 @@ export function MapCard({
   onPickFolder,
   installedBsps,
   onInstalled,
+  onOpenDetail,
   selected = false,
   onToggleSelect,
   autoInstall = false,
   onBatchTriggered,
+  installStatus,
+  onInstallStatusChange,
 }: {
   map: MapEntry
   gameFolder: FileSystemDirectoryHandle | null
   onPickFolder: () => Promise<void>
   installedBsps: Set<string>
   onInstalled: () => void
+  onOpenDetail: (map: MapEntry) => void
   selected?: boolean
   onToggleSelect?: () => void
   autoInstall?: boolean
   onBatchTriggered?: () => void
+  installStatus?: InstallStatus | null
+  onInstallStatusChange?: (id: string, status: InstallStatus | null) => void
 }) {
   const [installed, setInstalled] = useState(() => isInstalledLocally(map.id))
   const [installCount, setInstallCount] = useState(map.installCount)
-  const [confirmReinstall, setConfirmReinstall] = useState(false)
-  const [isInstalling, setIsInstalling] = useState(false)
   const supportsFileApi = isFileSystemAccessSupported()
-  const { push } = useNotifications()
+  const isInstalling = installStatus != null && installStatus.phase !== 'done' && installStatus.phase !== 'error'
+
+  const downloadProgress = installStatus?.phase === 'downloading' ? installStatus.progress : null
 
   useEffect(() => {
     setInstalled(isBspInstalled(map.originalName, installedBsps) || isInstalledLocally(map.id))
@@ -59,13 +56,36 @@ export function MapCard({
 
   useEffect(() => {
     if (!autoInstall) return
-    async function run() {
-      await handleInstall()
-      onBatchTriggered?.()
-    }
-    run()
+    void doInstall()
+    onBatchTriggered?.()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoInstall])
+
+  async function doInstall() {
+    onInstallStatusChange?.(map.id, { phase: 'downloading', progress: 0 })
+    try {
+      let handle = gameFolder
+      if (!handle) { await onPickFolder(); return }
+      const permitted = await ensurePermission(handle)
+      if (!permitted) {
+        onInstallStatusChange?.(map.id, { phase: 'error', message: 'Folder access denied.' })
+        return
+      }
+      const res = await fetch(`/api/download/${map.id}`)
+      if (!res.ok) throw new Error('Failed to get download URL')
+      const { url, sha256 } = await res.json()
+      await installMap(map, url, sha256, handle, (s: InstallStatus) => onInstallStatusChange?.(map.id, s))
+      markInstalled(map.id)
+      fetch(`/api/maps/${map.id}/install`, { method: 'POST' }).catch(() => {})
+      setInstalled(true)
+      setInstallCount(c => c + 1)
+      onInstalled()
+    } catch (err: unknown) {
+      if ((err as { name?: string }).name === 'AbortError') return
+      const msg = (err as Error).message ?? 'Unknown error'
+      onInstallStatusChange?.(map.id, { phase: 'error', message: msg })
+    }
+  }
 
   async function handleRawDownload() {
     const res = await fetch(`/api/download/${map.id}`)
@@ -76,126 +96,109 @@ export function MapCard({
     a.click()
   }
 
-  async function handleInstall() {
-    if (installed) {
-      setConfirmReinstall(true)
-      return
-    }
-    await doInstall()
-  }
+  const badge = getTypeBadge(map.tags)
+  const screenshotUrl = map.screenshotKeys?.[0] ?? null
 
-  async function doInstall() {
-    setIsInstalling(true)
-    // TODO: wired in Task 7 — replace with InstallStepper progress tracking
-    try {
-      let handle = gameFolder
-      if (!handle) {
-        await onPickFolder()
-        return
-      }
+  const cardBorder = installed
+    ? 'border-[var(--border-installed)]'
+    : isInstalling
+      ? 'border-[var(--accent-orange)]'
+      : 'border-[var(--border)] hover:border-[var(--accent-cyan)]'
 
-      const permitted = await ensurePermission(handle)
-      if (!permitted) {
-        // TODO: wired in Task 7 — report error via progress stepper
-        push('Folder access was denied.', 'error')
-        return
-      }
-
-      const res = await fetch(`/api/download/${map.id}`)
-      if (!res.ok) throw new Error('Failed to get download URL')
-      const { url, sha256 } = await res.json()
-
-      // TODO: wired in Task 7 — pass progress callback to InstallStepper
-      await installMap(map, url, sha256, handle, (_s: InstallStatus) => {})
-      markInstalled(map.id)
-      fetch(`/api/maps/${map.id}/install`, { method: 'POST' }).catch(() => {})
-      setInstalled(true)
-      setInstallCount(c => c + 1)
-      onInstalled()
-      push(`${map.originalName} installed successfully.`, 'success')
-    } catch (err: unknown) {
-      if ((err as { name?: string }).name === 'AbortError') return
-      const msg = (err as Error).message ?? 'Unknown error'
-      // TODO: wired in Task 7 — report error via progress stepper
-      push(msg, 'error')
-    } finally {
-      setIsInstalling(false)
-    }
-  }
-
+  const phaseLabel = installStatus
+    ? installStatus.phase === 'downloading' ? `Downloading... ${Math.round(installStatus.progress)}%`
+    : installStatus.phase === 'verifying' ? 'Verifying...'
+    : installStatus.phase === 'extracting' ? 'Extracting...'
+    : installStatus.phase === 'writing' ? `Writing ${installStatus.done}/${installStatus.total}...`
+    : null
+    : null
 
   return (
-    <>
-      <div className="flex items-center justify-between px-4 py-3.5 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl transition-colors">
-        <div className="flex items-center gap-3 min-w-0">
-          <input
-            type="checkbox"
-            checked={selected}
-            onChange={e => { e.stopPropagation(); onToggleSelect?.() }}
-            className="w-4 h-4 shrink-0 cursor-pointer accent-blue-500"
-          />
-          {map.tags.filter(tag => tag in TAG_COLORS).map(tag => (
-            <span key={tag} className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-md uppercase tracking-wide ${TAG_COLORS[tag]}`}>
-              {TAG_SHORT[tag]}
-            </span>
-          ))}
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-[var(--text-primary)] truncate">{map.originalName}.{map.format}</span>
-              {installed && (
-                <span className="shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">
-                  ✓ Installed
-                </span>
-              )}
-            </div>
-            <span className="text-xs text-[var(--text-muted)]">
-              {formatBytes(map.size)} · {new Date(map.uploadedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} {new Date(map.uploadedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} · ⚙ {installCount}
-            </span>
-            {map.uploader && (
-              <div className="flex items-center gap-1 mt-0.5">
-                {map.uploader.avatar && <img src={map.uploader.avatar} alt="" className="w-4 h-4 rounded-full" referrerPolicy="no-referrer" />}
-                <span className="text-xs text-[var(--text-muted)]">by {map.uploader.name}</span>
-              </div>
-            )}
-          </div>
-        </div>
+    <div className={`bg-[var(--bg-surface)] border rounded-lg overflow-hidden transition-colors ${cardBorder}`}>
 
-        <div className="flex items-center gap-2 ml-3 shrink-0">
-          {supportsFileApi ? (
-            <Button
-              variant={installed ? 'secondary' : 'success'}
-              size="lg"
-              loading={isInstalling}
-              onClick={handleInstall}
-            >
-              {!isInstalling && (
-                installed ? (
-                  // Refresh/reinstall icon
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                ) : (
-                  // Download arrow into tray icon
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                )
-              )}
-              {isInstalling ? 'Installing…' : installed ? 'Reinstall' : gameFolder ? 'Install' : 'Choose Folder & Install'}
-            </Button>
-          ) : (
-            <Button variant="primary" size="lg" onClick={handleRawDownload}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Download
-            </Button>
-          )}
-        </div>
+      {/* Thumbnail zone */}
+      <div
+        data-testid="card-thumbnail"
+        className="relative h-20 cursor-pointer"
+        style={{ background: screenshotUrl ? undefined : 'linear-gradient(135deg, #1a2744, #0f1e3a)' }}
+        onClick={() => onOpenDetail(map)}
+      >
+        {screenshotUrl && (
+          <img src={screenshotUrl} alt={map.originalName} className="w-full h-full object-cover" />
+        )}
+        {badge && (
+          <span
+            className="absolute top-1.5 left-2 text-xs font-mono font-bold px-1.5 py-0.5 rounded-sm text-black"
+            style={{ background: badge.color }}
+          >
+            {badge.label}
+          </span>
+        )}
+        <button
+          className="absolute top-1.5 right-2 w-4 h-4 rounded-sm border flex items-center justify-center"
+          style={{
+            background: selected ? 'var(--accent-orange)' : 'rgba(0,0,0,0.5)',
+            borderColor: selected ? 'var(--accent-orange)' : 'var(--text-muted)',
+          }}
+          onClick={e => { e.stopPropagation(); onToggleSelect?.() }}
+          aria-label={selected ? 'Deselect' : 'Select'}
+        >
+          {selected && <span className="text-black text-xs font-bold leading-none">✓</span>}
+        </button>
+        {isInstalling && (
+          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--border)]">
+            <div
+              className="h-full bg-[var(--accent-orange)] transition-all duration-300"
+              style={{ width: `${downloadProgress ?? 50}%` }}
+            />
+          </div>
+        )}
+        {installed && !isInstalling && (
+          <div className="absolute inset-0 bg-[var(--accent-green)] opacity-5 pointer-events-none" />
+        )}
       </div>
 
-      {confirmReinstall && (
-        <ConfirmModal
-          message={`"${map.originalName}" is already installed. Reinstall it?`}
-          confirmLabel="Reinstall"
-          onConfirm={() => { setConfirmReinstall(false); doInstall() }}
-          onCancel={() => setConfirmReinstall(false)}
-        />
-      )}
-    </>
+      {/* Info zone */}
+      <div className="px-2.5 py-2">
+        <div
+          className="text-xs font-mono font-bold text-[var(--text-primary)] mb-1 cursor-pointer hover:text-[var(--accent-cyan)] truncate"
+          onClick={() => onOpenDetail(map)}
+        >
+          {map.originalName}
+        </div>
+        <div className="flex justify-between items-center mb-2 text-[var(--text-muted)] text-xs font-mono">
+          {isInstalling && phaseLabel ? (
+            <span className="text-[var(--accent-orange)] truncate">{phaseLabel}</span>
+          ) : (
+            <span>{formatBytes(map.size)}</span>
+          )}
+          <span>↓ {installCount.toLocaleString()}</span>
+        </div>
+
+        {supportsFileApi ? (
+          <button
+            className={`w-full py-1.5 rounded text-xs font-mono font-bold tracking-wide transition-colors ${
+              isInstalling
+                ? 'bg-[var(--bg-inset)] text-[var(--accent-orange)] border border-[var(--accent-orange)]'
+                : installed
+                  ? 'bg-transparent text-[var(--accent-green)] border border-[var(--accent-green)]'
+                  : 'bg-[var(--accent-orange)] text-black hover:opacity-90'
+            }`}
+            onClick={() => { if (!isInstalling) void doInstall() }}
+            disabled={isInstalling}
+          >
+            {isInstalling ? 'INSTALLING...' : installed ? '✓ INSTALLED' : 'INSTALL'}
+          </button>
+        ) : (
+          <button
+            aria-label="install (download)"
+            className="w-full py-1.5 rounded text-xs font-mono font-bold bg-[var(--bg-inset)] text-[var(--text-muted)] border border-[var(--border)] hover:text-[var(--text-primary)] transition-colors"
+            onClick={handleRawDownload}
+          >
+            ↓ DOWNLOAD
+          </button>
+        )}
+      </div>
+    </div>
   )
 }
