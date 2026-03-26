@@ -35,6 +35,8 @@ export const MSG_SUBMITTED_FOR_REVIEW = (name: string) => `${name} submitted for
 
 // UI labels — headings
 export const LABEL_UPLOAD_MAP = 'Upload Map'
+export const LABEL_MAP_LIST = 'Map List'
+export const LABEL_DASHBOARD = 'Dashboard'
 export const LABEL_PENDING_REVIEW = (count: number) => `Pending Review (${count})`
 export const LABEL_MY_SUBMISSIONS = 'My Submissions'
 export const LABEL_SUBMIT_MAPS = 'Submit map(s)'

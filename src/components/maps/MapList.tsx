@@ -9,6 +9,7 @@ import { ensurePermission, markInstalled, isInstalledLocally } from '@/lib/maps/
 import { FILTER_TABS, type FilterTab } from '@/lib/maps/tags'
 import { SearchInput } from '@/components/maps/SearchInput'
 import { Card } from '@/components/ui'
+import { useNotifications } from '@/lib/auth/notification-context'
 import {
   STATUS_NO_MAPS, STATUS_NO_MAPS_FOUND, INFO_PICK_CS_FOLDER, BTN_PICK_THIS, INFO_FOLDER_EXAMPLE,
   INFO_YOUR_FOLDER, INFO_YOUR_FOLDER_LABEL, BTN_CHANGE, LABEL_INSTALL_COUNT, LABEL_SELECTED_COUNT,
@@ -63,6 +64,7 @@ export function MapList({
   gameFolder: FileSystemDirectoryHandle | null
   onPickFolder: () => Promise<void>
 }) {
+  const { push } = useNotifications()
   const [query, setQuery] = useState('')
   const [activeTab, setActiveTab] = useState<FilterTab>('all')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -143,9 +145,12 @@ export function MapList({
       markInstalled(map.id)
       fetch(`/api/maps/${map.id}/install`, { method: 'POST' }).catch(() => {})
       handleInstalled()
+      push(`${map.originalName} installed successfully`, 'success')
     } catch (err: unknown) {
       if ((err as { name?: string }).name === 'AbortError') return
-      updateInstallStatus(map.id, { phase: 'error', message: (err as Error).message ?? 'Unknown error' })
+      const msg = (err as Error).message ?? 'Unknown error'
+      updateInstallStatus(map.id, { phase: 'error', message: msg })
+      push(`Failed to install ${map.originalName}: ${msg}`, 'error')
     }
   }
 
@@ -165,7 +170,9 @@ export function MapList({
       URL.revokeObjectURL(objectUrl)
     } catch (err: unknown) {
       if ((err as { name?: string }).name === 'AbortError') return
-      updateInstallStatus(map.id, { phase: 'error', message: (err as Error).message ?? 'Download failed.' })
+      const msg = (err as Error).message ?? 'Download failed.'
+      updateInstallStatus(map.id, { phase: 'error', message: msg })
+      push(`Failed to download ${map.originalName}: ${msg}`, 'error')
     }
   }
 

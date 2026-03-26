@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import type { MapEntry } from '@/types/map'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { SearchInput } from '@/components/maps/SearchInput'
-import { MAP_TAGS, TAG_LABELS } from '@/lib/maps/tags'
+import { MAP_TAGS, TAG_LABELS, FILTER_TABS, type FilterTab } from '@/lib/maps/tags'
 import { Button, Card } from '@/components/ui'
 import { useNotifications } from '@/lib/auth/notification-context'
 import {
@@ -47,6 +47,7 @@ export function AdminMapList({
   onReorder?: (newMaps: MapEntry[]) => void
 }) {
   const [query, setQuery] = useState('')
+  const [activeTab, setActiveTab] = useState<FilterTab>('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [pendingDelete, setPendingDelete] = useState<MapEntry | null>(null)
   const [togglingHidden, setTogglingHidden] = useState<string | null>(null)
@@ -169,12 +170,31 @@ export function AdminMapList({
   }
 
   const filtered = orderedMaps.filter(m =>
+    (activeTab === 'all' || m.tags.includes(activeTab)) &&
     m.originalName.toLowerCase().includes(query.toLowerCase())
   )
 
   return (
-    <div className="flex flex-col gap-2 mt-6">
+    <div className="flex flex-col gap-3">
       <SearchInput value={query} onChange={setQuery} />
+      <nav className="flex items-center">
+        {FILTER_TABS.map(tab => {
+          const count = tab.value === 'all' ? orderedMaps.length : orderedMaps.filter(m => m.tags.includes(tab.value)).length
+          return (
+            <button
+              key={tab.value}
+              onClick={() => setActiveTab(tab.value)}
+              className={`px-3 py-1.5 text-xs font-mono font-semibold transition-colors border-b-2 ${
+                activeTab === tab.value
+                  ? 'text-[var(--accent-cyan)] border-[var(--accent-cyan)]'
+                  : 'text-[var(--text-muted)] border-transparent hover:text-[var(--text-primary)]'
+              }`}
+            >
+              {tab.label} <span className="opacity-60">({count})</span>
+            </button>
+          )
+        })}
+      </nav>
       {isSaving && (
         <p className="text-xs text-[var(--text-muted)] text-right mb-1">{STATUS_SAVING_ORDER}</p>
       )}

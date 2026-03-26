@@ -14,7 +14,8 @@ export async function GET() {
       }))
     )
     return NextResponse.json(resolved, { headers: { 'Cache-Control': 'no-store' } })
-  } catch {
+  } catch (err) {
+    console.error('[GET /api/maps]', err)
     return NextResponse.json({ error: 'Failed to load maps' }, { status: 500 })
   }
 }

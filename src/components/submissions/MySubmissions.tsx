@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import type { Submission } from '@/types/submission'
 import { Button, StatusBadge } from '@/components/ui'
 import { STATUS_LOADING, STATUS_NO_SUBMISSIONS, BTN_DELETE, LABEL_REJECTION_REASON, LABEL_SUBMITTED_AT } from '@/lib/constants/messages'
+import { useNotifications } from '@/lib/auth/notification-context'
 
 function formatBytes(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -10,6 +11,7 @@ function formatBytes(bytes: number) {
 }
 
 export function MySubmissions() {
+  const { push } = useNotifications()
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -20,9 +22,14 @@ export function MySubmissions() {
       .finally(() => setLoading(false))
   }, [])
 
-  async function handleDelete(id: string) {
+  async function handleDelete(id: string, name: string) {
     const res = await fetch(`/api/submissions/${id}`, { method: 'DELETE' })
-    if (res.ok) setSubmissions(prev => prev.filter(s => s.id !== id))
+    if (res.ok) {
+      setSubmissions(prev => prev.filter(s => s.id !== id))
+      push(`${name} submission deleted`, 'success')
+    } else {
+      push('Failed to delete submission', 'error')
+    }
   }
 
   if (loading) return <p className="text-[var(--text-muted)] text-sm">{STATUS_LOADING}</p>
@@ -51,7 +58,7 @@ export function MySubmissions() {
               <Button
                 variant="danger"
                 size="sm"
-                onClick={() => handleDelete(sub.id)}
+                onClick={() => handleDelete(sub.id, sub.originalName)}
               >
                 {BTN_DELETE}
               </Button>

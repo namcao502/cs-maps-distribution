@@ -35,5 +35,8 @@ export async function getScreenshotUrl(key: string): Promise<string> {
 }
 
 export async function resolveScreenshotUrls(keys: string[]): Promise<string[]> {
-  return Promise.all(keys.map(getScreenshotUrl))
+  const results = await Promise.allSettled(keys.map(getScreenshotUrl))
+  return results
+    .filter((r): r is PromiseFulfilledResult<string> => r.status === 'fulfilled')
+    .map(r => r.value)
 }

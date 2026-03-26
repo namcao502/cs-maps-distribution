@@ -8,6 +8,7 @@ import {
   BTN_REINSTALL, BTN_CANCEL, BTN_INSTALLING, BTN_INSTALLED, BTN_INSTALL, BTN_DOWNLOAD,
   PHASE_DOWNLOADING, PHASE_VERIFYING, PHASE_EXTRACTING, PHASE_WRITING,
 } from '@/lib/constants/messages'
+import { useNotifications } from '@/lib/auth/notification-context'
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -47,6 +48,7 @@ export function MapCard({
   installStatus?: InstallStatus | null
   onInstallStatusChange?: (id: string, status: InstallStatus | null) => void
 }) {
+  const { push } = useNotifications()
   const [installed, setInstalled] = useState(() => isInstalledLocally(map.id))
   const [installCount, setInstallCount] = useState(map.installCount)
   const [confirmReinstall, setConfirmReinstall] = useState(false)
@@ -85,10 +87,12 @@ export function MapCard({
       setInstalled(true)
       setInstallCount(c => c + 1)
       onInstalled()
+      push(`${map.originalName} installed successfully`, 'success')
     } catch (err: unknown) {
       if ((err as { name?: string }).name === 'AbortError') return
       const msg = (err as Error).message ?? 'Unknown error'
       onInstallStatusChange?.(map.id, { phase: 'error', message: msg })
+      push(`Failed to install ${map.originalName}: ${msg}`, 'error')
     }
   }
 
@@ -106,9 +110,12 @@ export function MapCard({
       a.download = `${map.originalName}.${map.format}`
       a.click()
       URL.revokeObjectURL(objectUrl)
+      push(`${map.originalName} download started`, 'success')
     } catch (err: unknown) {
       if ((err as { name?: string }).name === 'AbortError') return
-      onInstallStatusChange?.(map.id, { phase: 'error', message: (err as Error).message ?? 'Download failed.' })
+      const msg = (err as Error).message ?? 'Download failed.'
+      onInstallStatusChange?.(map.id, { phase: 'error', message: msg })
+      push(`Failed to download ${map.originalName}: ${msg}`, 'error')
     }
   }
 
