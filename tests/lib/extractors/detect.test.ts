@@ -36,4 +36,15 @@ describe('detectStructure', () => {
     const entries = ['cstrike/maps/de_dust2.bsp', 'maps/extra.bsp']
     expect(detectStructure(entries)).toBe('game-root')
   })
+
+  it('detects wrapped when single top-level folder wraps CS content', () => {
+    // Single folder "mymap/" wrapping maps/ content → wrapped
+    const entries = ['mymap/maps/de_dust2.bsp', 'mymap/models/player.mdl']
+    expect(detectStructure(entries)).toBe('wrapped')
+  })
+
+  it('returns unknown for single top-level folder wrapping unrecognised content', () => {
+    const entries = ['myfolder/readme.txt', 'myfolder/data.bin']
+    expect(detectStructure(entries)).toBe('unknown')
+  })
 })

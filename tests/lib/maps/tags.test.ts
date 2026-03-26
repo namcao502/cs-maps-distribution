@@ -3,8 +3,8 @@ import { FILTER_TABS, TAG_LABELS, TAG_SHORT, tabToTag } from '@/lib/maps/tags'
 test('FILTER_TABS has correct structure', () => {
   expect(FILTER_TABS).toEqual([
     { value: 'all', label: 'ALL' },
-    { value: 'de_', label: 'DEFUSE' },
-    { value: 'cs_', label: 'HOSTAGE' },
+    { value: 'de_', label: 'BOMB/DEFUSE' },
+    { value: 'cs_', label: 'HOSTAGE RESCUE' },
   ])
 })
 

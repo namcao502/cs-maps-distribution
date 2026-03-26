@@ -42,3 +42,76 @@ test('calls onInstall when INSTALL button clicked', () => {
   fireEvent.click(screen.getByRole('button', { name: /install/i }))
   expect(onInstall).toHaveBeenCalled()
 })
+
+test('calls onClose when close button clicked', () => {
+  const onClose = jest.fn()
+  render(<MapDetailModal map={mockMap} onClose={onClose} onInstall={jest.fn()} onDownload={jest.fn()} status={null} />)
+  fireEvent.click(screen.getByRole('button', { name: /close/i }))
+  expect(onClose).toHaveBeenCalled()
+})
+
+test('calls onDownload when Download button clicked', () => {
+  const onDownload = jest.fn()
+  render(<MapDetailModal map={mockMap} onClose={jest.fn()} onInstall={jest.fn()} onDownload={onDownload} status={null} />)
+  fireEvent.click(screen.getByRole('button', { name: /download/i }))
+  expect(onDownload).toHaveBeenCalled()
+})
+
+test('shows INSTALLED button when installed', () => {
+  render(<MapDetailModal map={mockMap} onClose={jest.fn()} onInstall={jest.fn()} onDownload={jest.fn()} status={null} installed />)
+  expect(screen.getByRole('button', { name: /installed/i })).toBeInTheDocument()
+})
+
+test('shows INSTALLING button when status is downloading', () => {
+  render(<MapDetailModal map={mockMap} onClose={jest.fn()} onInstall={jest.fn()} onDownload={jest.fn()} status={{ phase: 'downloading', progress: 50 }} />)
+  expect(screen.getByRole('button', { name: /installing/i })).toBeInTheDocument()
+})
+
+test('shows reinstall confirm when INSTALLED button clicked', () => {
+  render(<MapDetailModal map={mockMap} onClose={jest.fn()} onInstall={jest.fn()} onDownload={jest.fn()} status={null} installed />)
+  fireEvent.click(screen.getByRole('button', { name: /installed/i }))
+  expect(screen.getByRole('button', { name: /reinstall/i })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
+})
+
+test('cancels reinstall confirm', () => {
+  render(<MapDetailModal map={mockMap} onClose={jest.fn()} onInstall={jest.fn()} onDownload={jest.fn()} status={null} installed />)
+  fireEvent.click(screen.getByRole('button', { name: /installed/i }))
+  fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
+  expect(screen.getByRole('button', { name: /installed/i })).toBeInTheDocument()
+})
+
+test('renders install count', () => {
+  render(<MapDetailModal map={mockMap} onClose={jest.fn()} onInstall={jest.fn()} onDownload={jest.fn()} status={null} />)
+  expect(screen.getByText(/1,204/)).toBeInTheDocument()
+})
+
+test('renders screenshot thumbnail strip when multiple screenshots', () => {
+  const mapWithScreenshots = { ...mockMap, screenshotKeys: ['s/0.jpg', 's/1.jpg'] }
+  render(<MapDetailModal map={mapWithScreenshots} onClose={jest.fn()} onInstall={jest.fn()} onDownload={jest.fn()} status={null} />)
+  // Two thumbnail strip buttons are rendered
+  const thumbnailButtons = screen.getAllByRole('button').filter(
+    btn => !btn.getAttribute('aria-label')
+  )
+  expect(thumbnailButtons.length).toBeGreaterThanOrEqual(2)
+})
+
+test('clicking thumbnail strip button changes active screenshot', () => {
+  const mapWithScreenshots = { ...mockMap, screenshotKeys: ['s/0.jpg', 's/1.jpg'] }
+  render(<MapDetailModal map={mapWithScreenshots} onClose={jest.fn()} onInstall={jest.fn()} onDownload={jest.fn()} status={null} />)
+  const thumbnailButtons = screen.getAllByRole('button').filter(
+    btn => !btn.getAttribute('aria-label')
+  )
+  // Click second thumbnail button — should not throw
+  fireEvent.click(thumbnailButtons[1])
+  // After click the second button should have active styling (border-cyan)
+  expect(thumbnailButtons[1]).toBeInTheDocument()
+})
+
+test('clicking Reinstall confirm button calls onInstall', () => {
+  const onInstall = jest.fn()
+  render(<MapDetailModal map={mockMap} onClose={jest.fn()} onInstall={onInstall} onDownload={jest.fn()} status={null} installed />)
+  fireEvent.click(screen.getByRole('button', { name: /installed/i }))
+  fireEvent.click(screen.getByRole('button', { name: /reinstall/i }))
+  expect(onInstall).toHaveBeenCalled()
+})

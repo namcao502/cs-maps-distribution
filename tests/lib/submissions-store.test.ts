@@ -111,3 +111,67 @@ describe('hasPendingSubmissionBySha256', () => {
     expect(await hasPendingSubmissionBySha256('def456')).toBe(true)
   })
 })
+
+const docData = {
+  originalName: 'de_dust3',
+  storageKey: 'submissions/sub-1.zip',
+  format: 'zip',
+  size: 2000,
+  sha256: 'def456',
+  submittedAt: '2026-03-22T12:00:00Z',
+  submitterId: 'user-1',
+  submitterName: 'Alice',
+  submitterAvatar: 'https://example.com/avatar.jpg',
+  status: 'pending',
+  rejectionReason: 'not good',
+  reviewedAt: '2026-03-23T00:00:00Z',
+  tags: ['de_'],
+  screenshotKeys: ['screenshots/sub-1/0.jpg'],
+}
+
+describe('getSubmissions', () => {
+  it('returns all submissions when no status filter', async () => {
+    mockGet.mockResolvedValue({ docs: [{ id: 'sub-1', data: () => docData }] })
+    const { getSubmissions } = await import('@/lib/submissions/submissions-store')
+    const results = await getSubmissions()
+    expect(results).toHaveLength(1)
+    expect(results[0].id).toBe('sub-1')
+  })
+
+  it('filters by status when provided', async () => {
+    mockGet.mockResolvedValue({ docs: [{ id: 'sub-2', data: () => ({ ...docData, status: 'approved' }) }] })
+    const { getSubmissions } = await import('@/lib/submissions/submissions-store')
+    const results = await getSubmissions('approved')
+    expect(mockWhere).toHaveBeenCalledWith('status', '==', 'approved')
+    expect(results).toHaveLength(1)
+  })
+})
+
+describe('getSubmissionById', () => {
+  it('returns submission when found', async () => {
+    mockGet.mockResolvedValue({ exists: true, id: 'sub-1', data: () => docData })
+    const { getSubmissionById } = await import('@/lib/submissions/submissions-store')
+    const result = await getSubmissionById('sub-1')
+    expect(result).not.toBeNull()
+    expect(result?.id).toBe('sub-1')
+    expect(result?.tags).toEqual(['de_'])
+    expect(result?.screenshotKeys).toEqual(['screenshots/sub-1/0.jpg'])
+  })
+
+  it('returns null when not found', async () => {
+    mockGet.mockResolvedValue({ exists: false })
+    const { getSubmissionById } = await import('@/lib/submissions/submissions-store')
+    const result = await getSubmissionById('missing')
+    expect(result).toBeNull()
+  })
+})
+
+describe('deleteSubmission', () => {
+  it('calls delete on the document', async () => {
+    const mockDelete = jest.fn().mockResolvedValue(undefined)
+    mockDoc.mockReturnValue({ set: mockSet, update: mockUpdate, get: mockGet, delete: mockDelete })
+    const { deleteSubmission } = await import('@/lib/submissions/submissions-store')
+    await deleteSubmission('sub-1')
+    expect(mockDelete).toHaveBeenCalled()
+  })
+})
