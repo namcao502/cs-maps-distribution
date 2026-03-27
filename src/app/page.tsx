@@ -6,7 +6,21 @@ import { isFileSystemAccessSupported, pickGameFolder, validateGameFolder } from 
 import { saveHandle, loadHandle } from '@/lib/maps/folder-store'
 import { SiteHeader } from '@/components/layout/SiteHeader'
 import { ConfirmModal } from '@/components/ConfirmModal'
-import { INFO_NO_BROWSER_INSTALL, INFO_SELECT_CS_FOLDER, STATUS_LOADING_MAPS, INFO_WRONG_CS_FOLDER } from '@/lib/constants/messages'
+import { INFO_NO_BROWSER_INSTALL, INFO_SELECT_CS_FOLDER, INFO_WRONG_CS_FOLDER } from '@/lib/constants/messages'
+
+function MapCardSkeleton() {
+  return (
+    <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden animate-pulse">
+      <div className="h-28 bg-[var(--bg-inset)]" />
+      <div className="px-2.5 py-2 flex flex-col gap-2">
+        <div className="h-3 bg-[var(--border)] rounded w-3/4" />
+        <div className="h-3 bg-[var(--border)] rounded w-1/2" />
+        <div className="h-6 bg-[var(--border)] rounded mt-1" />
+      </div>
+    </div>
+  )
+}
+
 export default function HomePage() {
   const [maps, setMaps] = useState<MapEntry[]>([])
   const [loading, setLoading] = useState(true)
@@ -66,7 +80,9 @@ export default function HomePage() {
           </div>
         )}
         {loading ? (
-          <div className="text-center py-20 text-[var(--text-muted)] text-sm font-mono">{STATUS_LOADING_MAPS}</div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-[10px]">
+            {Array.from({ length: 10 }).map((_, i) => <MapCardSkeleton key={i} />)}
+          </div>
         ) : (
           <MapList maps={maps} gameFolder={gameFolder} onPickFolder={handlePickFolder} />
         )}
