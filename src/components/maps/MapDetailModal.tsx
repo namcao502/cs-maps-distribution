@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Image from 'next/image'
 import type { MapEntry } from '@/types/map'
 import type { InstallStatus } from '@/lib/maps/install'
 import { InstallStepper } from './InstallStepper'
@@ -51,12 +52,13 @@ export function MapDetailModal({
           background: screenshots[activeScreenshot] ? undefined : 'linear-gradient(135deg, #1a2744, #0f1e3a)'
         }}>
           {screenshots[activeScreenshot] && (
-            <img
+            <Image
               key={screenshots[activeScreenshot]}
               src={screenshots[activeScreenshot]}
               alt={map.originalName}
-              className={`w-full h-full object-cover transition-opacity duration-200 ${imgLoading ? 'opacity-0' : 'opacity-100'}`}
-              onLoadStart={() => setImgLoading(true)}
+              fill
+              unoptimized
+              className={`object-cover transition-opacity duration-200 ${imgLoading ? 'opacity-0' : 'opacity-100'}`}
               onLoad={() => setImgLoading(false)}
             />
           )}
@@ -67,23 +69,28 @@ export function MapDetailModal({
           )}
           {/* Close */}
           <button
-            className="absolute top-3 right-3 text-[var(--text-muted)] hover:text-[var(--text-primary)] font-mono text-sm"
+            className="absolute top-2 right-2 w-11 h-11 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] font-mono text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-cyan)] rounded-sm"
             onClick={onClose}
             aria-label="Close"
           >✕</button>
           {/* Thumbnail strip */}
           {screenshots.length > 1 && (
-            <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
+            <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
               {screenshots.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => { setActiveScreenshot(i); setImgLoading(true) }}
-                  className="w-8 h-5 rounded-sm border transition-colors"
-                  style={{
-                    borderColor: i === activeScreenshot ? 'var(--accent-cyan)' : 'var(--border)',
-                    background: i === activeScreenshot ? 'rgba(56,189,248,0.3)' : 'rgba(0,0,0,0.5)',
-                  }}
-                />
+                  className="w-11 h-11 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-cyan)] rounded-sm"
+                  aria-label={`Screenshot ${i + 1} of ${screenshots.length}`}
+                >
+                  <span
+                    className="w-8 h-5 rounded-sm border transition-colors block"
+                    style={{
+                      borderColor: i === activeScreenshot ? 'var(--accent-cyan)' : 'var(--border)',
+                      background: i === activeScreenshot ? 'rgba(56,189,248,0.3)' : 'rgba(0,0,0,0.5)',
+                    }}
+                  />
+                </button>
               ))}
             </div>
           )}
@@ -130,13 +137,13 @@ export function MapDetailModal({
               confirmReinstall ? (
                 <>
                   <button
-                    className="flex-1 py-2 rounded-md text-sm font-mono font-bold bg-[var(--accent-orange)] text-black hover:opacity-90 transition-opacity"
+                    className="flex-1 py-2 rounded-md text-sm font-mono font-bold bg-[var(--accent-orange)] text-black hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-orange)]"
                     onClick={() => { setConfirmReinstall(false); onInstall() }}
                   >
                     {BTN_REINSTALL}
                   </button>
                   <button
-                    className="px-4 py-2 rounded-md text-sm font-mono text-[var(--text-subtle)] border border-[var(--border)] hover:text-[var(--text-primary)] transition-colors"
+                    className="px-4 py-2 rounded-md text-sm font-mono text-[var(--text-subtle)] border border-[var(--border)] hover:text-[var(--text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-orange)]"
                     onClick={() => setConfirmReinstall(false)}
                   >
                     {BTN_CANCEL}
@@ -144,7 +151,7 @@ export function MapDetailModal({
                 </>
               ) : (
                 <button
-                  className={`flex-1 py-2 rounded-md text-sm font-mono font-bold tracking-wide transition-colors ${
+                  className={`flex-1 py-2 rounded-md text-sm font-mono font-bold tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-orange)] ${
                     isInstalling
                       ? 'bg-[var(--bg-inset)] text-[var(--accent-orange)] border border-[var(--accent-orange)]'
                       : installed
@@ -160,7 +167,7 @@ export function MapDetailModal({
             )}
             {!confirmReinstall && (
               <button
-                className="px-4 py-2 rounded-md text-sm font-mono text-[var(--text-subtle)] border border-[var(--border)] hover:text-[var(--text-primary)] transition-colors"
+                className="px-4 py-2 rounded-md text-sm font-mono text-[var(--text-subtle)] border border-[var(--border)] hover:text-[var(--text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-orange)]"
                 onClick={onDownload}
               >
                 {BTN_DOWNLOAD_LONG}
