@@ -31,7 +31,7 @@ export function MapDetailModal({
   installed?: boolean
 }) {
   const [activeScreenshot, setActiveScreenshot] = useState(0)
-  const [imgLoading, setImgLoading] = useState(false)
+  const [imgLoading, setImgLoading] = useState((map.screenshotKeys?.length ?? 0) > 0)
   const [confirmReinstall, setConfirmReinstall] = useState(false)
   const screenshots = map.screenshotKeys ?? []
   const supportsFileApi = isFileSystemAccessSupported()
