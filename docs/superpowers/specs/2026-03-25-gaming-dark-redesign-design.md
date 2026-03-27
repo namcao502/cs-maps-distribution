@@ -99,7 +99,8 @@ Each card has two zones: thumbnail and info.
 ### Admin side
 - Map upload form gains a **Screenshots** section: up to 3 images per map, drag-and-drop or file picker
 - Accepted formats: JPG, PNG, WebP — max 2 MB each
-- Screenshots stored in Supabase under `screenshots/{mapId}/0.webp`, `screenshots/{mapId}/1.webp`, `screenshots/{mapId}/2.webp` (0-based index). The DELETE endpoint `[index]` is also 0-based and maps directly to the filename.
+- Screenshots stored in Supabase under `screenshots/{mapId}/0`, `screenshots/{mapId}/1`, `screenshots/{mapId}/2` (0-based index, extension preserved from the uploaded file). The DELETE endpoint `[index]` is also 0-based.
+- `screenshotKeys` stores the full path including extension, e.g. `"screenshots/uuid/0.jpg"`
 - Admin can reorder or delete screenshots per map
 - Maps with no screenshots show a placeholder gradient (existing behaviour)
 
