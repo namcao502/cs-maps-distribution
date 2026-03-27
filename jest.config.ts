@@ -1,5 +1,8 @@
 import type { Config } from 'jest'
 
+// When running inside a worktree (.worktrees/<branch>/), don't exclude sibling worktrees
+const inWorktree = __dirname.replace(/\\/g, '/').includes('/.worktrees/')
+
 const config: Config = {
   testEnvironment: 'node',
   preset: 'ts-jest',
@@ -7,7 +10,9 @@ const config: Config = {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   testMatch: ['**/tests/**/*.test.ts', '**/tests/**/*.test.tsx'],
-  testPathIgnorePatterns: ['/node_modules/', '/.worktrees/'],
+  testPathIgnorePatterns: inWorktree
+    ? ['/node_modules/']
+    : ['/node_modules/', '/.worktrees/'],
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: { jsx: 'react-jsx' } }],
     '^.+\\.js$': ['ts-jest', { tsconfig: { jsx: 'react-jsx' } }],
