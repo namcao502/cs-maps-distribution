@@ -7,7 +7,7 @@ const config: Config = {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   testMatch: ['**/tests/**/*.test.ts', '**/tests/**/*.test.tsx'],
-  testPathIgnorePatterns: ['/node_modules/'],
+  testPathIgnorePatterns: ['/node_modules/', '/.worktrees/'],
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: { jsx: 'react-jsx' } }],
     '^.+\\.js$': ['ts-jest', { tsconfig: { jsx: 'react-jsx' } }],
