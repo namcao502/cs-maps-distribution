@@ -196,6 +196,7 @@ export function MapList({
     <div className="flex flex-col gap-3">
       <div className="flex justify-center">
         <div className="grid grid-cols-1 gap-3 w-fit mx-auto">
+          {!gameFolder && (
           <div className="bg-[var(--bg-inset)] border border-[var(--border)] rounded-xl px-4 py-3 text-xs text-[var(--text-muted)] font-mono">
             <p className="text-[var(--text-primary)] font-sans font-medium text-sm mb-2">{INFO_PICK_CS_FOLDER}</p>
             <div className="flex flex-col gap-0.5">
@@ -225,6 +226,7 @@ export function MapList({
               <span className="font-sans">Ex:</span> C:\Games\<span className="text-blue-500 font-semibold">Counter-Strike</span>
             </p>
           </div>
+          )}
           <button
             onClick={onPickFolder}
             className={`w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-medium transition-all active:scale-95 ${
