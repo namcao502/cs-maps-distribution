@@ -203,12 +203,14 @@ test('modal download triggers fetch and URL.createObjectURL', async () => {
 
 test('selecting a map shows batch install button', async () => {
   render(<MapList {...defaultProps} />)
+  fireEvent.click(screen.getByText('Select'))
   fireEvent.click(screen.getAllByTestId('toggle-select')[0])
   await waitFor(() => expect(screen.getByText(/install all/i)).toBeInTheDocument())
 })
 
 test('clicking batch install button clears selection', async () => {
   render(<MapList {...defaultProps} />)
+  fireEvent.click(screen.getByText('Select'))
   fireEvent.click(screen.getAllByTestId('toggle-select')[0])
   await waitFor(() => expect(screen.getByText(/install all/i)).toBeInTheDocument())
   fireEvent.click(screen.getByText(/install all/i))
@@ -254,7 +256,8 @@ test('CheatCodeBanner copy button calls clipboard writeText', async () => {
 
 test('batch trigger is cleared after card calls onBatchTriggered', async () => {
   render(<MapList {...defaultProps} />)
-  // select first map
+  // enter select mode, then select first map
+  fireEvent.click(screen.getByText('Select'))
   fireEvent.click(screen.getAllByTestId('toggle-select')[0])
   await waitFor(() => expect(screen.getByText(/install all/i)).toBeInTheDocument())
   // trigger batch install → batchTrigger set → card gets autoInstall=true → shows batch-done button

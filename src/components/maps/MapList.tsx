@@ -72,6 +72,12 @@ export function MapList({
   const [installedBsps, setInstalledBsps] = useState<Set<string>>(new Set())
   const [installStatuses, setInstallStatuses] = useState<Map<string, InstallStatus | null>>(new Map())
   const [openDetailMap, setOpenDetailMap] = useState<MapEntry | null>(null)
+  const [sortBy, setSortBy] = useState<'downloads' | 'name'>('downloads')
+  const [selectMode, setSelectMode] = useState(false)
+
+  useEffect(() => {
+    if (!selectMode) setSelectedIds(new Set())
+  }, [selectMode])
 
   const mapsRef = useRef(maps)
   useEffect(() => { mapsRef.current = maps }, [maps])
@@ -181,7 +187,11 @@ export function MapList({
     m.originalName.toLowerCase().includes(query.toLowerCase())
   )
 
-  const sorted = filtered
+  const sorted = [...filtered].sort((a, b) =>
+    sortBy === 'name'
+      ? a.originalName.localeCompare(b.originalName)
+      : b.installCount - a.installCount
+  )
 
   if (maps.length === 0) {
     return (
@@ -269,6 +279,20 @@ export function MapList({
               </button>
             )
           })}
+          <div className="ml-auto flex items-center gap-1">
+            <button
+              onClick={() => setSortBy('downloads')}
+              className={`px-2 py-1 text-[10px] font-mono rounded transition-colors ${sortBy === 'downloads' ? 'bg-[var(--accent-cyan)] text-black' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
+            >
+              ↓ Most
+            </button>
+            <button
+              onClick={() => setSortBy('name')}
+              className={`px-2 py-1 text-[10px] font-mono rounded transition-colors ${sortBy === 'name' ? 'bg-[var(--accent-cyan)] text-black' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
+            >
+              A–Z
+            </button>
+          </div>
         </nav>
       </div>
 
@@ -279,8 +303,14 @@ export function MapList({
             filtered.length
           )}
         </span>
+        <button
+          onClick={() => setSelectMode(s => !s)}
+          className={`ml-auto text-[10px] font-mono px-2 py-0.5 rounded border transition-colors ${selectMode ? 'border-[var(--accent-orange)] text-[var(--accent-orange)] bg-[var(--bg-inset)]' : 'border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
+        >
+          {selectMode ? '✕ Cancel' : 'Select'}
+        </button>
         {selectedIds.size > 0 && (
-          <span className="ml-auto flex items-center gap-2">
+          <span className="flex items-center gap-2">
             <span>{LABEL_SELECTED_COUNT(selectedIds.size)}</span>
             <button
               onClick={triggerBatchInstall}
@@ -294,7 +324,7 @@ export function MapList({
       {filtered.length === 0 ? (
         <p className="text-[var(--text-muted)] text-center py-12">{STATUS_NO_MAPS_FOUND}</p>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-[10px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-[10px]">
           {sorted.map(map => (
             <MapCard
               key={map.id}
@@ -305,7 +335,7 @@ export function MapList({
               onInstalled={handleInstalled}
               onOpenDetail={map => setOpenDetailMap(map)}
               selected={selectedIds.has(map.id)}
-              onToggleSelect={() => toggleSelect(map.id)}
+              onToggleSelect={selectMode ? () => toggleSelect(map.id) : undefined}
               autoInstall={batchTrigger.has(map.id)}
               onBatchTriggered={() => clearBatchTrigger(map.id)}
               installStatus={installStatuses.get(map.id) ?? null}
