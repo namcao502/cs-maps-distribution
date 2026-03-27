@@ -143,7 +143,7 @@ export function MapCard({
       {/* Thumbnail zone */}
       <div
         data-testid="card-thumbnail"
-        className="relative h-28 cursor-pointer"
+        className="relative h-40 sm:h-28 cursor-pointer"
         style={{ background: screenshotUrl ? undefined : 'linear-gradient(135deg, #1a2744, #0f1e3a)' }}
         onClick={() => onOpenDetail(map)}
       >

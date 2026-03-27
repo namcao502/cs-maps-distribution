@@ -324,7 +324,7 @@ export function MapList({
       {filtered.length === 0 ? (
         <p className="text-[var(--text-muted)] text-center py-12">{STATUS_NO_MAPS_FOUND}</p>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-[10px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-[10px]">
           {sorted.map(map => (
             <MapCard
               key={map.id}
