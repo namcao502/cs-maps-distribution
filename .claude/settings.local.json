@@ -41,7 +41,11 @@
       "Bash(date:*)",
       "Bash(npx jest:*)",
       "Bash(git worktree:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(cat c:/MDP/CS-map-distribution/next.config.*)",
+      "Bash(find /c/MDP/CS-map-distribution/node_modules/next/dist/docs -type f -name *.md)",
+      "Bash(npm audit:*)",
+      "Bash(cat c:/MDP/CS-map-distribution/src/app/api/download/\\\\[id\\\\]/route.ts)"
     ]
   }
 }
