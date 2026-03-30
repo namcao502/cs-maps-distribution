@@ -35,6 +35,7 @@ export function MapCard({
   onBatchTriggered,
   installStatus,
   onInstallStatusChange,
+  priority = false,
 }: {
   map: MapEntry
   gameFolder: FileSystemDirectoryHandle | null
@@ -48,6 +49,7 @@ export function MapCard({
   onBatchTriggered?: () => void
   installStatus?: InstallStatus | null
   onInstallStatusChange?: (id: string, status: InstallStatus | null) => void
+  priority?: boolean
 }) {
   const { push } = useNotifications()
   const [installed, setInstalled] = useState(() => isInstalledLocally(map.id))
@@ -148,7 +150,7 @@ export function MapCard({
         onClick={() => onOpenDetail(map)}
       >
         {screenshotUrl && (
-          <Image src={screenshotUrl} alt={map.originalName} fill unoptimized className="object-cover" />
+          <Image src={screenshotUrl} alt={map.originalName} fill unoptimized className="object-cover" loading={priority ? 'eager' : 'lazy'} />
         )}
         {!screenshotUrl && (
           <>

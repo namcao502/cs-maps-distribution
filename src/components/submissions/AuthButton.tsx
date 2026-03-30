@@ -4,6 +4,7 @@ import Link from 'next/link'
 import {
   GoogleAuthProvider,
   signInWithPopup,
+  browserPopupRedirectResolver,
   onAuthStateChanged,
   signOut as firebaseSignOut,
   type User,
@@ -27,7 +28,7 @@ export function AuthButton({ adminEmail }: { adminEmail: string }) {
     const auth = getFirebaseAuth()
     const provider = new GoogleAuthProvider()
     try {
-      const result = await signInWithPopup(auth, provider)
+      const result = await signInWithPopup(auth, provider, browserPopupRedirectResolver)
       const idToken = await result.user.getIdToken()
       await fetch('/api/auth/session', {
         method: 'POST',

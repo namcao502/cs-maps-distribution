@@ -325,7 +325,7 @@ export function MapList({
         <p className="text-[var(--text-muted)] text-center py-12">{STATUS_NO_MAPS_FOUND}</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-[10px]">
-          {sorted.map(map => (
+          {sorted.map((map, i) => (
             <MapCard
               key={map.id}
               map={map}
@@ -340,6 +340,7 @@ export function MapList({
               onBatchTriggered={() => clearBatchTrigger(map.id)}
               installStatus={installStatuses.get(map.id) ?? null}
               onInstallStatusChange={updateInstallStatus}
+              priority={i < 5}
             />
           ))}
         </div>
