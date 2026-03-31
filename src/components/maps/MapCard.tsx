@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import Image from 'next/image'
 import type { MapEntry } from '@/types/map'
 import { isFileSystemAccessSupported, installMap, isBspInstalled } from '@/lib/maps/install'
@@ -22,7 +22,7 @@ function getTypeBadge(tags: string[]): { label: string; color: string } | null {
   return null
 }
 
-export function MapCard({
+export const MapCard = memo(function MapCard({
   map,
   gameFolder,
   onPickFolder,
@@ -36,6 +36,9 @@ export function MapCard({
   installStatus,
   onInstallStatusChange,
   priority = false,
+  badge,
+  caption,
+  featured = false,
 }: {
   map: MapEntry
   gameFolder: FileSystemDirectoryHandle | null
@@ -50,6 +53,9 @@ export function MapCard({
   installStatus?: InstallStatus | null
   onInstallStatusChange?: (id: string, status: InstallStatus | null) => void
   priority?: boolean
+  badge?: string
+  caption?: string
+  featured?: boolean
 }) {
   const { push } = useNotifications()
   const [installed, setInstalled] = useState(() => isInstalledLocally(map.id))
@@ -122,14 +128,16 @@ export function MapCard({
     }
   }
 
-  const badge = getTypeBadge(map.tags)
+  const typeBadge = getTypeBadge(map.tags)
   const screenshotUrl = map.screenshotKeys?.[0] ?? null
 
-  const cardBorder = installed
-    ? 'border-[var(--border-installed)] border-l-[3px] border-l-[var(--accent-green)]'
-    : isInstalling
-      ? 'border-[var(--accent-orange)]'
-      : 'border-[var(--border)] hover:border-[var(--accent-cyan)]'
+  const cardBorder = isInstalling
+    ? 'border-[var(--accent-orange)]'
+    : badge
+      ? 'border-[var(--accent-cyan)]'
+      : installed
+        ? 'border-[var(--border-installed)] border-l-[3px] border-l-[var(--accent-green)]'
+        : 'border-[var(--border)] hover:border-[var(--accent-cyan)]'
 
   const phaseLabel = installStatus
     ? installStatus.phase === 'downloading' ? PHASE_DOWNLOADING(Math.round(installStatus.progress))
@@ -139,13 +147,174 @@ export function MapCard({
     : null
     : null
 
+  if (featured) {
+    return (
+      <div
+        className={`bg-[var(--bg-surface)] border rounded-lg overflow-hidden flex flex-row transition-[colors,transform,box-shadow] duration-200 ${isInstalling ? '' : 'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/30'} ${cardBorder}`}
+        style={badge && !isInstalling ? { boxShadow: '0 0 0 1px rgba(6,182,212,0.15), 0 0 20px rgba(6,182,212,0.15)' } : undefined}
+      >
+        {/* Thumbnail */}
+        <div
+          data-testid="card-thumbnail"
+          className="relative w-72 self-stretch cursor-pointer shrink-0"
+          style={{ background: screenshotUrl ? undefined : 'linear-gradient(135deg, #1a2744, #0f1e3a)' }}
+          onClick={() => onOpenDetail(map)}
+        >
+          {screenshotUrl && (
+            <Image src={screenshotUrl} alt={map.originalName} fill unoptimized className="object-cover" loading={priority ? 'eager' : 'lazy'} />
+          )}
+          {!screenshotUrl && (
+            <>
+              <style>{`[data-map-placeholder="${map.id}"]::before { content: "${map.originalName}"; display: block; color: var(--text-muted); font-family: monospace; font-size: 10px; text-align: center; opacity: 0.6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }`}</style>
+              <div
+                className="absolute inset-0 flex items-center justify-center px-2 pointer-events-none"
+                aria-hidden="true"
+                data-testid="card-thumbnail-placeholder"
+                data-map-placeholder={map.id}
+              />
+            </>
+          )}
+          {typeBadge && (
+            <span
+              className="absolute top-1.5 left-2 text-xs font-mono font-bold px-1.5 py-0.5 rounded-sm text-black inline-block text-center min-w-[7rem]"
+              style={{ background: typeBadge.color }}
+            >
+              {typeBadge.label}
+            </span>
+          )}
+          {onToggleSelect && (
+            <button
+              className="absolute top-0 right-0 w-11 h-11 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-orange)] rounded-sm"
+              onClick={e => { e.stopPropagation(); onToggleSelect() }}
+              aria-label={selected ? 'Deselect' : 'Select'}
+            >
+              <span
+                className="w-4 h-4 rounded-sm border flex items-center justify-center"
+                style={{
+                  background: selected ? 'var(--accent-orange)' : 'rgba(0,0,0,0.5)',
+                  borderColor: selected ? 'var(--accent-orange)' : 'var(--text-muted)',
+                }}
+              >
+                {selected && <span className="text-black text-xs font-bold leading-none">✓</span>}
+              </span>
+            </button>
+          )}
+          {isInstalling && (
+            <div
+              className="absolute bottom-0 left-0 right-0 h-[3px] bg-[var(--border)]"
+              role="progressbar"
+              aria-valuenow={Math.round(downloadProgress ?? 50)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Download progress"
+            >
+              <div
+                className="h-full bg-[var(--accent-orange)] transition-all duration-300"
+                style={{ width: `${downloadProgress ?? 50}%` }}
+              />
+            </div>
+          )}
+          {installed && !isInstalling && (
+            <div className="absolute inset-0 bg-[var(--accent-green)] opacity-5 pointer-events-none" />
+          )}
+        </div>
+
+        {/* Body */}
+        <div className="flex flex-col justify-between flex-1 px-5 py-4 min-w-0">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5 min-w-0">
+              <button
+                type="button"
+                className="text-base font-mono font-bold text-[var(--accent-cyan)] cursor-pointer hover:opacity-80 truncate text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-cyan)] rounded-sm"
+                onClick={() => onOpenDetail(map)}
+              >
+                {map.originalName}
+              </button>
+              {badge && (
+                <span
+                  className="shrink-0 flex items-center gap-1 px-1.5 py-0.5 rounded-sm text-[9px] font-mono font-bold"
+                  style={{ background: 'rgba(6,182,212,0.15)', border: '1px solid var(--accent-cyan)', color: 'var(--accent-cyan)' }}
+                >
+                  ★ {badge}
+                </span>
+              )}
+            </div>
+            {caption && (
+              <p className="text-xs text-[var(--text-muted)] font-mono mb-3 line-clamp-2">{caption}</p>
+            )}
+          </div>
+          <div className="flex justify-between items-end gap-2">
+            <div className="text-[var(--text-muted)] text-sm font-mono">
+              {isInstalling && phaseLabel ? (
+                <span className="text-[var(--accent-orange)] truncate">{phaseLabel}</span>
+              ) : (
+                <div className="flex flex-col gap-1">
+                  <span>{formatBytes(map.size)}</span>
+                  <span className={`flex items-center gap-1 ${installCount > 100 ? 'text-[var(--accent-orange)]' : ''}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    {installCount.toLocaleString()}
+                  </span>
+                </div>
+              )}
+            </div>
+            {supportsFileApi ? (
+              confirmReinstall ? (
+                <div className="flex gap-1 shrink-0">
+                  <button
+                    className="py-2 px-4 rounded text-sm font-mono font-bold bg-[var(--accent-orange)] text-black hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-orange)]"
+                    onClick={() => { setConfirmReinstall(false); void doInstall() }}
+                  >
+                    {BTN_REINSTALL}
+                  </button>
+                  <button
+                    className="px-3 py-2 rounded text-sm font-mono text-[var(--text-muted)] border border-[var(--border)] hover:text-[var(--text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-orange)]"
+                    onClick={() => setConfirmReinstall(false)}
+                  >
+                    {BTN_CANCEL}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className={`shrink-0 py-2 px-6 rounded text-sm font-mono font-bold tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-orange)] ${
+                    isInstalling
+                      ? 'bg-[var(--bg-inset)] text-[var(--accent-orange)] border border-[var(--accent-orange)]'
+                      : installed
+                        ? 'bg-transparent text-[var(--accent-green)] border border-[var(--accent-green)] hover:opacity-80'
+                        : 'bg-[var(--accent-orange)] text-black hover:opacity-90'
+                  }`}
+                  onClick={() => { if (isInstalling) return; if (installed) { setConfirmReinstall(true) } else { void doInstall() } }}
+                  disabled={isInstalling}
+                >
+                  {isInstalling ? BTN_INSTALLING : installed ? BTN_INSTALLED : BTN_INSTALL}
+                </button>
+              )
+            ) : (
+              <button
+                aria-label="install (download)"
+                className="shrink-0 py-2 px-6 rounded text-sm font-mono font-bold bg-[var(--bg-inset)] text-[var(--text-muted)] border border-[var(--border)] hover:text-[var(--text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-orange)]"
+                onClick={handleRawDownload}
+              >
+                {BTN_DOWNLOAD}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className={`bg-[var(--bg-surface)] border rounded-lg overflow-hidden transition-[colors,transform,box-shadow] duration-200 ${isInstalling ? '' : 'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/30'} ${cardBorder}`}>
+    <div
+      className={`bg-[var(--bg-surface)] border rounded-lg overflow-hidden transition-[colors,transform,box-shadow] duration-200 ${isInstalling ? '' : 'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/30'} ${cardBorder}`}
+      style={badge && !isInstalling ? { boxShadow: '0 0 0 1px rgba(6,182,212,0.15), 0 0 20px rgba(6,182,212,0.15)' } : undefined}
+    >
 
       {/* Thumbnail zone */}
       <div
         data-testid="card-thumbnail"
-        className="relative h-40 sm:h-28 cursor-pointer"
+        className="relative h-48 sm:h-36 cursor-pointer"
         style={{ background: screenshotUrl ? undefined : 'linear-gradient(135deg, #1a2744, #0f1e3a)' }}
         onClick={() => onOpenDetail(map)}
       >
@@ -163,29 +332,31 @@ export function MapCard({
             />
           </>
         )}
-        {badge && (
+        {typeBadge && (
           <span
             className="absolute top-1.5 left-2 text-xs font-mono font-bold px-1.5 py-0.5 rounded-sm text-black inline-block text-center min-w-[7rem]"
-            style={{ background: badge.color }}
+            style={{ background: typeBadge.color }}
           >
-            {badge.label}
+            {typeBadge.label}
           </span>
         )}
-        <button
-          className="absolute top-0 right-0 w-11 h-11 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-orange)] rounded-sm"
-          onClick={e => { e.stopPropagation(); onToggleSelect?.() }}
-          aria-label={selected ? 'Deselect' : 'Select'}
-        >
-          <span
-            className="w-4 h-4 rounded-sm border flex items-center justify-center"
-            style={{
-              background: selected ? 'var(--accent-orange)' : 'rgba(0,0,0,0.5)',
-              borderColor: selected ? 'var(--accent-orange)' : 'var(--text-muted)',
-            }}
+        {onToggleSelect && (
+          <button
+            className="absolute top-0 right-0 w-11 h-11 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-orange)] rounded-sm"
+            onClick={e => { e.stopPropagation(); onToggleSelect() }}
+            aria-label={selected ? 'Deselect' : 'Select'}
           >
-            {selected && <span className="text-black text-xs font-bold leading-none">✓</span>}
-          </span>
-        </button>
+            <span
+              className="w-4 h-4 rounded-sm border flex items-center justify-center"
+              style={{
+                background: selected ? 'var(--accent-orange)' : 'rgba(0,0,0,0.5)',
+                borderColor: selected ? 'var(--accent-orange)' : 'var(--text-muted)',
+              }}
+            >
+              {selected && <span className="text-black text-xs font-bold leading-none">✓</span>}
+            </span>
+          </button>
+        )}
         {isInstalling && (
           <div
             className="absolute bottom-0 left-0 right-0 h-[3px] bg-[var(--border)]"
@@ -204,17 +375,31 @@ export function MapCard({
         {installed && !isInstalling && (
           <div className="absolute inset-0 bg-[var(--accent-green)] opacity-5 pointer-events-none" />
         )}
+        {badge && !isInstalling && (
+          <div
+            className="absolute bottom-0 left-0 right-0 flex items-center gap-1 px-2 py-1 pointer-events-none"
+            style={{ background: 'linear-gradient(transparent, rgba(6,182,212,0.22))' }}
+          >
+            <span style={{ color: 'var(--accent-cyan)', fontSize: 11 }}>★</span>
+            <span className="text-[9px] font-mono font-bold tracking-wide" style={{ color: 'var(--accent-cyan)' }}>
+              {badge}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Info zone */}
-      <div className="px-2.5 py-2">
+      <div className="px-3 py-2.5">
         <button
           type="button"
-          className="text-xs font-mono font-bold text-[var(--text-primary)] mb-1 cursor-pointer hover:text-[var(--accent-cyan)] truncate text-left w-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-cyan)] rounded-sm"
+          className={`text-sm font-mono font-bold mb-1 cursor-pointer hover:text-[var(--accent-cyan)] truncate text-left w-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-cyan)] rounded-sm ${badge ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-primary)]'}`}
           onClick={() => onOpenDetail(map)}
         >
           {map.originalName}
         </button>
+        {caption && (
+          <p className="text-[10px] text-[var(--text-muted)] font-mono mb-1 truncate">{caption}</p>
+        )}
         <div className="flex justify-between items-center mb-2 text-[var(--text-muted)] text-xs font-mono">
           {isInstalling && phaseLabel ? (
             <span className="text-[var(--accent-orange)] truncate">{phaseLabel}</span>
@@ -233,13 +418,13 @@ export function MapCard({
           confirmReinstall ? (
             <div className="flex gap-1">
               <button
-                className="flex-1 py-1.5 rounded text-xs font-mono font-bold bg-[var(--accent-orange)] text-black hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-orange)]"
+                className="flex-1 py-2 rounded text-xs font-mono font-bold bg-[var(--accent-orange)] text-black hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-orange)]"
                 onClick={() => { setConfirmReinstall(false); void doInstall() }}
               >
                 {BTN_REINSTALL}
               </button>
               <button
-                className="px-2 py-1.5 rounded text-xs font-mono text-[var(--text-muted)] border border-[var(--border)] hover:text-[var(--text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-orange)]"
+                className="px-2 py-2 rounded text-xs font-mono text-[var(--text-muted)] border border-[var(--border)] hover:text-[var(--text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-orange)]"
                 onClick={() => setConfirmReinstall(false)}
               >
                 {BTN_CANCEL}
@@ -247,7 +432,7 @@ export function MapCard({
             </div>
           ) : (
             <button
-              className={`w-full py-1.5 rounded text-xs font-mono font-bold tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-orange)] ${
+              className={`w-full py-2 rounded text-xs font-mono font-bold tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-orange)] ${
                 isInstalling
                   ? 'bg-[var(--bg-inset)] text-[var(--accent-orange)] border border-[var(--accent-orange)]'
                   : installed
@@ -272,4 +457,4 @@ export function MapCard({
       </div>
     </div>
   )
-}
+})

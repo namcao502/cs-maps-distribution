@@ -23,6 +23,7 @@ function MapCardSkeleton() {
 
 export default function HomePage() {
   const [maps, setMaps] = useState<MapEntry[]>([])
+  const [dailyPick, setDailyPick] = useState<{ map: MapEntry; caption: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [gameFolder, setGameFolder] = useState<FileSystemDirectoryHandle | null>(null)
   const [supportsFileApi, setSupportsFileApi] = useState(false)
@@ -30,10 +31,13 @@ export default function HomePage() {
 
   function fetchMaps() {
     setLoading(true)
-    fetch('/api/maps')
-      .then(r => r.ok ? r.json() : [])
-      .then(setMaps)
-      .finally(() => setLoading(false))
+    Promise.all([
+      fetch('/api/maps').then(r => r.ok ? r.json() : []),
+      fetch('/api/daily-pick').then(r => r.ok ? r.json() : null).catch(() => null),
+    ]).then(([mapsData, pickData]) => {
+      setMaps(mapsData)
+      setDailyPick(pickData)
+    }).finally(() => setLoading(false))
   }
 
   useEffect(() => {
@@ -84,7 +88,7 @@ export default function HomePage() {
             {Array.from({ length: 10 }).map((_, i) => <MapCardSkeleton key={i} />)}
           </div>
         ) : (
-          <MapList maps={maps} gameFolder={gameFolder} onPickFolder={handlePickFolder} />
+          <MapList maps={maps} gameFolder={gameFolder} onPickFolder={handlePickFolder} dailyPick={dailyPick} />
         )}
       </main>
       {pendingHandle && (

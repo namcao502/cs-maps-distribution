@@ -129,3 +129,12 @@ export const PHASE_DOWNLOADING = (pct: number) => `Downloading... ${pct}%`
 export const PHASE_WRITING = (done: number, total: number) => `Writing ${done}/${total}...`
 export const PHASE_VERIFYING = 'Verifying...'
 export const PHASE_EXTRACTING = 'Extracting...'
+
+// Daily pick
+export const LABEL_DAILY_PICK = "Today's Pick"
+export const BTN_SET_AS_PICK = 'Set as pick'
+export const BTN_TODAY_PICK = "Today's pick ✓"
+export const BTN_CONFIRM_PICK = 'Set'
+export const BTN_REPLACE_PICK = 'Replace'
+export const INFO_CAPTION_PLACEHOLDER = 'Add a caption (optional)…'
+export const ERR_SET_PICK_FAILED = 'Failed to set daily pick'

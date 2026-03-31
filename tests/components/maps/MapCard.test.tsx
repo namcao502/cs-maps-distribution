@@ -269,3 +269,38 @@ describe('download flow (supportsFileApi=false)', () => {
     )
   })
 })
+
+test('badge prop renders overlay inside thumbnail, not as a pill in info zone', () => {
+  render(<MapCard {...defaultProps} badge="Today's Pick" />)
+  const thumb = screen.getByTestId('card-thumbnail')
+  // badge text should be inside the thumbnail zone
+  expect(thumb).toHaveTextContent("Today's Pick")
+  // all instances of the badge text should be descendants of the thumbnail
+  const allMatches = screen.getAllByText("Today's Pick")
+  allMatches.forEach(el => expect(thumb).toContainElement(el))
+})
+
+test('badge overlay is not rendered while installing', () => {
+  render(<MapCard {...defaultProps} badge="Today's Pick" installStatus={{ phase: 'downloading', progress: 50 }} />)
+  expect(screen.queryByText("Today's Pick")).not.toBeInTheDocument()
+})
+
+test('featured prop renders badge tag next to map name, not inside thumbnail', () => {
+  render(<MapCard {...defaultProps} badge="Today's Pick" caption="Great map" featured />)
+  const thumb = screen.getByTestId('card-thumbnail')
+  // badge must NOT be inside the thumbnail
+  expect(thumb).not.toHaveTextContent("Today's Pick")
+  // badge must be in the document (in the body, next to the map name)
+  expect(screen.getByText('★ Today\'s Pick')).toBeInTheDocument()
+  expect(thumb).not.toContainElement(screen.getByText('★ Today\'s Pick'))
+  // caption must also be outside the thumbnail
+  const caption = screen.getByText('Great map')
+  expect(caption).toBeInTheDocument()
+  expect(thumb).not.toContainElement(caption)
+})
+
+test('featured badge renders in body even while installing', () => {
+  render(<MapCard {...defaultProps} badge="Today's Pick" featured installStatus={{ phase: 'downloading', progress: 50 }} />)
+  // badge is in the body (not thumbnail), so it shows even during install
+  expect(screen.getByText('★ Today\'s Pick')).toBeInTheDocument()
+})

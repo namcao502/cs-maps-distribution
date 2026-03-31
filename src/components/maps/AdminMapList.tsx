@@ -11,7 +11,8 @@ import {
   STATUS_SAVING_ORDER, STATUS_NO_MAPS_ADMIN, STATUS_NO_MAPS_FOUND,
   BTN_MOVE_UP, BTN_MOVE_DOWN, BTN_SHOW, BTN_HIDE, BTN_DELETE, STATUS_ELLIPSIS,
   STATUS_UPLOADING, BTN_ADD_SCREENSHOT, LABEL_SCREENSHOTS, INFO_SCREENSHOTS_UP_TO,
-  LABEL_DELETE_CONFIRM,
+  LABEL_DELETE_CONFIRM, BTN_SET_AS_PICK, BTN_TODAY_PICK, BTN_CONFIRM_PICK, BTN_REPLACE_PICK,
+  INFO_CAPTION_PLACEHOLDER, ERR_SET_PICK_FAILED,
 } from '@/lib/constants/messages'
 
 const TAG_SHORT: Record<string, string> = {
@@ -57,9 +58,23 @@ export function AdminMapList({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [orderedMaps, setOrderedMaps] = useState<MapEntry[]>(maps)
   const [isSaving, setIsSaving] = useState(false)
+  const [currentPickId, setCurrentPickId] = useState<string | null>(null)
+  const [settingPickId, setSettingPickId] = useState<string | null>(null)
+  const [confirmingPickFor, setConfirmingPickFor] = useState<string | null>(null)
+  const [pickCaption, setPickCaption] = useState('')
+  const [savingPick, setSavingPick] = useState(false)
   const { push } = useNotifications()
 
   useEffect(() => { setOrderedMaps(maps) }, [maps])
+
+  useEffect(() => {
+    fetch('/api/daily-pick')
+      .then(r => r.ok ? r.json() : null)
+      .then((data: { map: { id: string }; caption: string } | null) => {
+        setCurrentPickId(data?.map.id ?? null)
+      })
+      .catch(() => {})
+  }, [])
 
   async function toggleTag(map: MapEntry, tag: string) {
     const newTags = [tag, ...map.tags.filter(t => !MAP_TAGS.includes(t as typeof MAP_TAGS[number]))]
@@ -163,6 +178,27 @@ export function AdminMapList({
     onScreenshotsUpdated(map.id, newKeys)
     setUploadingScreenshot(null)
     if (newKeys.length > current.length) push(MSG_SCREENSHOTS_UPLOADED, 'success')
+  }
+
+  async function setAsPick(mapId: string) {
+    setSavingPick(true)
+    try {
+      const res = await fetch('/api/admin/daily-pick', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mapId, caption: pickCaption }),
+      })
+      if (!res.ok) throw new Error('Failed')
+      setCurrentPickId(mapId)
+      setSettingPickId(null)
+      setPickCaption('')
+      push('Daily pick set', 'success')
+    } catch (err) {
+      console.error('setAsPick failed:', err)
+      push(ERR_SET_PICK_FAILED, 'error')
+    } finally {
+      setSavingPick(false)
+    }
   }
 
   if (orderedMaps.length === 0) {
@@ -313,6 +349,70 @@ export function AdminMapList({
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
                     {BTN_DELETE}
                   </Button>
+
+                  {/* Daily pick */}
+                  {currentPickId === map.id ? (
+                    <span className="text-xs font-mono px-2 py-1.5 rounded border border-[var(--accent-cyan)] text-[var(--accent-cyan)]">
+                      {BTN_TODAY_PICK}
+                    </span>
+                  ) : confirmingPickFor === map.id ? (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-mono text-[var(--text-muted)]">
+                        Replace <span className="text-[var(--text-primary)]">{orderedMaps.find(m => m.id === currentPickId)?.originalName ?? 'current pick'}</span>?
+                      </span>
+                      <button
+                        onClick={() => { setConfirmingPickFor(null); setSettingPickId(map.id); setPickCaption('') }}
+                        className="text-xs font-mono px-2 py-1.5 rounded bg-[var(--accent-orange)] text-black hover:opacity-90"
+                      >
+                        {BTN_REPLACE_PICK}
+                      </button>
+                      <button
+                        onClick={() => setConfirmingPickFor(null)}
+                        className="text-xs font-mono px-2 py-1.5 rounded border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : settingPickId === map.id ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="text"
+                        value={pickCaption}
+                        onChange={e => setPickCaption(e.target.value)}
+                        placeholder={INFO_CAPTION_PLACEHOLDER}
+                        maxLength={80}
+                        className="text-xs font-mono px-2 py-1.5 rounded border border-[var(--border)] bg-[var(--bg-inset)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-cyan)] w-44"
+                      />
+                      <button
+                        onClick={() => { void setAsPick(map.id) }}
+                        disabled={savingPick}
+                        className="text-xs font-mono px-2 py-1.5 rounded bg-[var(--accent-cyan)] text-black disabled:opacity-50"
+                      >
+                        {savingPick ? STATUS_ELLIPSIS : BTN_CONFIRM_PICK}
+                      </button>
+                      <button
+                        onClick={() => { setSettingPickId(null); setPickCaption('') }}
+                        className="text-xs font-mono px-2 py-1.5 rounded border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        if (currentPickId && currentPickId !== map.id) {
+                          setConfirmingPickFor(map.id)
+                        } else {
+                          setSettingPickId(map.id)
+                          setPickCaption('')
+                        }
+                      }}
+                    >
+                      {BTN_SET_AS_PICK}
+                    </Button>
+                  )}
                 </div>
 
                 {/* Screenshots */}

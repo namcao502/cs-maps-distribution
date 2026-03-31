@@ -13,7 +13,7 @@ export async function GET() {
           : [],
       }))
     )
-    return NextResponse.json(resolved, { headers: { 'Cache-Control': 'no-store' } })
+    return NextResponse.json(resolved, { headers: { 'Cache-Control': 'public, s-maxage=180, stale-while-revalidate=60' } })
   } catch (err) {
     console.error('[GET /api/maps]', err)
     return NextResponse.json({ error: 'Failed to load maps' }, { status: 500 })

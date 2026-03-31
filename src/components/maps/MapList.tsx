@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import type { MapEntry } from '@/types/map'
 import { MapCard } from '@/components/maps/MapCard'
 import { MapDetailModal } from '@/components/maps/MapDetailModal'
@@ -13,7 +13,7 @@ import { useNotifications } from '@/lib/auth/notification-context'
 import {
   STATUS_NO_MAPS, STATUS_NO_MAPS_FOUND, INFO_PICK_CS_FOLDER, BTN_PICK_THIS, INFO_FOLDER_EXAMPLE,
   INFO_YOUR_FOLDER, INFO_YOUR_FOLDER_LABEL, BTN_CHANGE, LABEL_INSTALL_COUNT, LABEL_SELECTED_COUNT,
-  BTN_INSTALL_ALL,
+  BTN_INSTALL_ALL, LABEL_DAILY_PICK,
 } from '@/lib/constants/messages'
 
 const CHEAT_CODES = [
@@ -59,10 +59,12 @@ export function MapList({
   maps,
   gameFolder,
   onPickFolder,
+  dailyPick = null,
 }: {
   maps: MapEntry[]
   gameFolder: FileSystemDirectoryHandle | null
   onPickFolder: () => Promise<void>
+  dailyPick?: { map: MapEntry; caption: string } | null
 }) {
   const { push } = useNotifications()
   const [query, setQuery] = useState('')
@@ -74,10 +76,13 @@ export function MapList({
   const [openDetailMap, setOpenDetailMap] = useState<MapEntry | null>(null)
   const [sortBy, setSortBy] = useState<'downloads' | 'name'>('downloads')
   const [selectMode, setSelectMode] = useState(false)
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
     if (!selectMode) setSelectedIds(new Set())
   }, [selectMode])
+
+  useEffect(() => { setPage(1) }, [query, activeTab, sortBy])
 
   const mapsRef = useRef(maps)
   useEffect(() => { mapsRef.current = maps }, [maps])
@@ -97,42 +102,42 @@ export function MapList({
     return () => { cancelled = true }
   }, [gameFolder])
 
-  function updateInstallStatus(id: string, status: InstallStatus | null) {
+  const updateInstallStatus = useCallback((id: string, status: InstallStatus | null) => {
     setInstallStatuses(prev => {
       const next = new Map(prev)
       next.set(id, status)
       return next
     })
-  }
+  }, [])
 
-  function toggleSelect(id: string) {
+  const toggleSelect = useCallback((id: string) => {
     setSelectedIds(prev => {
       const next = new Set(prev)
       next.has(id) ? next.delete(id) : next.add(id)
       return next
     })
-  }
+  }, [])
 
   function triggerBatchInstall() {
     setBatchTrigger(new Set(selectedIds))
     setSelectedIds(new Set())
   }
 
-  function clearBatchTrigger(id: string) {
+  const clearBatchTrigger = useCallback((id: string) => {
     setBatchTrigger(prev => {
       const next = new Set(prev)
       next.delete(id)
       return next
     })
-  }
+  }, [])
 
-  function handleInstalled() {
+  const handleInstalled = useCallback(() => {
     if (!gameFolder) return
     scanInstalledBsps(gameFolder).then(result => {
       setInstalledBsps(result)
       syncInstalledToLocalStorage(mapsRef.current, result)
     })
-  }
+  }, [gameFolder])
 
   async function handleModalInstall(map: MapEntry) {
     updateInstallStatus(map.id, { phase: 'downloading', progress: 0 })
@@ -182,15 +187,47 @@ export function MapList({
     }
   }
 
-  const filtered = maps.filter(m =>
-    (activeTab === 'all' || m.tags.includes(activeTab)) &&
-    m.originalName.toLowerCase().includes(query.toLowerCase())
+  const lowerQuery = useMemo(() => query.toLowerCase(), [query])
+
+  const filtered = useMemo(() =>
+    maps.filter(m =>
+      (activeTab === 'all' || m.tags.includes(activeTab)) &&
+      m.originalName.toLowerCase().includes(lowerQuery)
+    ),
+    [maps, activeTab, lowerQuery]
   )
 
-  const sorted = [...filtered].sort((a, b) =>
-    sortBy === 'name'
-      ? a.originalName.localeCompare(b.originalName)
-      : b.installCount - a.installCount
+  const sorted = useMemo(() =>
+    [...filtered].sort((a, b) =>
+      sortBy === 'name'
+        ? a.originalName.localeCompare(b.originalName)
+        : b.installCount - a.installCount
+    ),
+    [filtered, sortBy]
+  )
+
+  const pickPassesFilter = useMemo(() =>
+    dailyPick != null &&
+    (activeTab === 'all' || dailyPick.map.tags.includes(activeTab)) &&
+    dailyPick.map.originalName.toLowerCase().includes(lowerQuery),
+    [dailyPick, activeTab, lowerQuery]
+  )
+
+  const displayMaps = useMemo(() => {
+    if (!pickPassesFilter || !dailyPick) return sorted
+    return [dailyPick.map, ...sorted.filter(m => m.id !== dailyPick.map.id)]
+  }, [pickPassesFilter, dailyPick, sorted])
+
+  const PAGE_SIZE = 10
+  const totalPages = Math.ceil(displayMaps.length / PAGE_SIZE)
+  const pagedMaps = useMemo(() =>
+    displayMaps.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [displayMaps, page]
+  )
+
+  const installedCount = useMemo(() =>
+    filtered.filter(m => isBspInstalled(m.originalName, installedBsps) || isInstalledLocally(m.id)).length,
+    [filtered, installedBsps]
   )
 
   if (maps.length === 0) {
@@ -298,10 +335,7 @@ export function MapList({
 
       <div className="flex items-center gap-4 px-1 py-1.5 text-xs font-mono text-[var(--text-muted)]">
         <span className="text-[var(--accent-green)]">
-          {LABEL_INSTALL_COUNT(
-            filtered.filter(m => isBspInstalled(m.originalName, installedBsps) || isInstalledLocally(m.id)).length,
-            filtered.length
-          )}
+          {LABEL_INSTALL_COUNT(installedCount, filtered.length)}
         </span>
         <button
           onClick={() => setSelectMode(s => !s)}
@@ -321,28 +355,57 @@ export function MapList({
           </span>
         )}
       </div>
-      {filtered.length === 0 ? (
+      {displayMaps.length === 0 ? (
         <p className="text-[var(--text-muted)] text-center py-12">{STATUS_NO_MAPS_FOUND}</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-[10px]">
-          {sorted.map((map, i) => (
-            <MapCard
-              key={map.id}
-              map={map}
-              gameFolder={gameFolder}
-              onPickFolder={onPickFolder}
-              installedBsps={installedBsps}
-              onInstalled={handleInstalled}
-              onOpenDetail={map => setOpenDetailMap(map)}
-              selected={selectedIds.has(map.id)}
-              onToggleSelect={selectMode ? () => toggleSelect(map.id) : undefined}
-              autoInstall={batchTrigger.has(map.id)}
-              onBatchTriggered={() => clearBatchTrigger(map.id)}
-              installStatus={installStatuses.get(map.id) ?? null}
-              onInstallStatusChange={updateInstallStatus}
-              priority={i < 5}
-            />
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[10px]">
+          {pagedMaps.map((map, i) => {
+            const isPick = pickPassesFilter && map.id === dailyPick!.map.id
+            return (
+              <div key={map.id} className={isPick ? 'col-span-full' : ''}>
+                <MapCard
+                  map={map}
+                  gameFolder={gameFolder}
+                  onPickFolder={onPickFolder}
+                  installedBsps={installedBsps}
+                  onInstalled={handleInstalled}
+                  onOpenDetail={setOpenDetailMap}
+                  selected={selectedIds.has(map.id)}
+                  onToggleSelect={selectMode ? () => toggleSelect(map.id) : undefined}
+                  autoInstall={batchTrigger.has(map.id)}
+                  onBatchTriggered={() => clearBatchTrigger(map.id)}
+                  installStatus={installStatuses.get(map.id) ?? null}
+                  onInstallStatusChange={updateInstallStatus}
+                  priority={i < 5}
+                  badge={isPick ? LABEL_DAILY_PICK : undefined}
+                  caption={isPick ? dailyPick!.caption : undefined}
+                  featured={isPick}
+                />
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-3 py-1.5 rounded text-xs font-mono border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            ← Prev
+          </button>
+          <span className="text-xs font-mono text-[var(--text-muted)]">
+            {page} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="px-3 py-1.5 rounded text-xs font-mono border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            Next →
+          </button>
         </div>
       )}
     </div>
