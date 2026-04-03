@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { getSessionUser, isAdmin } from '@/lib/auth/auth'
 import { ERR_UNAUTHORIZED } from '@/lib/constants/messages'
 import { updateMapHidden } from '@/lib/maps/maps-store'
@@ -14,6 +15,7 @@ export async function PATCH(
   const { hidden } = await req.json()
   try {
     await updateMapHidden(id, !!hidden)
+    revalidatePath('/api/maps')
     return NextResponse.json({ ok: true })
   } catch {
     return NextResponse.json({ error: 'Failed to update map' }, { status: 500 })
