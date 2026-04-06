@@ -1,9 +1,9 @@
 # Changelog
 
-## Unreleased
+## 2026-04-06
 
 ### Added
-- **Launch CS button**: Windows-only split-button in the site header that launches Counter-Strike 1.6 directly from the browser via a custom `cs://` URI scheme. Includes a one-time PowerShell setup script (`public/setup-cs-launch.ps1`) that opens a file picker, registers the URI scheme in the Windows registry with the correct working directory, and a 3-step setup modal with reconfigure support.
+- **Launch CS button**: Windows-only split-button in the site header that launches Counter-Strike 1.6 directly from the browser via a custom `cs://` URI scheme. Includes a one-time PowerShell setup script that opens a file picker, registers the URI scheme in the Windows registry with the correct working directory (`cmd /c` wrapper), and a 3-step setup modal with reconfigure support via a gear icon.
 
 ### Fixed
 - Persist `SiteHeader` in root layout to eliminate auth flicker on navigation.
@@ -18,112 +18,98 @@
 
 ---
 
-## 2026-03-20 — UI/UX Audit
+## 2026-03-30
 
 ### Fixed
-- Accessibility improvements: focus management, ARIA labels, motion preferences.
-- Admin submit guard to prevent duplicate submissions.
+- LCP image preloading, auth sign-in flow, and route protection.
 
 ---
 
-## 2026-03-17 — Security Audit
-
-### Fixed
-- Auth hardening, atomic writes, XSS prevention, storage validation.
-
----
-
-## 2026-03-15 — Gaming Dark Redesign
+## 2026-03-27 -- UI/UX Polish
 
 ### Added
-- Gaming dark theme with CSS custom property tokens (`--bg-base`, `--accent-cyan`, `--accent-orange`, etc.) defined in `globals.css`.
-- Single-column mobile layout with taller thumbnails.
-- Sort controls and batch select toggle on map list.
-- Improved `SearchInput` with clear button and accent border.
 - `MapCard` hover lift, install icon, image placeholders, and accessibility fixes.
+- Improved `SearchInput` with clear button and accent border.
+- Sort controls and discoverable batch select toggle on map list.
+- Single-column mobile layout with taller thumbnails.
 - Crosshair icon in site header logo.
 
-### Removed
-- `ThemeProvider` and `ProgressModal` replaced by gaming dark tokens.
+### Fixed
+- `MapDetailModal` accessibility and replaced `img` with `next/image`.
+- Skeleton grid loading state on main page.
+- Button hover feedback and auto-collapse folder picker when folder is set.
+- Loading spinner for initial screenshot in `MapDetailModal`.
+- Jest config works correctly from both project root and worktrees.
 
 ---
 
-## 2026-03-10 — Admin Dashboard & UI Primitives
+## 2026-03-26
 
 ### Added
-- Admin dashboard with stats cards, top maps, and activity feed.
-- UI primitive components: `Button`, `Modal`, `Spinner`, `Badge`, `Card`, `StatusBadge`.
-- `GET /api/admin/stats` route.
+- Test suite expanded to 96% statement coverage.
+- Toast notifications wired across all user actions.
 
 ### Changed
-- All components migrated to UI primitives and gaming dark design tokens.
+- Theme lightened; admin UX polished.
 
 ---
 
-## 2026-03-05 — Installed Map Sync & Notifications
+## 2026-03-25 -- Gaming Dark Redesign & Screenshots
 
 ### Added
-- Sync installed BSPs to localStorage after folder scan (`syncInstalledToLocalStorage`).
-- Toast notification system (`NotificationProvider`).
-- Admin ability to hide/show maps.
-- Map reorder (up/down) in admin with `POST /api/admin/maps/reorder`.
+- Gaming dark theme with CSS custom property tokens (`--bg-base`, `--accent-cyan`, `--accent-orange`, etc.).
+- `MapDetailModal` with screenshot gallery and install stepper (4 phases, progress bar).
+- Screenshot upload/delete API routes and admin upload form section.
+- `screenshotKeys` field on `MapEntry`.
+- `MapList` stats bar, sort, and single-select tag filter.
+- `MapCard` rewritten with rich thumbnail, gaming dark states, and inline install progress.
+- UI/UX improvements across admin, map list, and submit pages.
+- All UI strings extracted to `constants/messages.ts`.
+
+### Changed
+- `ThemeProvider` and `ProgressModal` removed; replaced by gaming dark tokens.
+- Tags updated to `FILTER_TABS`/`tabToTag` for single-select gaming dark nav.
 
 ---
 
-## 2026-02-28 — Tags, Packs & Counts
+## 2026-03-24 -- Design System, Admin Dashboard & Map Reorder
 
 ### Added
+- UI primitive components: `Button`, `Modal`, `Spinner`, `Badge`, `Card`, `StatusBadge`.
+- Admin dashboard with stats cards, top maps, and activity feed (`GET /api/admin/stats`).
+- Map reorder (up/down buttons) in admin with `POST /api/admin/maps/reorder`.
+- `syncInstalledToLocalStorage` to persist BSP scan results across sessions.
+- Notification panel auto-dismiss after 3s, fixed to right side.
+
+### Changed
+- All components migrated to UI primitives.
+- Lib files reorganized into feature folders (`maps/`, `auth/`, `submissions/`).
+
+---
+
+## 2026-03-23 -- Theme, Search, BSP Detection, Tags, Packs & Counts
+
+### Added
+- Light/dark/system theme toggle with localStorage persistence.
+- Client-side map search with `SearchInput`.
+- BSP install detection: scans `cstrike/maps/` folder and matches installed maps by prefix.
+- Folder tree guide and persistent folder picker with "Change" option.
+- Avatar dropdown menu with admin/user context-aware nav and sign-out.
+- Download and install counters (`downloadCount`, `installCount`) on map cards and admin list.
 - Tags and categories: admin assign/edit, user filter chips, map card pills.
 - Map packs: admin create/delete, public `PackSection` with Install All and Pick & Install.
-- Download and install counters (`downloadCount`, `installCount`) on map cards and admin list.
 - Batch install with always-visible checkboxes and parallel install.
 
 ---
 
-## 2026-02-20 — Community Submissions
+## 2026-03-22 -- Initial Release
 
 ### Added
+- Core map browsing and install pipeline: presigned URL download, SHA256 verify, extract (ZIP/7Z/RAR), detect archive structure (`game-root` / `cs-subfolder` / `bare-files`), write to `cstrike/maps/` via File System Access API.
+- Admin upload and map management page.
 - Community upload flow: Google sign-in via Firebase Auth, submission queue in Firestore, admin review (approve/reject).
-- `AuthButton` with Google sign-in/out and avatar dropdown.
+- `AuthButton` with Google sign-in/out.
 - User submissions page (`/submissions`) with delete own submission.
-- Admin pending queue with approve/reject actions.
-
----
-
-## 2026-02-10 — Theme, Search & BSP Detection
-
-### Added
-- Light/dark/system theme toggle persisted to localStorage.
-- Client-side map search with `SearchInput`.
-- BSP install detection: scans `cstrike/maps/` folder and matches installed maps by prefix.
-
----
-
-## 2026-02-01 — Storage Migration
-
-### Changed
-- Migrated storage backend to **Supabase Storage** for binary files (archives, screenshots).
-- Migrated database to **Firebase Firestore** for map metadata and submissions.
-- Migrated auth to **Firebase Auth** (Google OAuth popup).
-
----
-
-## 2026-01-25 — Screenshot Gallery & Install Stepper
-
-### Added
-- `MapDetailModal` with screenshot gallery and install stepper.
-- `InstallStepper` component with 4 phases and progress bar.
-- Screenshot upload/delete API routes and admin upload form section.
-- `screenshotKeys` field on `MapEntry`.
-
----
-
-## 2026-01-15 — Initial Release
-
-### Added
-- Core map browsing and install pipeline: presigned URL download, SHA256 verify, extract (ZIP/7Z/RAR), detect archive structure, write to `cstrike/maps/` via File System Access API.
-- Admin upload page with map management.
-- Archive structure detector (`game-root` / `cs-subfolder` / `bare-files`).
-- Client-side extractors for ZIP, 7Z, and RAR.
-- All API routes: maps, auth, upload, download, delete.
-- Firebase/Supabase dual-backend storage architecture.
+- All API routes: maps, auth, upload, download, delete, submit, admin review.
+- Firebase Firestore for map metadata and submissions; Supabase Storage for binary files.
+- Archive structure detector and client-side extractors for ZIP, 7Z, and RAR.
