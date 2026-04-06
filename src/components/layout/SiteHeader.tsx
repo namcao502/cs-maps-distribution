@@ -1,6 +1,7 @@
 'use client'
 import { AuthButton } from '@/components/submissions/AuthButton'
 import { NotificationBell } from '@/components/layout/NotificationBell'
+import { LaunchButton } from '@/components/layout/LaunchButton'
 import { INFO_SITE_TITLE, BTN_SUBMIT_MAP } from '@/lib/constants/messages'
 
 export function SiteHeader() {
@@ -32,6 +33,8 @@ export function SiteHeader() {
         </a>
 
         <div className="flex-1" />
+
+        <LaunchButton />
 
         {/* Submit link */}
         <a

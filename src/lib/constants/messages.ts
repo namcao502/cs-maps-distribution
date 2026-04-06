@@ -138,3 +138,9 @@ export const BTN_CONFIRM_PICK = 'Set'
 export const BTN_REPLACE_PICK = 'Replace'
 export const INFO_CAPTION_PLACEHOLDER = 'Add a caption (optional)…'
 export const ERR_SET_PICK_FAILED = 'Failed to set daily pick'
+
+// Launch CS
+export const BTN_LAUNCH_CS = 'Launch CS'
+export const BTN_DONE_RAN_IT = 'Done, I ran it'
+export const LABEL_SETUP_LAUNCH = 'Setup Game Launch'
+export const LABEL_RECONFIGURE_LAUNCH = 'Reconfigure Game Launch'

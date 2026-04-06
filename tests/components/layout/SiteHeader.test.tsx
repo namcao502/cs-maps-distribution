@@ -11,6 +11,7 @@ jest.mock('firebase/auth', () => ({
 }))
 jest.mock('@/components/layout/NotificationBell', () => ({ NotificationBell: () => null }))
 jest.mock('@/components/submissions/AuthButton', () => ({ AuthButton: () => null }))
+jest.mock('@/components/layout/LaunchButton', () => ({ LaunchButton: () => null }))
 
 test('renders logo', () => {
   render(<SiteHeader />)
