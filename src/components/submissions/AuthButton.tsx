@@ -30,11 +30,12 @@ export function AuthButton({ adminEmail }: { adminEmail: string }) {
     try {
       const result = await signInWithPopup(auth, provider, browserPopupRedirectResolver)
       const idToken = await result.user.getIdToken()
-      await fetch('/api/auth/session', {
+      const res = await fetch('/api/auth/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idToken }),
       })
+      if (!res.ok) throw new Error('Session creation failed')
       window.location.reload()
     } catch {
       push(MSG_SIGN_IN_FAILED, 'error')

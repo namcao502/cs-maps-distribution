@@ -4,7 +4,6 @@ import { MapList } from '@/components/maps/MapList'
 import type { MapEntry } from '@/types/map'
 import { isFileSystemAccessSupported, pickGameFolder, validateGameFolder } from '@/lib/maps/install'
 import { saveHandle, loadHandle } from '@/lib/maps/folder-store'
-import { SiteHeader } from '@/components/layout/SiteHeader'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { INFO_NO_BROWSER_INSTALL, INFO_SELECT_CS_FOLDER, INFO_WRONG_CS_FOLDER } from '@/lib/constants/messages'
 
@@ -71,7 +70,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-base)]">
-      <SiteHeader />
       <main className="max-w-7xl mx-auto px-4 py-4">
         {!supportsFileApi && (
           <div className="mb-6 px-4 py-3 bg-[var(--bg-surface)] border border-[var(--accent-orange)] rounded-lg text-sm text-[var(--accent-orange)]">

@@ -5,7 +5,6 @@ import { getFirebaseAuth } from '@/lib/auth/firebase-client'
 import { UploadForm } from '@/components/admin/UploadForm'
 import { AdminMapList } from '@/components/maps/AdminMapList'
 import { PendingQueue } from '@/components/submissions/PendingQueue'
-import { SiteHeader } from '@/components/layout/SiteHeader'
 import { AdminDashboard } from '@/components/admin/AdminDashboard'
 import type { MapEntry } from '@/types/map'
 import { BTN_HOME, STATUS_LOADING, STATUS_ACCESS_DENIED, LABEL_UPLOAD_MAP, LABEL_MAP_LIST, LABEL_DASHBOARD } from '@/lib/constants/messages'
@@ -40,8 +39,6 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-base)]">
-      <SiteHeader />
-
       <main className="max-w-2xl mx-auto px-4 py-8">
         <a href="/" className="inline-flex items-center gap-1.5 text-xs font-mono text-[var(--text-muted)] hover:text-[var(--accent-cyan)] mb-6 transition-colors">
           {BTN_HOME}
