@@ -1,110 +1,115 @@
-import { createClient } from '@supabase/supabase-js'
+import { getAdminStorage } from '@/lib/auth/firebase-admin'
 import { putObject, deleteObject, getPresignedUrl, getObjectBuffer } from '@/lib/storage/storage'
 
-jest.mock('@supabase/supabase-js')
+jest.mock('@/lib/auth/firebase-admin')
+
+const mockFile = {
+  save: jest.fn(),
+  delete: jest.fn(),
+  getSignedUrl: jest.fn(),
+  download: jest.fn(),
+}
 
 const mockBucket = {
-  upload: jest.fn(),
-  remove: jest.fn(),
-  createSignedUrl: jest.fn(),
-  download: jest.fn(),
+  file: jest.fn().mockReturnValue(mockFile),
 }
 
 beforeEach(() => {
   jest.clearAllMocks()
-  process.env.SUPABASE_URL = 'https://test.supabase.co'
-  process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-key'
-  process.env.SUPABASE_BUCKET_NAME = 'cs-maps'
-  ;(createClient as jest.Mock).mockReturnValue({
-    storage: { from: jest.fn().mockReturnValue(mockBucket) },
+  ;(getAdminStorage as jest.Mock).mockReturnValue({
+    bucket: jest.fn().mockReturnValue(mockBucket),
   })
 })
 
 describe('putObject', () => {
-  it('uploads successfully', async () => {
-    mockBucket.upload.mockResolvedValue({ error: null })
+  it('saves buffer with content type', async () => {
+    mockFile.save.mockResolvedValue(undefined)
     await putObject('archives/test.zip', Buffer.from('data'), 'application/zip')
-    expect(mockBucket.upload).toHaveBeenCalledWith(
-      'archives/test.zip',
-      expect.any(Blob),
-      expect.objectContaining({ contentType: 'application/zip', upsert: true })
+    expect(mockBucket.file).toHaveBeenCalledWith('archives/test.zip')
+    expect(mockFile.save).toHaveBeenCalledWith(
+      Buffer.from('data'),
+      { metadata: { contentType: 'application/zip' } }
     )
   })
 
   it('uses default content type', async () => {
-    mockBucket.upload.mockResolvedValue({ error: null })
+    mockFile.save.mockResolvedValue(undefined)
     await putObject('key', Buffer.from(''))
-    expect(mockBucket.upload).toHaveBeenCalledWith(
-      'key',
-      expect.any(Blob),
-      expect.objectContaining({ contentType: 'application/octet-stream' })
+    expect(mockFile.save).toHaveBeenCalledWith(
+      expect.any(Buffer),
+      { metadata: { contentType: 'application/octet-stream' } }
     )
   })
 
-  it('throws on upload error', async () => {
-    const err = new Error('Upload failed')
-    mockBucket.upload.mockResolvedValue({ error: err })
+  it('throws if save throws', async () => {
+    mockFile.save.mockRejectedValue(new Error('Upload failed'))
     await expect(putObject('bad', Buffer.from(''))).rejects.toThrow('Upload failed')
   })
 })
 
 describe('deleteObject', () => {
-  it('deletes successfully', async () => {
-    mockBucket.remove.mockResolvedValue({ error: null })
+  it('deletes the file', async () => {
+    mockFile.delete.mockResolvedValue(undefined)
     await deleteObject('archives/test.zip')
-    expect(mockBucket.remove).toHaveBeenCalledWith(['archives/test.zip'])
+    expect(mockBucket.file).toHaveBeenCalledWith('archives/test.zip')
+    expect(mockFile.delete).toHaveBeenCalled()
   })
 
-  it('throws on delete error', async () => {
-    const err = new Error('Delete failed')
-    mockBucket.remove.mockResolvedValue({ error: err })
+  it('throws if delete throws', async () => {
+    mockFile.delete.mockRejectedValue(new Error('Delete failed'))
     await expect(deleteObject('bad')).rejects.toThrow('Delete failed')
   })
 })
 
 describe('getPresignedUrl', () => {
   it('returns signed URL', async () => {
-    mockBucket.createSignedUrl.mockResolvedValue({
-      data: { signedUrl: 'https://example.com/signed' },
-      error: null,
-    })
+    mockFile.getSignedUrl.mockResolvedValue(['https://example.com/signed'])
     const url = await getPresignedUrl('archives/test.zip')
     expect(url).toBe('https://example.com/signed')
-    expect(mockBucket.createSignedUrl).toHaveBeenCalledWith('archives/test.zip', 900)
+    expect(mockFile.getSignedUrl).toHaveBeenCalledWith({
+      action: 'read',
+      expires: expect.any(Number),
+    })
+  })
+
+  it('default ttl is ~900 seconds from now', async () => {
+    mockFile.getSignedUrl.mockResolvedValue(['https://example.com/signed'])
+    const before = Date.now()
+    await getPresignedUrl('key')
+    const after = Date.now()
+    const { expires } = mockFile.getSignedUrl.mock.calls[0][0]
+    expect(expires).toBeGreaterThanOrEqual(before + 900 * 1000)
+    expect(expires).toBeLessThanOrEqual(after + 900 * 1000)
   })
 
   it('uses custom ttl', async () => {
-    mockBucket.createSignedUrl.mockResolvedValue({
-      data: { signedUrl: 'https://example.com/signed' },
-      error: null,
-    })
+    mockFile.getSignedUrl.mockResolvedValue(['https://example.com/signed'])
+    const before = Date.now()
     await getPresignedUrl('key', 3600)
-    expect(mockBucket.createSignedUrl).toHaveBeenCalledWith('key', 3600)
+    const after = Date.now()
+    const { expires } = mockFile.getSignedUrl.mock.calls[0][0]
+    expect(expires).toBeGreaterThanOrEqual(before + 3600 * 1000)
+    expect(expires).toBeLessThanOrEqual(after + 3600 * 1000)
   })
 
-  it('throws on error', async () => {
-    mockBucket.createSignedUrl.mockResolvedValue({ data: null, error: new Error('Signing failed') })
-    await expect(getPresignedUrl('bad')).rejects.toThrow()
+  it('throws if getSignedUrl throws', async () => {
+    mockFile.getSignedUrl.mockRejectedValue(new Error('Signing failed'))
+    await expect(getPresignedUrl('bad')).rejects.toThrow('Signing failed')
   })
 })
 
 describe('getObjectBuffer', () => {
   it('returns ArrayBuffer on success', async () => {
-    const blob = new Blob(['hello world'])
-    mockBucket.download.mockResolvedValue({ data: blob, error: null })
+    const buf = Buffer.from('hello world')
+    mockFile.download.mockResolvedValue([buf])
     const result = await getObjectBuffer('archives/test.zip')
     expect(result).not.toBeNull()
+    expect(result).toBeInstanceOf(ArrayBuffer)
   })
 
-  it('returns null when error', async () => {
-    mockBucket.download.mockResolvedValue({ data: null, error: new Error('Not found') })
+  it('returns null if download throws', async () => {
+    mockFile.download.mockRejectedValue(new Error('Not found'))
     const result = await getObjectBuffer('missing')
-    expect(result).toBeNull()
-  })
-
-  it('returns null when data is null with no error', async () => {
-    mockBucket.download.mockResolvedValue({ data: null, error: null })
-    const result = await getObjectBuffer('empty')
     expect(result).toBeNull()
   })
 })

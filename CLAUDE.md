@@ -21,20 +21,34 @@ Tests live in `tests/` and use `ts-jest` with Node environment. Some test files 
 **What this is**: A web platform for browsing and installing Counter-Strike 1.6 map archives directly into the user's game folder via the browser's File System Access API.
 
 **Dual-backend storage**:
-- **Firestore** — map metadata (`maps` collection), submission queue (`submissions` collection)
+- **Firestore** — map metadata (`maps` collection), submission queue (`submissions` collection), config (`config` collection, e.g. `config/daily-pick`)
 - **Supabase** — binary files: `archives/{id}.{ext}`, `screenshots/{id}/{index}.jpg`, `submissions/{id}.{ext}`
 
 Server-side Firestore/Supabase access goes through `src/lib/auth/firebase-admin.ts` and Supabase server clients only. Browser code never touches admin credentials.
 
-**Auth split**: `src/lib/auth/firebase-client.ts` (browser SDK) vs `firebase-admin.ts` (server). Session cookie (`__session`) is set on sign-in and verified server-side via `getSessionUser()` in route handlers. Admin access is gated by email match against `NEXT_PUBLIC_ADMIN_EMAIL`.
+**Auth split**: `src/lib/auth/firebase-client.ts` (browser SDK) vs `firebase-admin.ts` (server). Session cookie (`__session`) is set on sign-in and verified server-side via `getSessionUser()` in `src/lib/auth/auth.ts`. Admin access is gated by email match against `ADMIN_GOOGLE_EMAIL` (server-only env var) via `isAdmin()` in the same file.
 
-**Install pipeline** (`src/lib/maps/`): presigned URL → download → SHA256 verify → extract (ZIP/7Z/RAR via `src/lib/extractors/`) → detect archive structure (`game-root` / `cs-subfolder` / `bare-files`) → write to `cstrike/maps/` via File System Access API. The selected folder handle is persisted to localStorage via `src/lib/maps/folder-store.ts`.
+**Middleware**: `src/proxy.ts` (Next.js 16 uses `proxy.ts`, not `middleware.ts`). Currently guards `/admin/:path*` — redirects to `/` if no valid session cookie.
 
-**Submission flow**: user uploads → `/api/submit` validates (format, SHA256 dedup) → stored as `pending` in Firestore. Admin reviews via `/api/admin/submissions/*`, approves/rejects, moves approved maps to `maps` collection.
+**Install pipeline** (`src/lib/maps/install.ts`): presigned URL → download → SHA256 verify (`src/lib/storage/hash.ts`) → extract (ZIP/7Z/RAR via `src/lib/extractors/`) → detect archive structure (`game-root` / `cs-subfolder` / `bare-files`) → write to `cstrike/maps/` via File System Access API. The selected folder handle is persisted to localStorage via `src/lib/maps/folder-store.ts`.
 
-**UI state**: no global state library. `NotificationProvider` (React Context) handles toasts. Everything else is local `useState` + direct `fetch()` calls in `useEffect`.
+**Submission flow**: user uploads via `/api/upload` → `/api/submit` validates (format, SHA256 dedup via `src/lib/submissions/validate-archive.ts`) → stored as `pending` in Firestore (`src/lib/submissions/submissions-store.ts`). Admin reviews via `/api/admin/submissions/*`, approves/rejects, moves approved maps to `maps` collection (`src/lib/maps/maps-store.ts`).
 
-**Env vars**: validated at startup in `src/instrumentation.ts`. Public vars (`NEXT_PUBLIC_*`) are safe for the browser; all `SUPABASE_*` and `FIREBASE_*` service-account vars are server-only. Check `src/lib/env.ts` for the full list.
+**Daily pick**: admin sets a featured map with caption via `/api/admin/daily-pick`. Stored in Firestore `config/daily-pick`, active for 48 hours. Retrieved via `/api/daily-pick` using `src/lib/maps/daily-pick-store.ts`. Displayed as a featured card on the browse page.
+
+**Launch CS**: `cs://` URI scheme integration. `src/lib/maps/launch-store.ts` persists a setup flag to localStorage. `LaunchButton` in `src/components/layout/` opens the URI; `LaunchSetupModal` guides first-time setup.
+
+**Map metadata** (`src/types/map.ts` `MapEntry`): `id`, `originalName`, `storageKey` (full path e.g. `archives/uuid.zip`), `format`, `size`, `sha256`, `uploadedAt`, `installCount`, `order` (for admin reorder), `tags` (string[]), `hidden` (boolean), `uploader`, `screenshotKeys`.
+
+**Admin features**: stats dashboard (`src/lib/admin/stats-store.ts`, `/api/admin/stats`), map reorder (`/api/admin/maps/reorder`), tag editing (`/api/admin/maps/[id]/tags`), hide/unhide (`/api/admin/maps/[id]/hidden`), daily pick management.
+
+**Tags**: whitelist defined in `src/lib/maps/tags.ts`. Applied per-map by admin.
+
+**UI state**: no global state library. `NotificationProvider` (React Context, `src/lib/auth/notification-context.tsx`) handles toasts. Everything else is local `useState` + direct `fetch()` calls in `useEffect`.
+
+**Layout components**: `src/components/layout/` — `SiteHeader.tsx`, `LaunchButton.tsx`, `NotificationBell.tsx`, `ToastContainer.tsx`.
+
+**Env vars**: validated at startup in `src/instrumentation.ts`. Public vars (`NEXT_PUBLIC_*`) are safe for the browser; `SUPABASE_*`, `FIREBASE_*`, and `ADMIN_GOOGLE_EMAIL` are server-only. Check `src/lib/env.ts` for the full list.
 
 **CSS**: Tailwind v4 via PostCSS. Theme tokens defined as CSS custom properties in `src/app/globals.css` (`--bg-base`, `--accent-cyan`, `--accent-orange`, etc.). Use these tokens rather than raw colors.
 

@@ -155,7 +155,7 @@ describe('getObjectBuffer', () => {
 npx jest tests/lib/storage/storage.test.ts
 ```
 
-Expected: all tests fail with errors like `Cannot find module '@supabase/supabase-js'` or mock mismatch errors. This confirms the tests are now targeting the new implementation.
+Expected: all tests fail. The implementation still calls Supabase internally, so Firebase mock functions (`mockFile.save`, `mockFile.delete`, etc.) are never invoked. Jest will report failures like `Expected mock function to have been called` or assertion mismatches. This confirms the tests are wired to the new interface before the implementation is swapped.
 
 ---
 
