@@ -140,15 +140,6 @@ npx tsx scripts/migrate-storage.ts
 
 ---
 
-## Prerequisites
-
-**Signed URL permission**: `getSignedUrl` via Firebase Admin requires the service account to have
-the `iam.serviceAccounts.signBlob` IAM role. Without it the call throws at runtime. Verify in
-Google Cloud Console: IAM > find the Firebase service account > confirm it has
-`Service Account Token Creator` role. If not, add it before deploying.
-
----
-
 ## Out of Scope
 
 - Migrating Firestore data (already on Firebase, no change)
