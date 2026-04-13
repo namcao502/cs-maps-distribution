@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-04-13
+
+### Changed
+- **Firebase Storage migration**: replaced Supabase Storage with Firebase Storage for all binary file hosting (`archives/`, `screenshots/`, `submissions/`). `@supabase/supabase-js` removed. `src/lib/storage/storage.ts` now uses `getAdminStorage()` from `firebase-admin.ts`. Requires `FIREBASE_STORAGE_BUCKET` env var; `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` no longer needed.
+
+---
+
 ## 2026-04-06
 
 ### Added
@@ -111,5 +118,5 @@
 - `AuthButton` with Google sign-in/out.
 - User submissions page (`/submissions`) with delete own submission.
 - All API routes: maps, auth, upload, download, delete, submit, admin review.
-- Firebase Firestore for map metadata and submissions; Supabase Storage for binary files.
+- Firebase Firestore for map metadata and submissions; Firebase Storage for binary files (originally Supabase Storage, migrated 2026-04-13).
 - Archive structure detector and client-side extractors for ZIP, 7Z, and RAR.
