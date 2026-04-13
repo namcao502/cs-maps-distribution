@@ -27,7 +27,7 @@ export async function getPresignedUrl(key: string, ttlSeconds = 900): Promise<st
 export async function getObjectBuffer(key: string): Promise<ArrayBuffer | null> {
   try {
     const [buffer] = await getBucket().file(key).download()
-    return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
+    return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer
   } catch {
     return null
   }
