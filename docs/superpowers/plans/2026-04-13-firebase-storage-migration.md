@@ -221,13 +221,6 @@ npm test
 
 Expected: all tests pass. If any test imports `@supabase/supabase-js` directly and fails, that is a problem to fix — but based on the codebase audit, only `storage.test.ts` uses Supabase mocks.
 
-- [ ] **Step 4: Commit**
-
-```bash
-git add src/lib/storage/storage.ts tests/lib/storage/storage.test.ts
-git commit -m "feat: replace Supabase storage with Firebase Admin Storage"
-```
-
 ---
 
 ## Task 3: Update `src/lib/env.ts`
@@ -261,13 +254,6 @@ The value is the bucket name from the Firebase Console — typically `your-proje
 
 ```
 FIREBASE_STORAGE_BUCKET=your-project-id.firebasestorage.app
-```
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add src/lib/env.ts
-git commit -m "chore: swap Supabase env vars for FIREBASE_STORAGE_BUCKET in required list"
 ```
 
 ---
@@ -375,13 +361,6 @@ main().catch(err => {
 })
 ```
 
-- [ ] **Step 2: Commit**
-
-```bash
-git add scripts/migrate-storage.ts
-git commit -m "chore: add one-off Supabase-to-Firebase storage migration script"
-```
-
 ---
 
 ## Task 5: Run the migration (operator step)
@@ -476,23 +455,13 @@ npm run build
 
 Expected: exits with code 0.
 
-- [ ] **Step 5: Commit**
-
-```bash
-git add package.json package-lock.json
-git commit -m "chore: remove @supabase/supabase-js dependency"
-```
-
 ---
 
 ## Task 7: Cleanup and env var housekeeping
 
-- [ ] **Step 1: Remove migration script**
+- [ ] **Step 1: Delete the migration script**
 
-```bash
-git rm scripts/migrate-storage.ts
-git commit -m "chore: delete one-off storage migration script"
-```
+Delete `scripts/migrate-storage.ts`.
 
 - [ ] **Step 2: Remove Supabase env vars from hosting**
 
